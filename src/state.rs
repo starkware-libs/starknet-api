@@ -4,132 +4,28 @@ mod state_test;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::mem;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::block::BlockNumber;
 use crate::core::{ClassHash, ContractAddress, EntryPointSelector, Nonce, PatriciaKey};
 use crate::hash::{StarkFelt, StarkHash};
+use crate::serde_utils::bytes_from_hex_str;
 use crate::StarknetApiError;
 
-/// The differences between two states in StarkNet.
+/// The differences between two states.
 // Invariant: Addresses are strictly increasing.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StateDiff {
-    deployed_contracts: Vec<DeployedContract>,
-    storage_diffs: Vec<StorageDiff>,
-    declared_classes: Vec<DeclaredContract>,
-    nonces: Vec<ContractNonce>,
+    pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
+    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    pub declared_classes: IndexMap<ClassHash, ContractClass>,
+    pub nonces: IndexMap<ContractAddress, Nonce>,
 }
 
-impl StateDiff {
-    pub fn new(
-        mut deployed_contracts: Vec<DeployedContract>,
-        mut storage_diffs: Vec<StorageDiff>,
-        mut declared_contracts: Vec<DeclaredContract>,
-        mut nonces: Vec<ContractNonce>,
-    ) -> Result<Self, StarknetApiError> {
-        deployed_contracts.sort_unstable_by_key(|dc| dc.address);
-        storage_diffs.sort_unstable_by_key(|sd| sd.address);
-        declared_contracts.sort_unstable_by_key(|dc| dc.class_hash);
-        nonces.sort_unstable_by_key(|n| n.contract_address);
-
-        if !is_unique(&deployed_contracts, |dc| &dc.address) {
-            return Err(StarknetApiError::DuplicateInStateDiff {
-                object: "deployed_contracts".to_string(),
-            });
-        }
-
-        if !is_unique(&storage_diffs, |sd| &sd.address) {
-            return Err(StarknetApiError::DuplicateInStateDiff {
-                object: "storage_diffs".to_string(),
-            });
-        }
-
-        if !is_unique(&declared_contracts, |dc| &dc.class_hash) {
-            return Err(StarknetApiError::DuplicateInStateDiff {
-                object: "declared_contracts".to_string(),
-            });
-        }
-
-        // TODO: Once nonces are implemented, verify their uniqueness.
-
-        Ok(Self { deployed_contracts, storage_diffs, declared_classes: declared_contracts, nonces })
-    }
-
-    pub fn deployed_contracts(&self) -> &[DeployedContract] {
-        &self.deployed_contracts
-    }
-
-    pub fn storage_diffs(&self) -> &[StorageDiff] {
-        &self.storage_diffs
-    }
-
-    pub fn declared_contracts(&self) -> &[DeclaredContract] {
-        &self.declared_classes
-    }
-
-    pub fn nonces(&self) -> &[ContractNonce] {
-        &self.nonces
-    }
-}
-
-type StateDiffAsTuple =
-    (Vec<DeployedContract>, Vec<StorageDiff>, Vec<DeclaredContract>, Vec<ContractNonce>);
-
-impl From<StateDiff> for StateDiffAsTuple {
-    fn from(diff: StateDiff) -> StateDiffAsTuple {
-        (diff.deployed_contracts, diff.storage_diffs, diff.declared_classes, diff.nonces)
-    }
-}
-
-/// The nonce of a StarkNet contract.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct ContractNonce {
-    pub contract_address: ContractAddress,
-    pub nonce: Nonce,
-}
-
-/// A deployed contract in StarkNet.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeployedContract {
-    pub address: ContractAddress,
-    pub class_hash: ClassHash,
-}
-
-/// A declared contract in StarkNet.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
-pub struct DeclaredContract {
-    pub class_hash: ClassHash,
-    pub contract_class: ContractClass,
-}
-
-/// Storage differences in StarkNet.
-// Invariant: Storage keys are strictly increasing. In particular, no key appears twice.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct StorageDiff {
-    pub address: ContractAddress,
-    storage_entries: Vec<StorageEntry>,
-}
-
-impl StorageDiff {
-    pub fn new(
-        address: ContractAddress,
-        mut storage_entries: Vec<StorageEntry>,
-    ) -> Result<Self, StarknetApiError> {
-        storage_entries.sort_unstable_by_key(|se| se.key);
-        if !is_unique(storage_entries.as_slice(), |se| &se.key) {
-            return Err(StarknetApiError::DuplicateStorageEntry);
-        }
-        Ok(Self { address, storage_entries })
-    }
-
-    pub fn storage_entries(&self) -> &[StorageEntry] {
-        &self.storage_entries
-    }
-}
-
-/// The sequential numbering of the states between blocks in StarkNet.
+/// The sequential numbering of the states between blocks.
 // Example:
 // States: S0       S1       S2
 // Blocks      B0->     B1->
@@ -162,16 +58,18 @@ impl StateNumber {
     }
 }
 
-/// A contract class in StarkNet.
+/// A contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ContractClass {
     pub abi: Option<Vec<ContractClassAbiEntry>>,
     pub program: Program,
     /// The selector of each entry point is a unique identifier in the program.
+    // TODO: Consider changing to IndexMap, since this is used for computing the
+    // class hash.
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
 }
 
-/// An entry point type of a contract in StarkNet.
+/// An entry point type of a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 #[serde(deny_unknown_fields)]
 pub enum EntryPointType {
@@ -192,25 +90,44 @@ impl Default for EntryPointType {
     }
 }
 
-/// An entry point of a contract in StarkNet.
+/// An entry point of a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct EntryPoint {
     pub selector: EntryPointSelector,
     pub offset: EntryPointOffset,
 }
 
-/// The offset of an entry point in StarkNet.
+/// The offset of an [EntryPoint](`crate::state::EntryPoint`).
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct EntryPointOffset(pub StarkFelt);
+#[serde(try_from = "String", into = "String")]
+pub struct EntryPointOffset(pub usize);
 
-/// A program corresponding to a contract class in StarkNet.
+impl TryFrom<String> for EntryPointOffset {
+    type Error = StarknetApiError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        const SIZE_OF_USIZE: usize = mem::size_of::<usize>();
+        let bytes = bytes_from_hex_str::<SIZE_OF_USIZE, true>(value.as_str())?;
+        Ok(Self(usize::from_be_bytes(bytes)))
+    }
+}
+
+impl From<EntryPointOffset> for String {
+    fn from(value: EntryPointOffset) -> Self {
+        format!("0x{:x}", value.0)
+    }
+}
+
+/// A program corresponding to a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Program {
     #[serde(default)]
     pub attributes: serde_json::Value,
     pub builtins: serde_json::Value,
+    #[serde(default)]
+    pub compiler_version: serde_json::Value,
     pub data: serde_json::Value,
     pub debug_info: serde_json::Value,
     pub hints: serde_json::Value,
@@ -220,7 +137,7 @@ pub struct Program {
     pub reference_manager: serde_json::Value,
 }
 
-/// A contract class abi entry in StarkNet.
+/// A [ContractClass](`crate::state::ContractClass`) abi entry.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]
@@ -233,7 +150,7 @@ pub enum ContractClassAbiEntry {
     Struct(StructAbiEntry),
 }
 
-/// An event abi entry in StarkNet.
+/// An event abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct EventAbiEntry {
     pub name: String,
@@ -241,7 +158,7 @@ pub struct EventAbiEntry {
     pub data: Vec<TypedParameter>,
 }
 
-/// A function abi entry with type in StarkNet.
+/// A function abi entry with type.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct FunctionAbiEntryWithType {
     pub r#type: FunctionAbiEntryType,
@@ -249,7 +166,7 @@ pub struct FunctionAbiEntryWithType {
     pub entry: FunctionAbiEntry,
 }
 
-/// A function abi entry type in StarkNet.
+/// A function abi entry type.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum FunctionAbiEntryType {
     #[serde(rename = "constructor")]
@@ -266,7 +183,7 @@ impl Default for FunctionAbiEntryType {
     }
 }
 
-/// A function abi entry in StarkNet.
+/// A function abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct FunctionAbiEntry {
     pub name: String,
@@ -274,7 +191,7 @@ pub struct FunctionAbiEntry {
     pub outputs: Vec<TypedParameter>,
 }
 
-/// A struct abi entry in StarkNet.
+/// A struct abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StructAbiEntry {
     pub name: String,
@@ -282,6 +199,7 @@ pub struct StructAbiEntry {
     pub members: Vec<StructMember>,
 }
 
+/// A struct member for [StructAbiEntry](`crate::state::StructAbiEntry`).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StructMember {
     #[serde(flatten)]
@@ -295,37 +213,16 @@ pub struct TypedParameter {
     pub r#type: String,
 }
 
-/// A storage key in a StarkNet contract.
+/// A storage key in a contract.
 #[derive(
     Debug, Default, Clone, Copy, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct StorageKey(PatriciaKey);
-
-impl StorageKey {
-    pub fn key(&self) -> &PatriciaKey {
-        &self.0
-    }
-}
+pub struct StorageKey(pub PatriciaKey);
 
 impl TryFrom<StarkHash> for StorageKey {
     type Error = StarknetApiError;
 
     fn try_from(val: StarkHash) -> Result<Self, Self::Error> {
-        Ok(Self(PatriciaKey::new(val)?))
+        Ok(Self(PatriciaKey::try_from(val)?))
     }
-}
-
-/// A storage entry in a StarkNet contract.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct StorageEntry {
-    pub key: StorageKey,
-    pub value: StarkFelt,
-}
-
-fn is_unique<T, B, F>(sorted: &[T], f: F) -> bool
-where
-    F: Fn(&T) -> &B,
-    B: PartialEq,
-{
-    sorted.windows(2).all(|w| f(&w[0]) != f(&w[1]))
 }
