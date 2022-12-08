@@ -72,6 +72,7 @@ pub struct ContractClass {
 /// An entry point type of a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 #[serde(deny_unknown_fields)]
+#[cfg_attr(feature = "testing", derive(variant_count::VariantCount))]
 pub enum EntryPointType {
     /// A constructor entry point.
     #[serde(rename = "CONSTRUCTOR")]
@@ -141,6 +142,7 @@ pub struct Program {
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]
+#[cfg_attr(feature = "testing", derive(variant_count::VariantCount))]
 pub enum ContractClassAbiEntry {
     /// An event abi entry.
     Event(EventAbiEntry),
@@ -168,6 +170,7 @@ pub struct FunctionAbiEntryWithType {
 
 /// A function abi entry type.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[cfg_attr(feature = "testing", derive(variant_count::VariantCount))]
 pub enum FunctionAbiEntryType {
     #[serde(rename = "constructor")]
     Constructor,
