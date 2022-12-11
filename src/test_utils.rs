@@ -26,6 +26,84 @@ use crate::transaction::{
 };
 use crate::{patky, shash};
 
+// Returns a test block with a variable number of transactions and events.
+pub fn get_test_block_with_many_txs_and_events(
+    transaction_count: usize,
+    events_per_tx: usize,
+    from_addresses: Option<Vec<ContractAddress>>,
+    keys: Option<Vec<Vec<EventKey>>>,
+) -> Block {
+    Block {
+        header: BlockHeader::get_test_instance(),
+        body: get_test_block_body_with_many_txs_and_events(
+            transaction_count,
+            events_per_tx,
+            from_addresses,
+            keys,
+        ),
+    }
+}
+
+// Returns a test block body with a variable number of transactions and events.
+pub fn get_test_block_body_with_many_txs_and_events(
+    transaction_count: usize,
+    events_per_tx: usize,
+    from_addresses: Option<Vec<ContractAddress>>,
+    keys: Option<Vec<Vec<EventKey>>>,
+) -> BlockBody {
+    let mut body = get_test_block_body_with_many_txs(transaction_count);
+    let mut rng = rand::thread_rng();
+    for tx_output in &mut body.transaction_outputs {
+        let mut events = vec![];
+        for _ in 0..events_per_tx {
+            let from_address = if let Some(ref options) = from_addresses {
+                options[rng.gen_range(0..options.len())]
+            } else {
+                ContractAddress::get_test_instance()
+            };
+            let final_keys = if let Some(ref options) = keys {
+                let mut chosen_keys = vec![];
+                for options_per_i in options {
+                    let key = options_per_i[rng.gen_range(0..options_per_i.len())].clone();
+                    chosen_keys.push(key);
+                }
+                chosen_keys
+            } else {
+                vec![EventKey::get_test_instance()]
+            };
+            events.push(Event {
+                from_address,
+                content: EventContent { keys: final_keys, data: EventData::get_test_instance() },
+            });
+        }
+        tx_output.set_events(events);
+    }
+    body
+}
+
+// Returns a test block with a variable number of transactions.
+pub fn get_test_block_with_many_txs(transaction_count: usize) -> Block {
+    Block {
+        header: BlockHeader::get_test_instance(),
+        body: get_test_block_body_with_many_txs(transaction_count),
+    }
+}
+
+// Returns a test block body with a variable number of transactions.
+pub fn get_test_block_body_with_many_txs(transaction_count: usize) -> BlockBody {
+    let mut transactions = vec![];
+    let mut transaction_outputs = vec![];
+    for i in 0..transaction_count {
+        let mut transaction = Transaction::get_test_instance();
+        transaction.set_transaction_hash(TransactionHash(StarkHash::from(i as u64)));
+        let transaction_output = get_test_transaction_output(&transaction);
+        transactions.push(transaction);
+        transaction_outputs.push(transaction_output);
+    }
+
+    BlockBody { transactions, transaction_outputs }
+}
+
 pub trait GetTestInstance: Sized {
     fn get_test_instance() -> Self;
 }

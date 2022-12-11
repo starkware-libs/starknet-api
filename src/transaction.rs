@@ -32,6 +32,17 @@ impl Transaction {
             Transaction::L1Handler(tx) => tx.transaction_hash,
         }
     }
+
+    #[cfg(feature = "testing")]
+    pub fn set_transaction_hash(&mut self, hash: TransactionHash) {
+        match self {
+            Transaction::Declare(tx) => tx.transaction_hash = hash,
+            Transaction::Deploy(tx) => tx.transaction_hash = hash,
+            Transaction::DeployAccount(tx) => tx.transaction_hash = hash,
+            Transaction::Invoke(tx) => tx.transaction_hash = hash,
+            Transaction::L1Handler(tx) => tx.transaction_hash = hash,
+        }
+    }
 }
 
 /// A transaction output.
@@ -68,6 +79,17 @@ impl TransactionOutput {
             TransactionOutput::DeployAccount(output) => &output.events,
             TransactionOutput::Invoke(output) => &output.events,
             TransactionOutput::L1Handler(output) => &output.events,
+        }
+    }
+
+    #[cfg(feature = "testing")]
+    pub fn set_events(&mut self, events: Vec<Event>) {
+        match self {
+            TransactionOutput::Declare(tx) => tx.events = events,
+            TransactionOutput::Deploy(tx) => tx.events = events,
+            TransactionOutput::DeployAccount(tx) => tx.events = events,
+            TransactionOutput::Invoke(tx) => tx.events = events,
+            TransactionOutput::L1Handler(tx) => tx.events = events,
         }
     }
 }
