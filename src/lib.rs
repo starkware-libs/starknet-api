@@ -7,6 +7,8 @@ pub mod core;
 pub mod hash;
 pub mod serde_utils;
 pub mod state;
+#[cfg(feature = "testing")]
+pub mod test_utils;
 pub mod transaction;
 
 use serde_utils::InnerDeserializationError;
