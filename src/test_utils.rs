@@ -6,14 +6,13 @@ use rand::Rng;
 
 use crate::block::{
     Block, BlockBody, BlockHash, BlockHeader, BlockNumber, BlockStatus, BlockTimestamp, GasPrice,
-    GlobalRoot,
 };
-use crate::core::{ClassHash, ContractAddress, EntryPointSelector, Nonce, PatriciaKey};
+use crate::core::{ClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce, PatriciaKey};
 use crate::hash::{StarkFelt, StarkHash};
 use crate::state::{
     ContractClass, ContractClassAbiEntry, EntryPoint, EntryPointOffset, EntryPointType,
     EventAbiEntry, FunctionAbiEntry, FunctionAbiEntryType, FunctionAbiEntryWithType, Program,
-    StateDiff, StorageKey, StructAbiEntry, StructMember, TypedParameter,
+    StateDiff, StateUpdate, StorageKey, StructAbiEntry, StructMember, TypedParameter,
 };
 use crate::transaction::{
     CallData, ContractAddressSalt, DeclareTransaction, DeclareTransactionOutput,
@@ -246,6 +245,19 @@ auto_impl_get_test_instance! {
         pub messages_sent: Vec<MessageToL1>,
         pub events: Vec<Event>,
     }
+    pub struct L1HandlerTransaction {
+        pub transaction_hash: TransactionHash,
+        pub version: TransactionVersion,
+        pub nonce: Nonce,
+        pub contract_address: ContractAddress,
+        pub entry_point_selector: EntryPointSelector,
+        pub calldata: CallData,
+    }
+    pub struct L1HandlerTransactionOutput {
+        pub actual_fee: Fee,
+        pub messages_sent: Vec<MessageToL1>,
+        pub events: Vec<Event>,
+    }
     pub struct L1ToL2Payload(pub Vec<StarkFelt>);
     pub struct L2ToL1Payload(pub Vec<StarkFelt>);
     pub struct MessageToL1 {
@@ -270,6 +282,18 @@ auto_impl_get_test_instance! {
         pub prime: serde_json::Value,
         pub reference_manager: serde_json::Value,
     }
+    pub struct StateUpdate {
+        pub block_hash: BlockHash,
+        pub new_root: GlobalRoot,
+        pub old_root: GlobalRoot,
+        pub state_diff: StateDiff,
+    }
+    pub struct StateDiff {
+        pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
+        pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+        pub declared_classes: IndexMap<ClassHash, ContractClass>,
+        pub nonces: IndexMap<ContractAddress, Nonce>,
+    }
     pub struct StructAbiEntry {
         pub name: String,
         pub size: usize,
@@ -278,29 +302,6 @@ auto_impl_get_test_instance! {
     pub struct StructMember {
         pub param: TypedParameter,
         pub offset: usize,
-    }
-    pub struct TypedParameter {
-        pub name: String,
-        pub r#type: String,
-    }
-    pub struct L1HandlerTransaction {
-        pub transaction_hash: TransactionHash,
-        pub version: TransactionVersion,
-        pub nonce: Nonce,
-        pub contract_address: ContractAddress,
-        pub entry_point_selector: EntryPointSelector,
-        pub calldata: CallData,
-    }
-    pub struct L1HandlerTransactionOutput {
-        pub actual_fee: Fee,
-        pub messages_sent: Vec<MessageToL1>,
-        pub events: Vec<Event>,
-    }
-    pub struct StateDiff {
-        pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
-        pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
-        pub declared_classes: IndexMap<ClassHash, ContractClass>,
-        pub nonces: IndexMap<ContractAddress, Nonce>,
     }
     pub enum Transaction {
         Declare(DeclareTransaction) = 0,
@@ -326,6 +327,10 @@ auto_impl_get_test_instance! {
     }
     pub struct TransactionSignature(pub Vec<StarkFelt>);
     pub struct TransactionVersion(pub StarkFelt);
+    pub struct TypedParameter {
+        pub name: String,
+        pub r#type: String,
+    }
     bool;
     EthAddress;
     u8;
