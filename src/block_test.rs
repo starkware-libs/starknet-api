@@ -1,4 +1,14 @@
 use crate::block::BlockNumber;
+#[cfg(feature = "testing")]
+use crate::block::{BlockHash, BlockHeader, BlockTimestamp, GasPrice};
+#[cfg(feature = "testing")]
+use crate::core::{ContractAddress, GlobalRoot, PatriciaKey};
+#[cfg(feature = "testing")]
+use crate::hash::StarkHash;
+#[cfg(feature = "testing")]
+use crate::test_utils::GetTestInstance;
+#[cfg(feature = "testing")]
+use crate::{patky, shash};
 
 #[test]
 fn test_block_number_iteration() {
@@ -19,4 +29,20 @@ fn test_block_number_iteration() {
     }
 
     assert_eq!(expected, from_iter);
+}
+
+#[cfg(feature = "testing")]
+#[test]
+fn get_test_instance_block_header() {
+    let block_header = BlockHeader::get_test_instance();
+    let expected_block_header = BlockHeader {
+        block_hash: BlockHash(shash!("0x1")),
+        parent_hash: BlockHash(shash!("0x1")),
+        block_number: BlockNumber(0),
+        gas_price: GasPrice(0),
+        state_root: GlobalRoot(shash!("0x1")),
+        sequencer: ContractAddress(patky!("0x1")),
+        timestamp: BlockTimestamp(0),
+    };
+    assert_eq!(block_header, expected_block_header);
 }

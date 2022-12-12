@@ -6,8 +6,12 @@ use std::fmt::Debug;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "testing")]
+use test_utils::GetTestInstance;
 
 use crate::hash::{StarkFelt, StarkHash};
+#[cfg(feature = "testing")]
+use crate::test_utils::GetTestInstance;
 use crate::StarknetApiError;
 
 /// A chain id.
@@ -24,6 +28,7 @@ impl ChainId {
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct ContractAddress(pub PatriciaKey);
 
 impl TryFrom<StarkHash> for ContractAddress {
@@ -60,6 +65,7 @@ pub struct EntryPointSelector(pub StarkHash);
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct GlobalRoot(pub StarkHash);
 
 /// A key for nodes of a Patricia tree.

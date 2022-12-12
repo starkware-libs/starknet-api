@@ -34,7 +34,7 @@ jobs:
       - uses: Swatinem/rust-cache@v1
       - run:
           pip install cairo-lang;
-          cargo test -- --include-ignored
+          cargo test --all-features -- --include-ignored
 
   udeps:
     runs-on: ubuntu-latest

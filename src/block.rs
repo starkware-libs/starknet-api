@@ -4,10 +4,14 @@ mod block_test;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "testing")]
+use test_utils::GetTestInstance;
 
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
+#[cfg(feature = "testing")]
+use crate::test_utils::GetTestInstance;
 use crate::transaction::{Transaction, TransactionOutput};
 
 /// A block.
@@ -19,6 +23,7 @@ pub struct Block {
 
 /// The header of a [Block](`crate::block::Block`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct BlockHeader {
     // TODO: Consider removing the block hash from the header (note it can be computed from
     // the rest of the fields.
@@ -67,6 +72,7 @@ impl Default for BlockStatus {
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct BlockHash(pub StarkHash);
 
 /// The number of a [Block](`crate::block::Block`).
@@ -84,6 +90,7 @@ pub struct BlockHash(pub StarkHash);
     PartialOrd,
     Ord,
 )]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct BlockNumber(pub u64);
 
 impl BlockNumber {
@@ -109,6 +116,7 @@ impl BlockNumber {
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 #[serde(from = "PrefixedBytesAsHex<16_usize>", into = "PrefixedBytesAsHex<16_usize>")]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct GasPrice(pub u128);
 
 impl From<PrefixedBytesAsHex<16_usize>> for GasPrice {
@@ -127,4 +135,5 @@ impl From<GasPrice> for PrefixedBytesAsHex<16_usize> {
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
+#[cfg_attr(feature = "testing", derive(GetTestInstance))]
 pub struct BlockTimestamp(pub u64);

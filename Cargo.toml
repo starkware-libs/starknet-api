@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-testing = []
+testing = ["test_utils"]
 
 [dependencies]
 hex = { version = "0.4.3" }
@@ -14,6 +14,7 @@ serde_json = { version = "1.0.81" }
 thiserror = { version = "1.0.31" }
 web3 = { version = "0.18.0" }
 derive_more = {version = "0.99.17"}
+test_utils = { path = "./test_utils", optional = true }
 
 [dev-dependencies]
 assert_matches = { version = "1.5.0" }
