@@ -27,22 +27,22 @@ pub type StarkHash = StarkFelt;
 
 /// Computes Pedersen hash using STARK curve on two elements, as defined
 /// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.
-pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> Result<StarkHash, StarknetApiError> {
-    StarkFelt::try_from(&starknet_rs_pedersen_hash(
-        &FieldElement::try_from(felt0)?,
-        &FieldElement::try_from(felt1)?,
+pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
+    StarkFelt::from(starknet_rs_pedersen_hash(
+        &FieldElement::from(*felt0),
+        &FieldElement::from(*felt1),
     ))
 }
 
 /// Computes Pedersen hash using STARK curve on an array of elements, as defined
 /// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.
-pub fn pedersen_array_hash(felts: &[StarkFelt]) -> Result<StarkHash, StarknetApiError> {
-    let mut current_hash = FieldElement::ZERO;
+pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
+    let mut current_hash = StarkFelt::from(0);
     for felt in felts.iter() {
-        current_hash = starknet_rs_pedersen_hash(&current_hash, &FieldElement::try_from(felt)?);
+        current_hash = pedersen_hash(&current_hash, felt);
     }
-    let data_len = FieldElement::from(felts.len());
-    StarkFelt::try_from(&starknet_rs_pedersen_hash(&current_hash, &data_len))
+    let data_len = StarkFelt::from(felts.len() as u64);
+    pedersen_hash(&current_hash, &data_len)
 }
 
 // TODO: Move to a different crate.
@@ -156,19 +156,16 @@ impl From<u64> for StarkFelt {
     }
 }
 
-impl TryFrom<&FieldElement> for StarkFelt {
-    type Error = StarknetApiError;
-    fn try_from(fe: &FieldElement) -> Result<Self, Self::Error> {
-        Self::new(fe.to_bytes_be())
+impl From<FieldElement> for StarkFelt {
+    fn from(fe: FieldElement) -> Self {
+        Self(fe.to_bytes_be())
     }
 }
 
-impl TryFrom<&StarkFelt> for FieldElement {
-    type Error = StarknetApiError;
-    fn try_from(felt: &StarkFelt) -> Result<Self, Self::Error> {
-        Self::from_bytes_be(&felt.0).map_err(|_| StarknetApiError::OutOfRange {
-            string: hex_str_from_bytes::<32, true>(felt.0),
-        })
+impl From<StarkFelt> for FieldElement {
+    fn from(felt: StarkFelt) -> Self {
+        // Should not fail.
+        Self::from_bytes_be(&felt.0).expect("Convert StarkFelf to FieldElement.")
     }
 }
 
