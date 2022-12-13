@@ -6,7 +6,7 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
-use starknet::core::crypto::pedersen_hash;
+use starknet::core::crypto::pedersen_hash as starknet_rs_pedersen_hash;
 use starknet::core::types::FieldElement;
 
 use crate::serde_utils::{
@@ -21,10 +21,14 @@ pub const GENESIS_HASH: &str = "0x0";
 const CHOOSER_FULL: u8 = 15;
 const CHOOSER_HALF: u8 = 14;
 
+/// An alias for [`StarkFelt`].
+/// The output of the [Pedersen hash](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash).
+pub type StarkHash = StarkFelt;
+
 /// Computes Pedersen hash using STARK curve on two elements, as defined
 /// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.
-pub fn compute_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> Result<StarkHash, StarknetApiError> {
-    StarkFelt::try_from(&pedersen_hash(
+pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> Result<StarkHash, StarknetApiError> {
+    StarkFelt::try_from(&starknet_rs_pedersen_hash(
         &FieldElement::try_from(felt0)?,
         &FieldElement::try_from(felt1)?,
     ))
@@ -32,18 +36,14 @@ pub fn compute_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> Result<StarkHash, S
 
 /// Computes Pedersen hash using STARK curve on an array of elements, as defined
 /// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.
-pub fn compute_array_hash(felts: &[StarkFelt]) -> Result<StarkHash, StarknetApiError> {
+pub fn pedersen_array_hash(felts: &[StarkFelt]) -> Result<StarkHash, StarknetApiError> {
     let mut current_hash = FieldElement::ZERO;
     for felt in felts.iter() {
-        current_hash = pedersen_hash(&current_hash, &FieldElement::try_from(felt)?);
+        current_hash = starknet_rs_pedersen_hash(&current_hash, &FieldElement::try_from(felt)?);
     }
     let data_len = FieldElement::from(felts.len());
-    StarkFelt::try_from(&pedersen_hash(&current_hash, &data_len))
+    StarkFelt::try_from(&starknet_rs_pedersen_hash(&current_hash, &data_len))
 }
-
-/// An alias for [`StarkFelt`].
-/// The output of the [Pedersen hash](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash).
-pub type StarkHash = StarkFelt;
 
 // TODO: Move to a different crate.
 /// The StarkNet [field element](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#domain_and_range).
