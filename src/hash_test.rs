@@ -1,13 +1,24 @@
-use crate::hash::{compute_hash, StarkHash};
+use crate::hash::{pedersen_array_hash, pedersen_hash, StarkHash};
 use crate::shash;
 
 #[test]
-fn compute_hash_correctness() {
+fn pedersen_hash_correctness() {
     // Test vectors from https://github.com/starkware-libs/crypto-cpp/blob/master/src/starkware/crypto/pedersen_hash_test.cc
     let a = shash!("0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb");
     let b = shash!("0x0208a0a10250e382e1e4bbe2880906c2791bf6275695e02fbbc6aeff9cd8b31a");
     let expected = shash!("0x030e480bed5fe53fa909cc0f8c4d99b8f9f2c016be4c41e13a4848797979c662");
-    assert_eq!(compute_hash(&a, &b).unwrap(), expected);
+    assert_eq!(pedersen_hash(&a, &b).unwrap(), expected);
+}
+
+#[test]
+fn pedersen_array_hash_correctness() {
+    // Test vectors from https://github.com/xJonathanLEI/starknet-rs/blob/master/starknet-core/src/crypto.rs
+    let a = shash!("0xaa");
+    let b = shash!("0xbb");
+    let c = shash!("0xcc");
+    let d = shash!("0xdd");
+    let expected = shash!("0x025cde77210b1c223b2c6e69db6e9021aa1599177ab177474d5326cd2a62cb69");
+    assert_eq!(pedersen_array_hash(&[a, b, c, d]).unwrap(), expected);
 }
 
 #[test]
