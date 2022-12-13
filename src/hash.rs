@@ -149,6 +149,20 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
     }
 }
 
+impl TryFrom<StarkFelt> for usize {
+    type Error = StarknetApiError;
+    fn try_from(val: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_USIZE: usize = 32 - std::mem::size_of::<usize>();
+        let (rest, usize_bytes) = val.bytes().split_at(COMPLIMENT_OF_USIZE);
+        if rest != [0u8; COMPLIMENT_OF_USIZE] {
+            return Err(StarknetApiError::OutOfRange { string: val.to_string() });
+        }
+        Ok(usize::from_be_bytes(
+            usize_bytes.try_into().expect("usize_bytes should be of size usize."),
+        ))
+    }
+}
+
 impl Debug for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.str_format(f)
