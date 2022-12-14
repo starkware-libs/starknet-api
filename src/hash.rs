@@ -158,7 +158,8 @@ impl From<u64> for StarkFelt {
 
 impl From<FieldElement> for StarkFelt {
     fn from(fe: FieldElement) -> Self {
-        Self(fe.to_bytes_be())
+        // Should not fail.
+        Self::new(fe.to_bytes_be()).expect("Convert FieldElement to StarkFelt.")
     }
 }
 
