@@ -3,9 +3,9 @@
 mod block_test;
 
 use derive_more::Display;
-use serde::{Deserialize, Serialize};
 #[cfg(feature = "testing")]
-use test_utils::GetTestInstance;
+use get_test_instance_macro_derive::GetTestInstance;
+use serde::{Deserialize, Serialize};
 
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;

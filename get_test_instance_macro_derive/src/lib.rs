@@ -3,7 +3,7 @@ use quote::quote;
 use syn::{parse, DeriveInput};
 
 #[proc_macro_derive(GetTestInstance)]
-pub fn get_test_instance(input: TokenStream) -> TokenStream {
+pub fn get_test_instance_macro_derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = parse(input).unwrap();
     let name = &ast.ident;
     match ast.data {

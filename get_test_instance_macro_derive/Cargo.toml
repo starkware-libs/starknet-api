@@ -1,5 +1,5 @@
 [package]
-name = "test_utils"
+name = "get_test_instance_macro_derive"
 version = "0.1.0"
 edition = "2021"
 
