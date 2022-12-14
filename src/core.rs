@@ -5,9 +5,9 @@ mod core_test;
 use std::fmt::Debug;
 
 use derive_more::Display;
-use serde::{Deserialize, Serialize};
 #[cfg(feature = "testing")]
-use test_utils::GetTestInstance;
+use get_test_instance_macro_derive::GetTestInstance;
+use serde::{Deserialize, Serialize};
 
 use crate::hash::{StarkFelt, StarkHash};
 #[cfg(feature = "testing")]
