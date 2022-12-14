@@ -20,7 +20,9 @@ impl ChainId {
     }
 }
 
-/// The address of a [DeployedContract](`crate::state::DeployedContract`).
+/// The address of a contract, used for example in [StateDiff](`crate::state::StateDiff`),
+/// [DeclareTransaction](`crate::transaction::DeclareTransaction`), and
+/// [BlockHeader](`crate::block::BlockHeader`).
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
