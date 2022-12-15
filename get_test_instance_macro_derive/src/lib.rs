@@ -2,6 +2,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse, Data, DeriveInput, Field, Fields};
 
+// Implementation of the trait [GetTestInstance](`starknet_api::test_utils::GetTestInstance`)
+// for starknet_api structs and enums. Should create valid, non-empty, and non-trivial instances
+// for testing.
+// To derive this implementation add #[cfg_attr(feature = "testing", derive(GetTestInstance))].
 #[proc_macro_derive(GetTestInstance)]
 pub fn get_test_instance_macro_derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = parse(input).unwrap();
@@ -50,13 +54,11 @@ fn impl_get_test_instance_for_field(field: Field) -> proc_macro2::TokenStream {
                 tokens.extend(quote!(#ty::default()));
                 return tokens;
             }
-
             // StarkHash and StarkFelt.
             if type_name == "StarkHash" || type_name == "StarkFelt" {
                 tokens.extend(quote!(crate::shash!("0x1")));
                 return tokens;
             }
-
             // PatriciaKey.
             if type_name == "PatriciaKey" {
                 tokens.extend(quote!(crate::patky!("0x1")));
