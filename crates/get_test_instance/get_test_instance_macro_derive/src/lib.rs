@@ -8,7 +8,7 @@ use syn::{parse, Data, DeriveInput, Field, Fields};
 // To derive this implementation add #[cfg_attr(feature = "testing", derive(GetTestInstance))].
 #[proc_macro_derive(GetTestInstance)]
 pub fn get_test_instance_macro_derive(input: TokenStream) -> TokenStream {
-    let ast: DeriveInput = parse(input).unwrap();
+    let ast: DeriveInput = parse(input).expect("Parse input to GetTestInstance macro.");
     let name = &ast.ident;
     match ast.data {
         Data::Struct(data) => {

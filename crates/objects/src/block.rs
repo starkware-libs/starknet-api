@@ -4,14 +4,14 @@ mod block_test;
 
 use derive_more::Display;
 #[cfg(feature = "testing")]
+use get_test_instance::GetTestInstance;
+#[cfg(feature = "testing")]
 use get_test_instance_macro_derive::GetTestInstance;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
-#[cfg(feature = "testing")]
-use crate::test_utils::GetTestInstance;
 use crate::transaction::{Transaction, TransactionOutput};
 
 /// A block.

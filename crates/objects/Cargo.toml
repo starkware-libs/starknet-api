@@ -1,0 +1,21 @@
+[package]
+name = "objects"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+testing = ["get_test_instance", "get_test_instance_macro_derive"]
+
+[dependencies]
+hex = { version = "0.4.3" }
+indexmap = { version = "1.9.2", features = ["serde"] }
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = { version = "1.0.81" }
+thiserror = { version = "1.0.31" }
+web3 = { version = "0.18.0" }
+derive_more = {version = "0.99.17"}
+get_test_instance = { path = "../get_test_instance", features = ["testing"], optional = true }
+get_test_instance_macro_derive = { path = "../get_test_instance/get_test_instance_macro_derive", optional = true }
+
+[dev-dependencies]
+assert_matches = { version = "1.5.0" }
