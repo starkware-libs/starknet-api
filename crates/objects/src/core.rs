@@ -6,12 +6,12 @@ use std::fmt::Debug;
 
 use derive_more::Display;
 #[cfg(feature = "testing")]
+use get_test_instance::GetTestInstance;
+#[cfg(feature = "testing")]
 use get_test_instance_macro_derive::GetTestInstance;
 use serde::{Deserialize, Serialize};
 
 use crate::hash::{StarkFelt, StarkHash};
-#[cfg(feature = "testing")]
-use crate::test_utils::GetTestInstance;
 use crate::StarknetApiError;
 
 /// A chain id.

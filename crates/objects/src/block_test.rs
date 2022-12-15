@@ -1,3 +1,6 @@
+#[cfg(feature = "testing")]
+use get_test_instance::GetTestInstance;
+
 use crate::block::BlockNumber;
 #[cfg(feature = "testing")]
 use crate::block::{BlockHash, BlockHeader, BlockTimestamp, GasPrice};
@@ -5,8 +8,6 @@ use crate::block::{BlockHash, BlockHeader, BlockTimestamp, GasPrice};
 use crate::core::{ContractAddress, GlobalRoot, PatriciaKey};
 #[cfg(feature = "testing")]
 use crate::hash::StarkHash;
-#[cfg(feature = "testing")]
-use crate::test_utils::GetTestInstance;
 #[cfg(feature = "testing")]
 use crate::{patky, shash};
 
