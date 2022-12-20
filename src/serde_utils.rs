@@ -115,7 +115,7 @@ pub fn bytes_from_hex_str<const N: usize, const PREFIXED: bool>(
     let to_add = 2 * N - hex_str.len();
     let padded_str = vec!["0"; to_add].join("") + hex_str;
 
-    Ok(hex::decode(&padded_str)?.try_into().expect("Unexpected length of deserialized hex bytes."))
+    Ok(hex::decode(padded_str)?.try_into().expect("Unexpected length of deserialized hex bytes."))
 }
 
 /// Encodes a byte array to a string.
