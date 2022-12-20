@@ -26,7 +26,7 @@ const CHOOSER_HALF: u8 = 14;
 pub type StarkHash = StarkFelt;
 
 /// Computes Pedersen hash using STARK curve on two elements, as defined
-/// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.>
 pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
     StarkFelt::from(starknet_rs_pedersen_hash(
         &FieldElement::from(*felt0),
@@ -35,7 +35,7 @@ pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
 }
 
 /// Computes Pedersen hash using STARK curve on an array of elements, as defined
-/// in https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
 pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
     let mut current_hash = StarkFelt::from(0);
     for felt in felts.iter() {
