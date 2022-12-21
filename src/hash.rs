@@ -6,8 +6,7 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
-use starknet::core::crypto::pedersen_hash as starknet_rs_pedersen_hash;
-use starknet::core::types::FieldElement;
+use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
@@ -28,7 +27,7 @@ pub type StarkHash = StarkFelt;
 /// Computes Pedersen hash using STARK curve on two elements, as defined
 /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.>
 pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
-    StarkFelt::from(starknet_rs_pedersen_hash(
+    StarkFelt::from(starknet_crypto_pedersen_hash(
         &FieldElement::from(*felt0),
         &FieldElement::from(*felt1),
     ))
