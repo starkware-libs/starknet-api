@@ -36,10 +36,9 @@ pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
 /// Computes Pedersen hash using STARK curve on an array of elements, as defined
 /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
 pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
-    let mut current_hash = StarkFelt::from(0);
-    for felt in felts.iter() {
-        current_hash = pedersen_hash(&current_hash, felt);
-    }
+    let current_hash = felts
+        .iter()
+        .fold(StarkFelt::from(0), |current_hash, felt| pedersen_hash(&current_hash, felt));
     let data_len = StarkFelt::from(felts.len() as u64);
     pedersen_hash(&current_hash, &data_len)
 }
