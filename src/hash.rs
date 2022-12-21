@@ -6,6 +6,7 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
+use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
@@ -22,6 +23,25 @@ const CHOOSER_HALF: u8 = 14;
 /// An alias for [`StarkFelt`].
 /// The output of the [Pedersen hash](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash).
 pub type StarkHash = StarkFelt;
+
+/// Computes Pedersen hash using STARK curve on two elements, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.>
+pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
+    StarkFelt::from(starknet_crypto_pedersen_hash(
+        &FieldElement::from(*felt0),
+        &FieldElement::from(*felt1),
+    ))
+}
+
+/// Computes Pedersen hash using STARK curve on an array of elements, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
+pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
+    let current_hash = felts
+        .iter()
+        .fold(StarkFelt::from(0), |current_hash, felt| pedersen_hash(&current_hash, felt));
+    let data_len = StarkFelt::from(felts.len() as u64);
+    pedersen_hash(&current_hash, &data_len)
+}
 
 // TODO: Move to a different crate.
 /// The StarkNet [field element](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#domain_and_range).
@@ -131,6 +151,20 @@ impl From<u64> for StarkFelt {
         let mut bytes = [0u8; 32];
         bytes[24..32].copy_from_slice(&val.to_be_bytes());
         Self(bytes)
+    }
+}
+
+impl From<FieldElement> for StarkFelt {
+    fn from(fe: FieldElement) -> Self {
+        // Should not fail.
+        Self::new(fe.to_bytes_be()).expect("Convert FieldElement to StarkFelt.")
+    }
+}
+
+impl From<StarkFelt> for FieldElement {
+    fn from(felt: StarkFelt) -> Self {
+        // Should not fail.
+        Self::from_bytes_be(&felt.0).expect("Convert StarkFelf to FieldElement.")
     }
 }
 
