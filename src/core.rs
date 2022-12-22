@@ -42,14 +42,10 @@ impl TryFrom<StarkHash> for ContractAddress {
 pub struct ClassHash(pub StarkHash);
 
 /// A general type for nonces.
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
 pub struct Nonce(pub StarkFelt);
-
-impl Default for Nonce {
-    fn default() -> Self {
-        Nonce(StarkFelt::from(0))
-    }
-}
 
 /// The selector of an [EntryPoint](`crate::state::EntryPoint`).
 #[derive(
