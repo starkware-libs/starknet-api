@@ -57,12 +57,6 @@ pub enum BlockStatus {
     Rejected,
 }
 
-impl Default for BlockStatus {
-    fn default() -> Self {
-        BlockStatus::AcceptedOnL2
-    }
-}
-
 /// The hash of a [Block](`crate::block::Block`).
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
