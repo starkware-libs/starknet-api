@@ -95,7 +95,7 @@ pub enum EntryPointType {
 }
 
 /// An entry point of a [ContractClass](`crate::state::ContractClass`).
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct EntryPoint {
     pub selector: EntryPointSelector,
     pub offset: EntryPointOffset,
