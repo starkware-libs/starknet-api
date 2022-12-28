@@ -95,7 +95,7 @@ impl Debug for PatriciaKey {
 /// A utility macro to create a [`PatriciaKey`] from a hex string representation.
 #[cfg(any(feature = "testing", test))]
 #[macro_export]
-macro_rules! patky {
+macro_rules! patricia_key {
     ($s:expr) => {
         PatriciaKey::try_from(StarkHash::try_from($s).unwrap()).unwrap()
     };
