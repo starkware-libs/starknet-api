@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use serde::{Deserialize, Serialize};
 use web3::types::H160;
 
@@ -225,7 +227,7 @@ pub struct TransactionVersion(pub StarkFelt);
 
 /// The calldata of a transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct CallData(pub Vec<StarkFelt>);
+pub struct CallData(pub Rc<Vec<StarkFelt>>);
 
 /// An L1 to L2 message.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
