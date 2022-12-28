@@ -7,10 +7,12 @@ use std::io::Error;
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
+use web3::types::H160;
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
 };
+use crate::transaction::EthAddress;
 use crate::StarknetApiError;
 
 /// Genesis state hash.
@@ -178,22 +180,39 @@ impl TryFrom<NonPrefixedBytesAsHex<32_usize>> for StarkFelt {
 }
 
 impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
-    fn from(val: StarkFelt) -> Self {
-        BytesAsHex(val.0)
+    fn from(felt: StarkFelt) -> Self {
+        BytesAsHex(felt.0)
     }
 }
 
 impl TryFrom<StarkFelt> for usize {
     type Error = StarknetApiError;
-    fn try_from(val: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_USIZE: usize = 32 - std::mem::size_of::<usize>();
-        let (rest, usize_bytes) = val.bytes().split_at(COMPLIMENT_OF_USIZE);
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_USIZE: usize =
+            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<usize>();
+
+        let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
         if rest != [0u8; COMPLIMENT_OF_USIZE] {
-            return Err(StarknetApiError::OutOfRange { string: val.to_string() });
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
         }
+
         Ok(usize::from_be_bytes(
             usize_bytes.try_into().expect("usize_bytes should be of size usize."),
         ))
+    }
+}
+
+impl TryFrom<StarkFelt> for EthAddress {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
+
+        let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
+        if rest != [0u8; COMPLIMENT_OF_H160] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        Ok(EthAddress(H160::from_slice(h160_bytes)))
     }
 }
 
