@@ -7,10 +7,12 @@ use std::io::Error;
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
+use web3::types::H160;
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
 };
+use crate::transaction::EthAddress;
 use crate::StarknetApiError;
 
 /// Genesis state hash.
@@ -194,6 +196,20 @@ impl TryFrom<StarkFelt> for usize {
         Ok(usize::from_be_bytes(
             usize_bytes.try_into().expect("usize_bytes should be of size usize."),
         ))
+    }
+}
+
+impl TryFrom<StarkFelt> for EthAddress {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_H160: usize = 32 - H160::len_bytes();
+
+        let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
+        if rest != [0u8; COMPLIMENT_OF_H160] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        Ok(EthAddress(H160::from_slice(h160_bytes)))
     }
 }
 
