@@ -95,7 +95,7 @@ pub struct DeployAccountTransaction {
     pub class_hash: ClassHash,
     pub contract_address: ContractAddress,
     pub contract_address_salt: ContractAddressSalt,
-    pub constructor_calldata: CallData,
+    pub constructor_calldata: Calldata,
 }
 
 /// A deploy transaction.
@@ -106,7 +106,7 @@ pub struct DeployTransaction {
     pub class_hash: ClassHash,
     pub contract_address: ContractAddress,
     pub contract_address_salt: ContractAddressSalt,
-    pub constructor_calldata: CallData,
+    pub constructor_calldata: Calldata,
 }
 
 /// An invoke transaction.
@@ -120,7 +120,7 @@ pub struct InvokeTransaction {
     pub sender_address: ContractAddress,
     // An invoke transaction without an entry point selector invokes the 'execute' function.
     pub entry_point_selector: Option<EntryPointSelector>,
-    pub calldata: CallData,
+    pub calldata: Calldata,
 }
 
 /// An L1 handler transaction.
@@ -131,7 +131,7 @@ pub struct L1HandlerTransaction {
     pub nonce: Nonce,
     pub contract_address: ContractAddress,
     pub entry_point_selector: EntryPointSelector,
-    pub calldata: CallData,
+    pub calldata: Calldata,
 }
 
 /// A declare transaction output.
@@ -227,7 +227,7 @@ pub struct TransactionVersion(pub StarkFelt);
 
 /// The calldata of a transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct CallData(pub Rc<Vec<StarkFelt>>);
+pub struct Calldata(pub Rc<Vec<StarkFelt>>);
 
 /// An L1 to L2 message.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
