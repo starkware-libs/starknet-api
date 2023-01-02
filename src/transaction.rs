@@ -231,14 +231,14 @@ pub struct TransactionVersion(pub StarkFelt);
 pub struct Calldata(pub Rc<Vec<StarkFelt>>);
 
 /// An L1 to L2 message.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct MessageToL2 {
     pub from_address: EthAddress,
     pub payload: L1ToL2Payload,
 }
 
 /// An L2 to L1 message.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct MessageToL1 {
     pub to_address: EthAddress,
     pub payload: L2ToL1Payload,
