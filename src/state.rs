@@ -94,6 +94,12 @@ pub enum EntryPointType {
     L1Handler,
 }
 
+impl Default for EntryPointType {
+    fn default() -> Self {
+        Self::External
+    }
+}
+
 /// An entry point of a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct EntryPoint {
@@ -163,7 +169,7 @@ pub struct EventAbiEntry {
 }
 
 /// A function abi entry with type.
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct FunctionAbiEntryWithType {
     pub r#type: FunctionAbiEntryType,
     #[serde(flatten)]
@@ -179,6 +185,12 @@ pub enum FunctionAbiEntryType {
     L1Handler,
     #[serde(rename = "regular")]
     Regular,
+}
+
+impl Default for FunctionAbiEntryType {
+    fn default() -> Self {
+        Self::Regular
+    }
 }
 
 /// A function abi entry.
