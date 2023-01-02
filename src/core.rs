@@ -5,9 +5,12 @@ mod core_test;
 use std::fmt::Debug;
 
 use derive_more::Display;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use starknet_crypto::FieldElement;
 
-use crate::hash::{StarkFelt, StarkHash};
+use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
+use crate::transaction::Calldata;
 use crate::StarknetApiError;
 
 /// A chain id.
@@ -28,11 +31,46 @@ impl ChainId {
 )]
 pub struct ContractAddress(pub PatriciaKey);
 
+/// The maximal size of storage var.
+pub const MAX_STORAGE_ITEM_SIZE: u16 = 256;
+/// A prefix used in the calculation of a contract address.
+pub const CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
+/// The size of the contract address domain.
+pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Lazy<StarkFelt> = Lazy::new(|| {
+    StarkFelt::try_from(PATRICIA_KEY_UPPER_BOUND)
+        .unwrap_or_else(|_| panic!("Convert {} to StarkFelt", PATRICIA_KEY_UPPER_BOUND))
+});
+/// The address upper bound. It is defined to be congruent with the storage var address upper bound.
+pub static L2_ADDRESS_UPPER_BOUND: Lazy<FieldElement> =
+    Lazy::new(|| FieldElement::from(*CONTRACT_ADDRESS_DOMAIN_SIZE) - MAX_STORAGE_ITEM_SIZE.into());
+
 impl TryFrom<StarkHash> for ContractAddress {
     type Error = StarknetApiError;
     fn try_from(hash: StarkHash) -> Result<Self, Self::Error> {
         Ok(Self(PatriciaKey::try_from(hash)?))
     }
+}
+
+// TODO: Add a hash_function as a parameter
+// TODO: Add a unit test
+pub fn calculate_contract_address(
+    salt: StarkFelt,
+    class_hash: ClassHash,
+    constructor_calldata: &Calldata,
+    deployer_address: ContractAddress,
+) -> Result<ContractAddress, StarknetApiError> {
+    let constructor_calldata_hash = pedersen_hash_array(&constructor_calldata.0);
+    let contract_address_prefix_hex = format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX));
+    let raw_address = pedersen_hash_array(&[
+        StarkFelt::try_from(contract_address_prefix_hex.as_str())?,
+        *deployer_address.0.key(),
+        salt,
+        class_hash.0,
+        constructor_calldata_hash,
+    ]);
+    let mod_raw_address = FieldElement::from(raw_address) % *L2_ADDRESS_UPPER_BOUND;
+
+    ContractAddress::try_from(StarkFelt::from(mod_raw_address))
 }
 
 /// The hash of a [ContractClass](`crate::state::ContractClass`).
@@ -79,7 +117,7 @@ impl TryFrom<StarkHash> for PatriciaKey {
     type Error = StarknetApiError;
 
     fn try_from(value: StarkHash) -> Result<Self, Self::Error> {
-        if value < StarkHash::try_from(PATRICIA_KEY_UPPER_BOUND)? {
+        if value < *CONTRACT_ADDRESS_DOMAIN_SIZE {
             return Ok(PatriciaKey(value));
         }
         Err(StarknetApiError::OutOfRange { string: format!("[0x0, {PATRICIA_KEY_UPPER_BOUND})") })
