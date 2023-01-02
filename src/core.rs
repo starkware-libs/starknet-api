@@ -5,9 +5,12 @@ mod core_test;
 use std::fmt::Debug;
 
 use derive_more::Display;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use starknet_crypto::FieldElement;
 
-use crate::hash::{StarkFelt, StarkHash};
+use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
+use crate::transaction::Calldata;
 use crate::StarknetApiError;
 
 /// A chain id.
@@ -28,11 +31,41 @@ impl ChainId {
 )]
 pub struct ContractAddress(pub PatriciaKey);
 
+pub const MAX_STORAGE_ITEM_SIZE: u32 = 256;
+pub static CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
+pub static L2_ADDRESS_UPPER_BOUND: Lazy<FieldElement> = Lazy::new(|| {
+    FieldElement::from_hex_be(PATRICIA_KEY_UPPER_BOUND)
+        .expect(format!("Convert {} to FieldElement", PATRICIA_KEY_UPPER_BOUND).as_str())
+        - MAX_STORAGE_ITEM_SIZE.into()
+});
+
 impl TryFrom<StarkHash> for ContractAddress {
     type Error = StarknetApiError;
     fn try_from(hash: StarkHash) -> Result<Self, Self::Error> {
         Ok(Self(PatriciaKey::try_from(hash)?))
     }
+}
+
+// TODO(Noa, 01/02/23): Add a hash_function as a parameter
+// TODO(Noa, 08/01/23): Add a unit test
+pub fn calculate_contract_address(
+    salt: StarkFelt,
+    class_hash: ClassHash,
+    constructor_calldata: &Calldata,
+    deployer_address: ContractAddress,
+) -> Result<ContractAddress, StarknetApiError> {
+    let constructor_calldata_hash = pedersen_hash_array(&constructor_calldata.0);
+    let contract_address_prefix_hex = format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX));
+    let raw_address = pedersen_hash_array(&[
+        StarkFelt::try_from(contract_address_prefix_hex.as_str())?,
+        *deployer_address.0.key(),
+        salt,
+        class_hash.0,
+        constructor_calldata_hash,
+    ]);
+    let mod_raw_address = FieldElement::from(raw_address) % *L2_ADDRESS_UPPER_BOUND;
+
+    ContractAddress::try_from(StarkFelt::from(mod_raw_address))
 }
 
 /// The hash of a [ContractClass](`crate::state::ContractClass`).
