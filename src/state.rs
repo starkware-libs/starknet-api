@@ -80,7 +80,7 @@ pub struct ContractClass {
 }
 
 /// An entry point type of a [ContractClass](`crate::state::ContractClass`).
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 #[serde(deny_unknown_fields)]
 pub enum EntryPointType {
     /// A constructor entry point.
@@ -88,6 +88,7 @@ pub enum EntryPointType {
     Constructor,
     /// An external4 entry point.
     #[serde(rename = "EXTERNAL")]
+    #[default]
     External,
     /// An L1 handler entry point.
     #[serde(rename = "L1_HANDLER")]
