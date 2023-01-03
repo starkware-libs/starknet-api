@@ -179,6 +179,7 @@ pub enum FunctionAbiEntryType {
     #[serde(rename = "l1_handler")]
     L1Handler,
     #[serde(rename = "regular")]
+    #[default]
     Regular,
 }
 
