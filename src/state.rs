@@ -172,13 +172,14 @@ pub struct FunctionAbiEntryWithType {
 }
 
 /// A function abi entry type.
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum FunctionAbiEntryType {
     #[serde(rename = "constructor")]
     Constructor,
     #[serde(rename = "l1_handler")]
     L1Handler,
     #[serde(rename = "regular")]
+    #[default]
     Regular,
 }
 
