@@ -230,6 +230,13 @@ pub struct TransactionVersion(pub StarkFelt);
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct Calldata(pub Arc<Vec<StarkFelt>>);
 
+#[macro_export]
+macro_rules! calldata {
+    ( $( $x:expr ),* ) => {
+        Calldata(vec![$($x),*].into())
+    };
+}
+
 /// An L1 to L2 message.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct MessageToL2 {
