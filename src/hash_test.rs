@@ -1,5 +1,8 @@
+use const_format::{concatcp, str_repeat};
+use const_str::to_byte_array;
+
 use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
-use crate::stark_felt;
+use crate::{const_stark_felt, stark_felt};
 
 #[test]
 fn pedersen_hash_correctness() {
@@ -30,6 +33,14 @@ fn hash_macro() {
         StarkFelt::new([
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0x1, 0x23
+        ])
+        .unwrap()
+    );
+    assert_eq!(
+        const_stark_felt!("test"),
+        StarkFelt::new([
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0x74, 0x65, 0x73, 0x74
         ])
         .unwrap()
     );

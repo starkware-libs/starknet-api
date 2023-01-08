@@ -220,3 +220,12 @@ macro_rules! stark_felt {
         StarkFelt::try_from($s).unwrap()
     };
 }
+
+/// A utility macro to create a [`StarkFelt`] from a hex string representation.
+#[cfg(any(feature = "testing", test))]
+#[macro_export]
+macro_rules! const_stark_felt {
+    ($s:expr) => {
+        StarkFelt(to_byte_array!(concatcp!(str_repeat!("\x00", 32 - $s.len()), $s)))
+    };
+}
