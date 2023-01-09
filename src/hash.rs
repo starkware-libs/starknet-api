@@ -208,7 +208,7 @@ impl Debug for StarkFelt {
 
 impl Display for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.str_format(f)
+        write!(f, "0x{}", hex::encode(self.0))
     }
 }
 
