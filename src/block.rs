@@ -59,7 +59,7 @@ pub enum BlockStatus {
 
 /// The hash of a [Block](`crate::block::Block`).
 #[derive(
-    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, Display
 )]
 pub struct BlockHash(pub StarkHash);
 
