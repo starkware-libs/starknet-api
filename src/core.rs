@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
-use crate::transaction::Calldata;
+use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::StarknetApiError;
 
 /// A chain id.
@@ -53,9 +53,8 @@ impl TryFrom<StarkHash> for ContractAddress {
 }
 
 // TODO: Add a hash_function as a parameter
-// TODO: Add a unit test
 pub fn calculate_contract_address(
-    salt: StarkFelt,
+    salt: ContractAddressSalt,
     class_hash: ClassHash,
     constructor_calldata: &Calldata,
     deployer_address: ContractAddress,
@@ -65,7 +64,7 @@ pub fn calculate_contract_address(
     let mut address = FieldElement::from(pedersen_hash_array(&[
         StarkFelt::try_from(contract_address_prefix.as_str())?,
         *deployer_address.0.key(),
-        salt,
+        salt.0,
         class_hash.0,
         constructor_calldata_hash,
     ]));
