@@ -75,7 +75,18 @@ pub fn calculate_contract_address(
 
 /// The hash of a [ContractClass](`crate::state::ContractClass`).
 #[derive(
-    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
 )]
 pub struct ClassHash(pub StarkHash);
 
@@ -94,7 +105,18 @@ pub struct EntryPointSelector(pub StarkHash);
 /// The root of the global state at a [Block](`crate::block::Block`)
 /// and [StateUpdate](`crate::state::StateUpdate`).
 #[derive(
-    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
 )]
 pub struct GlobalRoot(pub StarkHash);
 

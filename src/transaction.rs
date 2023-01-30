@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
@@ -209,6 +210,12 @@ impl From<Fee> for PrefixedBytesAsHex<16_usize> {
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct TransactionHash(pub StarkHash);
+
+impl Display for TransactionHash {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 /// A contract address salt.
 #[derive(
