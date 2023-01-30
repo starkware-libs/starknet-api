@@ -38,7 +38,7 @@ pub const CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
 /// The size of the contract address domain.
 pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Lazy<StarkFelt> = Lazy::new(|| {
     StarkFelt::try_from(PATRICIA_KEY_UPPER_BOUND)
-        .unwrap_or_else(|_| panic!("Failed to convert {} to StarkFelt", PATRICIA_KEY_UPPER_BOUND))
+        .unwrap_or_else(|_| panic!("Failed to convert {PATRICIA_KEY_UPPER_BOUND} to StarkFelt"))
 });
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
 pub static L2_ADDRESS_UPPER_BOUND: Lazy<FieldElement> = Lazy::new(|| {
@@ -75,7 +75,18 @@ pub fn calculate_contract_address(
 
 /// The hash of a [ContractClass](`crate::state::ContractClass`).
 #[derive(
-    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
 )]
 pub struct ClassHash(pub StarkHash);
 
@@ -94,7 +105,18 @@ pub struct EntryPointSelector(pub StarkHash);
 /// The root of the global state at a [Block](`crate::block::Block`)
 /// and [StateUpdate](`crate::state::StateUpdate`).
 #[derive(
-    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
 )]
 pub struct GlobalRoot(pub StarkHash);
 
