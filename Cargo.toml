@@ -4,18 +4,30 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+default = ["std"]
+std = ["serde_json/std", "hex/std"]
 testing = []
 
 [dependencies]
-hex = { version = "0.4.3" }
-indexmap = { version = "1.9.2", features = ["serde"] }
-once_cell = { version = "1.16.0" }
-serde = { version = "1.0.130", features = ["derive", "rc"] }
-serde_json = { version = "1.0.81" }
-starknet-crypto = { version = "0.2.0" }
-thiserror = { version = "1.0.31" }
-web3 = { version = "0.18.0" }
-derive_more = {version = "0.99.17"}
+primitive-types = { version = "0.12.1", default-features = false, features = [
+    "serde_no_std",
+] }
+hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
+indexmap = { git = "https://github.com/bluss/indexmap", rev = "ca5f848e10c31e80aeaad0720d14aa2f6dd6cfb1", features = [
+    "serde",
+], default-features = false }
+serde = { version = "1.0.130", features = [
+    "derive",
+    "rc",
+], default-features = false }
+serde_json = { version = "1.0.81", default-features = false, features = [
+    "alloc",
+] }
+starknet-crypto = { version = "0.3.0", default-features = false }
+derive_more = { version = "0.99.17", default-features = false, features = [
+    "display",
+] }
+hashbrown = { version = "0.13.2", features = ["serde"] }
 
 [dev-dependencies]
 assert_matches = { version = "1.5.0" }
