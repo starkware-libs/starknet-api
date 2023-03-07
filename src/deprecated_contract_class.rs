@@ -18,7 +18,7 @@ pub struct ContractClass {
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
 }
 
-/// A [ContractClass](`crate::state::ContractClass`) abi entry.
+/// A [ContractClass](`crate::deprecated_contract_class::ContractClass`) abi entry.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]
@@ -75,7 +75,7 @@ pub struct StructAbiEntry {
     pub members: Vec<StructMember>,
 }
 
-/// A struct member for [StructAbiEntry](`crate::state::StructAbiEntry`).
+/// A struct member for [StructAbiEntry](`crate::deprecated_contract_class::StructAbiEntry`).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StructMember {
     #[serde(flatten)]
@@ -83,7 +83,7 @@ pub struct StructMember {
     pub offset: usize,
 }
 
-/// A program corresponding to a [ContractClass](`crate::state::ContractClass`).
+/// A program corresponding to a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Program {
     #[serde(default)]
@@ -100,7 +100,7 @@ pub struct Program {
     pub reference_manager: serde_json::Value,
 }
 
-/// An entry point type of a [ContractClass](`crate::state::ContractClass`).
+/// An entry point type of a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 #[serde(deny_unknown_fields)]
 pub enum EntryPointType {
@@ -116,7 +116,7 @@ pub enum EntryPointType {
     L1Handler,
 }
 
-/// An entry point of a [ContractClass](`crate::state::ContractClass`).
+/// An entry point of a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct EntryPoint {
     pub selector: EntryPointSelector,
@@ -129,7 +129,7 @@ pub struct TypedParameter {
     pub r#type: String,
 }
 
-/// The offset of an [EntryPoint](`crate::state::EntryPoint`).
+/// The offset of an [EntryPoint](`crate::deprecated_contract_class::EntryPoint`).
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
