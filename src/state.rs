@@ -31,7 +31,7 @@ pub struct StateUpdate {
 pub struct StateDiff {
     pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
     pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
-    pub declared_classes: IndexMap<ClassHash, ContractClass>,
+    pub deprecated_declared_classes: IndexMap<ClassHash, ContractClass>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
 }
 
