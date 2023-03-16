@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde_json::json;
 
-use crate::state::EntryPointOffset;
+use crate::deprecated_contract_class::EntryPointOffset;
 
 #[test]
 fn entry_point_offset_from_json_str() {

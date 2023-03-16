@@ -73,7 +73,7 @@ pub fn calculate_contract_address(
     ContractAddress::try_from(StarkFelt::from(address))
 }
 
-/// The hash of a [ContractClass](`crate::state::ContractClass`).
+/// The hash of a ContractClass.
 #[derive(
     Debug,
     Default,
@@ -96,7 +96,7 @@ pub struct ClassHash(pub StarkHash);
 )]
 pub struct Nonce(pub StarkFelt);
 
-/// The selector of an [EntryPoint](`crate::state::EntryPoint`).
+/// The selector of an [EntryPoint](`crate::deprecated_contract_class::EntryPoint`).
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
