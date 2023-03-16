@@ -7,7 +7,7 @@ use crate::core::EntryPointSelector;
 use crate::serde_utils::bytes_from_hex_str;
 use crate::StarknetApiError;
 
-/// A contract class.
+/// A deprecated contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ContractClass {
     pub abi: Option<Vec<ContractClassAbiEntry>>,
