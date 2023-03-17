@@ -1,5 +1,6 @@
 use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
 use crate::stark_felt;
+use crate::stdlib::vec::Vec;
 
 #[test]
 fn pedersen_hash_correctness() {
@@ -60,10 +61,10 @@ fn hash_serde() {
         }
         let h = StarkFelt::new(bytes).unwrap();
         let mut res = Vec::new();
-        assert!(h.serialize(&mut res).is_ok());
+        h.serialize(&mut res);
         assert_eq!(res.len(), enc_len(n_nibbles));
-        let mut reader = &res[..];
-        let d = StarkFelt::deserialize(&mut reader).unwrap();
+        let reader = &res[..];
+        let d = StarkFelt::deserialize(reader).unwrap();
         assert_eq!(bytes, d.0);
     }
 }
