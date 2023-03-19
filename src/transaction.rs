@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use web3::types::H160;
 
 use crate::block::{BlockHash, BlockNumber};
-use crate::core::{ClassHash, ContractAddress, EntryPointSelector, Nonce};
+use crate::core::{ClassHash, ContractAddress, EntryPointSelector, Nonce, CompiledClassHash};
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::StarknetApiError;
@@ -13,8 +13,10 @@ use crate::StarknetApiError;
 /// A transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub enum Transaction {
+    /// A declare V1 transaction.
+    DeclareV1(DeclareV1Transaction),
     /// A declare transaction.
-    Declare(DeclareTransaction),
+    DeclareV2(DeclareV2Transaction),
     /// A deploy transaction.
     Deploy(DeployTransaction),
     /// A deploy account transaction.
@@ -28,7 +30,8 @@ pub enum Transaction {
 impl Transaction {
     pub fn transaction_hash(&self) -> TransactionHash {
         match self {
-            Transaction::Declare(tx) => tx.transaction_hash,
+            Transaction::DeclareV1(tx) => tx.transaction_hash,
+            Transaction::DeclareV2(tx) => tx.transaction_hash,
             Transaction::Deploy(tx) => tx.transaction_hash,
             Transaction::DeployAccount(tx) => tx.transaction_hash,
             Transaction::Invoke(tx) => tx.transaction_hash,
@@ -74,15 +77,29 @@ impl TransactionOutput {
     }
 }
 
-/// A declare transaction.
+/// A declare V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransaction {
+pub struct DeclareV1Transaction {
     pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub version: TransactionVersion,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
+    pub sender_address: ContractAddress,
+}
+
+
+/// A declare V2 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeclareV2Transaction {
+    pub transaction_hash: TransactionHash,
+    pub max_fee: Fee,
+    pub version: TransactionVersion,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
 }
 
