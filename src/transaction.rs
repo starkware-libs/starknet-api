@@ -256,6 +256,7 @@ pub struct MessageToL2 {
 /// An L2 to L1 message.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct MessageToL1 {
+    pub from_address: ContractAddress,
     pub to_address: EthAddress,
     pub payload: L2ToL1Payload,
 }
