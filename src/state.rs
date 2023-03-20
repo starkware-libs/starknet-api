@@ -38,6 +38,7 @@ pub struct StateDiff {
     pub declared_classes: IndexMap<ClassHash, (CompiledClassHash, ContractClass)>,
     pub deprecated_declared_classes: IndexMap<ClassHash, DeprecatedContractClass>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
+    pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
 }
 
 /// The sequential numbering of the states between blocks.
