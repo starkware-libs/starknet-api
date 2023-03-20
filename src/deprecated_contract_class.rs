@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::mem;
 
-use serde::{Deserialize, Serialize};
+use serde::de::Error as DeserializationError;
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
 use crate::core::EntryPointSelector;
-use crate::serde_utils::bytes_from_hex_str;
 use crate::StarknetApiError;
 
 /// A deprecated contract class.
@@ -133,16 +133,13 @@ pub struct TypedParameter {
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-#[serde(try_from = "String", into = "String")]
-pub struct EntryPointOffset(pub usize);
-
+#[serde(into = "String")]
+pub struct EntryPointOffset(#[serde(deserialize_with = "num_or_string")] pub usize);
 impl TryFrom<String> for EntryPointOffset {
     type Error = StarknetApiError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        const SIZE_OF_USIZE: usize = mem::size_of::<usize>();
-        let bytes = bytes_from_hex_str::<SIZE_OF_USIZE, true>(value.as_str())?;
-        Ok(Self(usize::from_be_bytes(bytes)))
+        Ok(Self(hex_str_try_into_usize(&value)?))
     }
 }
 
@@ -150,4 +147,20 @@ impl From<EntryPointOffset> for String {
     fn from(value: EntryPointOffset) -> Self {
         format!("0x{:x}", value.0)
     }
+}
+
+pub fn num_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
+    let usize_val = match Value::deserialize(deserializer)? {
+        Value::Number(num) => {
+            num.as_u64().ok_or(DeserializationError::custom("Cannot cast number to usize."))?
+                as usize
+        }
+        Value::String(s) => hex_str_try_into_usize(&s).map_err(DeserializationError::custom)?,
+        _ => return Err(DeserializationError::custom("Cannot cast value into usize.")),
+    };
+    Ok(usize_val)
+}
+
+fn hex_str_try_into_usize(hex_str: &str) -> Result<usize, std::num::ParseIntError> {
+    usize::from_str_radix(hex_str.trim_start_matches("0x"), 16)
 }
