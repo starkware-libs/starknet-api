@@ -10,11 +10,17 @@ use hashbrown::hash_map::DefaultHashBuilder as HasherBuilder;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::api_core::{ClassHash, ContractAddress, GlobalRoot, Nonce, PatriciaKey};
+use crate::api_core::{
+    ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce,
+    PatriciaKey,
+};
 use crate::block::{BlockHash, BlockNumber};
-use crate::deprecated_contract_class::ContractClass;
+use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
+use crate::stdlib::collections::HashMap;
 use crate::stdlib::fmt::Debug;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// The differences between two states before and after a block with hash block_hash
@@ -29,12 +35,15 @@ pub struct StateUpdate {
 
 /// The differences between two states.
 // Invariant: Addresses are strictly increasing.
+// Invariant: Class hashes of declared_classes and deprecated_declared_classes are exclusive.
+// TODO(yair): Enforce this invariant.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StateDiff {
     pub deployed_contracts: IndexMap<ContractAddress, ClassHash, HasherBuilder>,
     pub storage_diffs:
         IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt, HasherBuilder>, HasherBuilder>,
-    pub deprecated_declared_classes: IndexMap<ClassHash, ContractClass, HasherBuilder>,
+    pub declared_classes: IndexMap<ClassHash, (CompiledClassHash, ContractClass), HasherBuilder>,
+    pub deprecated_declared_classes: IndexMap<ClassHash, DeprecatedContractClass, HasherBuilder>,
     pub nonces: IndexMap<ContractAddress, Nonce, HasherBuilder>,
 }
 
@@ -84,3 +93,38 @@ impl TryFrom<StarkHash> for StorageKey {
         Ok(Self(PatriciaKey::try_from(val)?))
     }
 }
+
+/// A contract class.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ContractClass {
+    pub sierra_program: Vec<StarkFelt>,
+    pub entry_point_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
+    pub abi: String,
+}
+
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[serde(deny_unknown_fields)]
+pub enum EntryPointType {
+    /// A constructor entry point.
+    #[serde(rename = "CONSTRUCTOR")]
+    Constructor,
+    /// An external entry point.
+    #[serde(rename = "EXTERNAL")]
+    #[default]
+    External,
+    /// An L1 handler entry point.
+    #[serde(rename = "L1_HANDLER")]
+    L1Handler,
+}
+
+/// An entry point of a [ContractClass](`crate::state::ContractClass`).
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct EntryPoint {
+    pub function_idx: FunctionIndex,
+    pub selector: EntryPointSelector,
+}
+
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct FunctionIndex(pub usize);
