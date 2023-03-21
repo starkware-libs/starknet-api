@@ -19,6 +19,7 @@ pub mod stdlib {
 
 pub mod api_core;
 pub mod block;
+pub mod deprecated_contract_class;
 pub mod hash;
 pub mod serde_utils;
 pub mod state;
