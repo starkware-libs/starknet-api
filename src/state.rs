@@ -4,18 +4,23 @@ mod state_test;
 
 #[cfg(feature = "std")]
 use std::collections::hash_map::RandomState as HasherBuilder;
-use crate::stdlib::collections::HashMap;
 
 #[cfg(not(feature = "std"))]
 use hashbrown::hash_map::DefaultHashBuilder as HasherBuilder;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::api_core::{ClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce, PatriciaKey, CompiledClassHash};
+use crate::api_core::{
+    ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce,
+    PatriciaKey,
+};
 use crate::block::{BlockHash, BlockNumber};
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
+use crate::stdlib::collections::HashMap;
 use crate::stdlib::fmt::Debug;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// The differences between two states before and after a block with hash block_hash
