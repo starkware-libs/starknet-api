@@ -1,4 +1,5 @@
 use crate::block::BlockNumber;
+use crate::stdlib::vec::Vec;
 
 #[test]
 fn test_block_number_iteration() {

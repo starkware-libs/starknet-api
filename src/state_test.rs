@@ -1,4 +1,5 @@
 use crate::deprecated_contract_class::EntryPointOffset;
+use crate::stdlib::string::String;
 
 #[test]
 fn entry_point_offset_from_str() {

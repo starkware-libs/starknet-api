@@ -1,10 +1,12 @@
-use std::collections::HashMap;
-use std::mem;
-
 use serde::{Deserialize, Serialize};
 
-use crate::core::EntryPointSelector;
+use crate::api_core::EntryPointSelector;
 use crate::serde_utils::bytes_from_hex_str;
+use crate::stdlib::collections::HashMap;
+use crate::stdlib::fmt::Debug;
+use crate::stdlib::mem;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// A contract class.

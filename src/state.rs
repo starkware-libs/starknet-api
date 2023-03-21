@@ -2,15 +2,19 @@
 #[path = "state_test.rs"]
 mod state_test;
 
-use std::fmt::Debug;
+#[cfg(feature = "std")]
+use std::collections::hash_map::RandomState as HasherBuilder;
 
+#[cfg(not(feature = "std"))]
+use hashbrown::hash_map::DefaultHashBuilder as HasherBuilder;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
+use crate::api_core::{ClassHash, ContractAddress, GlobalRoot, Nonce, PatriciaKey};
 use crate::block::{BlockHash, BlockNumber};
-use crate::core::{ClassHash, ContractAddress, GlobalRoot, Nonce, PatriciaKey};
 use crate::deprecated_contract_class::ContractClass;
 use crate::hash::{StarkFelt, StarkHash};
+use crate::stdlib::fmt::Debug;
 use crate::StarknetApiError;
 
 /// The differences between two states before and after a block with hash block_hash
@@ -27,10 +31,11 @@ pub struct StateUpdate {
 // Invariant: Addresses are strictly increasing.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StateDiff {
-    pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
-    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
-    pub deprecated_declared_classes: IndexMap<ClassHash, ContractClass>,
-    pub nonces: IndexMap<ContractAddress, Nonce>,
+    pub deployed_contracts: IndexMap<ContractAddress, ClassHash, HasherBuilder>,
+    pub storage_diffs:
+        IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt, HasherBuilder>, HasherBuilder>,
+    pub deprecated_declared_classes: IndexMap<ClassHash, ContractClass, HasherBuilder>,
+    pub nonces: IndexMap<ContractAddress, Nonce, HasherBuilder>,
 }
 
 /// The sequential numbering of the states between blocks.

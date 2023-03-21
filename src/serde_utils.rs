@@ -6,6 +6,10 @@ mod serde_utils_test;
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
 
+use crate::stdlib::borrow::ToOwned;
+use crate::stdlib::fmt;
+use crate::stdlib::string::{String, ToString};
+
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
 
@@ -28,7 +32,7 @@ impl<'de, const N: usize, const PREFIXED: bool> Deserialize<'de> for BytesAsHex<
         impl<'de, const N: usize, const PREFIXED: bool> Visitor<'de> for ByteArrayVisitor<N, PREFIXED> {
             type Value = BytesAsHex<N, PREFIXED>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a byte array")
             }
 
@@ -75,20 +79,6 @@ impl<const N: usize, const PREFIXED: bool> Serialize for BytesAsHex<N, PREFIXED>
     }
 }
 
-/// The error type returned by the inner deserialization.
-#[derive(thiserror::Error, Clone, Debug)]
-pub enum InnerDeserializationError {
-    /// Error parsing the hex string.
-    #[error(transparent)]
-    FromHex(#[from] hex::FromHexError),
-    /// Missing 0x prefix in the hex string.
-    #[error("Missing prefix 0x in {hex_str}")]
-    MissingPrefix { hex_str: String },
-    /// Unexpected input byte count.
-    #[error("Bad input - expected #bytes: {expected_byte_count}, string found: {string_found}.")]
-    BadInput { expected_byte_count: usize, string_found: String },
-}
-
 /// Deserializes a Hex decoded as string to a byte array.
 pub fn bytes_from_hex_str<const N: usize, const PREFIXED: bool>(
     hex_str: &str,
@@ -96,7 +86,7 @@ pub fn bytes_from_hex_str<const N: usize, const PREFIXED: bool>(
     let hex_str = if PREFIXED {
         hex_str
             .strip_prefix("0x")
-            .ok_or(InnerDeserializationError::MissingPrefix { hex_str: hex_str.into() })?
+            .ok_or(InnerDeserializationError::MissingPrefix { hex_str: hex_str.to_string() })?
     } else {
         hex_str
     };
@@ -125,3 +115,54 @@ pub fn hex_str_from_bytes<const N: usize, const PREFIXED: bool>(bytes: [u8; N]) 
     hex_str = if hex_str.is_empty() { "0" } else { hex_str };
     if PREFIXED { format!("0x{hex_str}") } else { hex_str.to_string() }
 }
+
+mod inner_deserialization_error {
+    use crate::stdlib::string::String;
+
+    /// The error type returned by the inner deserialization.
+    #[derive(Clone, Debug)]
+    pub enum InnerDeserializationError {
+        /// Error parsing the hex string.
+        FromHex(hex::FromHexError),
+        /// Missing 0x prefix in the hex string.
+        MissingPrefix { hex_str: String },
+        /// Unexpected input byte count.
+        BadInput { expected_byte_count: usize, string_found: String },
+    }
+
+    #[cfg(feature = "std")]
+    impl std::error::Error for InnerDeserializationError {
+        fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+            match self {
+                InnerDeserializationError::FromHex(e) => e.source(),
+                InnerDeserializationError::MissingPrefix { .. } => Option::None,
+                InnerDeserializationError::BadInput { .. } => Option::None,
+            }
+        }
+    }
+
+    impl core::fmt::Display for InnerDeserializationError {
+        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+            match self {
+                InnerDeserializationError::FromHex(e) => core::fmt::Display::fmt(e, f),
+                InnerDeserializationError::MissingPrefix { hex_str } => {
+                    write!(f, "Missing prefix 0x in {hex_str}")
+                }
+                InnerDeserializationError::BadInput { expected_byte_count, string_found } => {
+                    write!(
+                        f,
+                        "Bad input - expected #bytes: {expected_byte_count}, string found: \
+                         {string_found}."
+                    )
+                }
+            }
+        }
+    }
+
+    impl core::convert::From<hex::FromHexError> for InnerDeserializationError {
+        fn from(source: hex::FromHexError) -> Self {
+            InnerDeserializationError::FromHex(source)
+        }
+    }
+}
+pub use inner_deserialization_error::InnerDeserializationError;
