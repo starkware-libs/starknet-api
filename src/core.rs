@@ -90,6 +90,23 @@ pub fn calculate_contract_address(
 )]
 pub struct ClassHash(pub StarkHash);
 
+/// The hash of a compiled ContractClass.
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
+)]
+pub struct CompiledClassHash(pub StarkHash);
+
 /// A general type for nonces.
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
