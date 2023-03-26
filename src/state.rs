@@ -5,14 +5,9 @@ mod state_test;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-#[cfg(not(feature = "std"))]
-use hashbrown::hash_map::DefaultHashBuilder as HasherBuilder;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::api_core::{
-    ClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce, PatriciaKey,
-};
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
     ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, GlobalRoot, Nonce,
