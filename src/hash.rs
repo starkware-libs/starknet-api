@@ -2,16 +2,15 @@
 #[path = "hash_test.rs"]
 mod hash_test;
 
+use std::fmt::{Debug, Display};
+use std::io::Error;
+
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
 };
-use crate::stdlib::fmt::{self, Debug, Display};
-use crate::stdlib::mem;
-use crate::stdlib::string::ToString;
-use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// Genesis state hash.
@@ -60,7 +59,8 @@ impl StarkFelt {
         Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
-    fn inner_serialize(&self) -> (u8, usize) {
+    /// Storage efficient serialization for field elements.
+    pub fn serialize(&self, res: &mut impl std::io::Write) -> Result<(), Error> {
         // We use the fact that bytes[0] < 0x10 and encode the size of the felt in the 4 most
         // significant bits of the serialization, which we call `chooser`. We assume that 128 bit
         // felts are prevalent (because of how uint256 is encoded in felts).
@@ -94,34 +94,16 @@ impl StarkFelt {
             // using chooser + 1 bytes.
             (31 - first_index) as u8
         };
-
-        (chooser, first_index)
-    }
-
-    /// Storage efficient serialization for field elements
-    pub fn serialize(&self, res: &mut Vec<u8>) {
-        let (chooser, first_index) = self.inner_serialize();
-        res.push((chooser << 4) | self.0[first_index]);
-        res.extend_from_slice(&self.0[first_index + 1..]);
-    }
-
-    #[cfg(feature = "std")]
-    pub fn serialize_into_std_writer(
-        &self,
-        res: &mut impl std::io::Write,
-    ) -> Result<(), std::io::Error> {
-        let (chooser, first_index) = self.inner_serialize();
         res.write_all(&[(chooser << 4) | self.0[first_index]])?;
         res.write_all(&self.0[first_index + 1..])?;
         Ok(())
     }
 
     /// Storage efficient deserialization for field elements.
-    pub fn deserialize(bytes: &[u8]) -> Option<Self> {
+    pub fn deserialize(bytes: &mut impl std::io::Read) -> Option<Self> {
         let mut res = [0u8; 32];
 
-        res[0] = bytes[0];
-
+        bytes.read_exact(&mut res[..1]).ok()?;
         let first = res[0];
         let chooser: u8 = first >> 4;
         let first = first & 0x0f;
@@ -135,7 +117,7 @@ impl StarkFelt {
         };
         res[0] = 0;
         res[first_index] = first;
-        res[first_index + 1..].copy_from_slice(&bytes[1..]);
+        bytes.read_exact(&mut res[first_index + 1..]).ok()?;
         Some(Self(res))
     }
 
@@ -143,7 +125,7 @@ impl StarkFelt {
         &self.0
     }
 
-    fn str_format(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn str_format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = format!("0x{}", hex::encode(self.0));
         f.debug_tuple("StarkFelt").field(&s).finish()
     }
@@ -204,7 +186,8 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
 impl TryFrom<StarkFelt> for usize {
     type Error = StarknetApiError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_USIZE: usize = mem::size_of::<StarkFelt>() - mem::size_of::<usize>();
+        const COMPLIMENT_OF_USIZE: usize =
+            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<usize>();
 
         let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
         if rest != [0u8; COMPLIMENT_OF_USIZE] {
@@ -218,13 +201,13 @@ impl TryFrom<StarkFelt> for usize {
 }
 
 impl Debug for StarkFelt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.str_format(f)
     }
 }
 
 impl Display for StarkFelt {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "0x{}", hex::encode(self.0))
     }
 }
