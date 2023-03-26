@@ -10,6 +10,8 @@ pub mod serde_utils;
 pub mod state;
 pub mod transaction;
 
+use std::num::ParseIntError;
+
 use serde_utils::InnerDeserializationError;
 
 /// The error type returned by StarknetApi.
@@ -21,4 +23,7 @@ pub enum StarknetApiError {
     #[error("Out of range {string}.")]
     /// An error for when a value is out of range.
     OutOfRange { string: String },
+    /// Error when serializing into number.
+    #[error(transparent)]
+    ParseIntError(#[from] ParseIntError),
 }
