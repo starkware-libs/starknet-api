@@ -1,13 +1,13 @@
 #[cfg(test)]
 #[path = "block_test.rs"]
 mod block_test;
+
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::api_core::{ContractAddress, GlobalRoot};
+use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
-use crate::stdlib::vec::Vec;
 use crate::transaction::{Transaction, TransactionOutput};
 
 /// A block.
