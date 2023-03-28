@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::mem;
 
-use serde::{Deserialize, Serialize};
+use serde::de::Error as DeserializationError;
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_json::Value;
 
 use crate::core::EntryPointSelector;
-use crate::serde_utils::bytes_from_hex_str;
 use crate::StarknetApiError;
 
 /// A deprecated contract class.
@@ -18,7 +18,7 @@ pub struct ContractClass {
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
 }
 
-/// A [ContractClass](`crate::deprecated_contract_class::ContractClass`) abi entry.
+/// A [ContractClass](`crate::state::ContractClass`) abi entry.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 #[serde(untagged)]
@@ -83,7 +83,7 @@ pub struct StructMember {
     pub offset: usize,
 }
 
-/// A program corresponding to a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
+/// A program corresponding to a [ContractClass](`crate::state::ContractClass`).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Program {
     #[serde(default)]
@@ -129,20 +129,16 @@ pub struct TypedParameter {
     pub r#type: String,
 }
 
-/// The offset of an [EntryPoint](`crate::deprecated_contract_class::EntryPoint`).
+/// The offset of an [EntryPoint](`crate::state::EntryPoint`).
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-#[serde(try_from = "String", into = "String")]
-pub struct EntryPointOffset(pub usize);
-
+pub struct EntryPointOffset(#[serde(deserialize_with = "number_or_string")] pub usize);
 impl TryFrom<String> for EntryPointOffset {
     type Error = StarknetApiError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        const SIZE_OF_USIZE: usize = mem::size_of::<usize>();
-        let bytes = bytes_from_hex_str::<SIZE_OF_USIZE, true>(value.as_str())?;
-        Ok(Self(usize::from_be_bytes(bytes)))
+        Ok(Self(hex_string_try_into_usize(&value)?))
     }
 }
 
@@ -150,4 +146,20 @@ impl From<EntryPointOffset> for String {
     fn from(value: EntryPointOffset) -> Self {
         format!("0x{:x}", value.0)
     }
+}
+
+pub fn number_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
+    let usize_value = match Value::deserialize(deserializer)? {
+        Value::Number(number) => {
+            number.as_u64().ok_or(DeserializationError::custom("Cannot cast number to usize."))?
+                as usize
+        }
+        Value::String(s) => hex_string_try_into_usize(&s).map_err(DeserializationError::custom)?,
+        _ => return Err(DeserializationError::custom("Cannot cast value into usize.")),
+    };
+    Ok(usize_value)
+}
+
+fn hex_string_try_into_usize(hex_string: &str) -> Result<usize, std::num::ParseIntError> {
+    usize::from_str_radix(hex_string.trim_start_matches("0x"), 16)
 }
