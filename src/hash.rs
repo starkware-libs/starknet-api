@@ -200,6 +200,12 @@ impl TryFrom<StarkFelt> for usize {
     }
 }
 
+impl From<StarkFelt> for web3::types::U256{
+    fn from(felt: StarkFelt) -> Self {
+        return web3::types::U256::from_big_endian(&felt.0);
+    }
+}
+
 impl Debug for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.str_format(f)
