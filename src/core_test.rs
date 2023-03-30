@@ -65,3 +65,15 @@ fn test_calculate_contract_address() {
 
     assert_eq!(actual_address, expected_address);
 }
+
+
+#[test]
+fn test_contract_class_hash_generation(){
+    let data_str = std::fs::read_to_string("./resources/contract_compiled.json").unwrap();
+    println!("{data_str}");
+    let data: serde_json::Value= serde_json::from_str(&data_str).unwrap();
+    let expected_class_hash = ClassHash(StarkHash::try_from("0x399998c787e0a063c3ac1d2abac084dcbe09954e3b156d53a8c43a02aa27d35").unwrap());
+
+    let resulted_class_hash = crate::core::compute_contract_class_hash_v0(&data);
+    assert_eq!(resulted_class_hash, expected_class_hash);
+}
