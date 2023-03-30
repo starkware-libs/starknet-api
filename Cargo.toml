@@ -10,8 +10,9 @@ testing = []
 hex = { version = "0.4.3" }
 indexmap = { version = "1.9.2", features = ["serde"] }
 once_cell = { version = "1.16.0" }
+sha3 = "0.10.6"
 serde = { version = "1.0.130", features = ["derive", "rc"] }
-serde_json = { version = "1.0.81", features = ["preserve_order"] }
+serde_json = { version = "1.0.81", features = ["preserve_order", "arbitrary_precision"] }
 starknet-crypto = { version = "0.2.0" }
 thiserror = { version = "1.0.31" }
 web3 = { version = "0.18.0" }
