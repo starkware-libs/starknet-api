@@ -96,7 +96,9 @@ pub struct ContractClass {
     pub abi: String,
 }
 
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Default, Clone, Copy, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
 #[serde(deny_unknown_fields)]
 pub enum EntryPointType {
     /// A constructor entry point.
