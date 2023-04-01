@@ -115,14 +115,25 @@ pub enum DeclareTransaction {
     V2(DeclareTransactionV2),
 }
 
+macro_rules! implement_declare_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> $field_type {
+            match self {
+                Self::V0(tx) => tx.$field,
+                Self::V1(tx) => tx.$field,
+                Self::V2(tx) => tx.$field,
+            }
+        })*
+    };
+}
+
 impl DeclareTransaction {
-    pub fn transaction_hash(&self) -> TransactionHash {
-        match self {
-            Self::V0(tx) => tx.transaction_hash,
-            Self::V1(tx) => tx.transaction_hash,
-            Self::V2(tx) => tx.transaction_hash,
-        }
-    }
+    implement_declare_tx_getters!(
+        (transaction_hash, TransactionHash),
+        (class_hash, ClassHash),
+        (nonce, Nonce),
+        (sender_address, ContractAddress)
+    );
 }
 
 /// A deploy account transaction.
