@@ -74,20 +74,9 @@ impl TransactionOutput {
     }
 }
 
-/// A declare V0 transaction.
+/// A declare V0 or V1 transaction (same schema but different version).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransactionV0 {
-    pub transaction_hash: TransactionHash,
-    pub max_fee: Fee,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
-    pub class_hash: ClassHash,
-    pub sender_address: ContractAddress,
-}
-
-/// A declare V1 transaction.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransactionV1 {
+pub struct DeclareTransactionV0V1 {
     pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
@@ -110,8 +99,8 @@ pub struct DeclareTransactionV2 {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub enum DeclareTransaction {
-    V0(DeclareTransactionV0),
-    V1(DeclareTransactionV1),
+    V0(DeclareTransactionV0V1),
+    V1(DeclareTransactionV0V1),
     V2(DeclareTransactionV2),
 }
 
