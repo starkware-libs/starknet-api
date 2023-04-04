@@ -217,7 +217,7 @@ pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> Cla
     ]))
 }
 
-/// The hash of a [ContractClass](`crate::state::ContractClass`).
+/// The hash of a ContractClass.
 #[derive(
     Debug,
     Default,
@@ -234,13 +234,30 @@ pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> Cla
 )]
 pub struct ClassHash(pub StarkHash);
 
+/// The hash of a compiled ContractClass.
+#[derive(
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
+)]
+pub struct CompiledClassHash(pub StarkHash);
+
 /// A general type for nonces.
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct Nonce(pub StarkFelt);
 
-/// The selector of an [EntryPoint](`crate::state::EntryPoint`).
+/// The selector of an [EntryPoint](`crate::deprecated_contract_class::EntryPoint`).
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]

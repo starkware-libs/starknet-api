@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use web3::types::H160;
 
 use crate::block::{BlockHash, BlockNumber};
-use crate::core::{ClassHash, ContractAddress, EntryPointSelector, Nonce};
+use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::StarknetApiError;
@@ -28,10 +28,10 @@ pub enum Transaction {
 impl Transaction {
     pub fn transaction_hash(&self) -> TransactionHash {
         match self {
-            Transaction::Declare(tx) => tx.transaction_hash,
+            Transaction::Declare(tx) => tx.transaction_hash(),
             Transaction::Deploy(tx) => tx.transaction_hash,
             Transaction::DeployAccount(tx) => tx.transaction_hash,
-            Transaction::Invoke(tx) => tx.transaction_hash,
+            Transaction::Invoke(tx) => tx.transaction_hash(),
             Transaction::L1Handler(tx) => tx.transaction_hash,
         }
     }
@@ -74,16 +74,57 @@ impl TransactionOutput {
     }
 }
 
-/// A declare transaction.
+/// A declare V0 or V1 transaction (same schema but different version).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransaction {
+pub struct DeclareTransactionV0V1 {
     pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
-    pub version: TransactionVersion,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
     pub sender_address: ContractAddress,
+}
+
+/// A declare V2 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeclareTransactionV2 {
+    pub transaction_hash: TransactionHash,
+    pub max_fee: Fee,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub compiled_class_hash: CompiledClassHash,
+    pub sender_address: ContractAddress,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum DeclareTransaction {
+    V0(DeclareTransactionV0V1),
+    V1(DeclareTransactionV0V1),
+    V2(DeclareTransactionV2),
+}
+
+macro_rules! implement_declare_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> $field_type {
+            match self {
+                Self::V0(tx) => tx.$field.clone(),
+                Self::V1(tx) => tx.$field.clone(),
+                Self::V2(tx) => tx.$field.clone(),
+            }
+        })*
+    };
+}
+
+impl DeclareTransaction {
+    implement_declare_tx_getters!(
+        (transaction_hash, TransactionHash),
+        (class_hash, ClassHash),
+        (nonce, Nonce),
+        (sender_address, ContractAddress),
+        (max_fee, Fee),
+        (signature, TransactionSignature)
+    );
 }
 
 /// A deploy account transaction.
@@ -111,18 +152,42 @@ pub struct DeployTransaction {
     pub constructor_calldata: Calldata,
 }
 
-/// An invoke transaction.
+/// An invoke V0 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct InvokeTransaction {
+pub struct InvokeTransactionV0 {
     pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
-    pub version: TransactionVersion,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub sender_address: ContractAddress,
-    // An invoke transaction without an entry point selector invokes the 'execute' function.
-    pub entry_point_selector: Option<EntryPointSelector>,
+    pub entry_point_selector: EntryPointSelector,
     pub calldata: Calldata,
+}
+
+/// An invoke V1 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct InvokeTransactionV1 {
+    pub transaction_hash: TransactionHash,
+    pub max_fee: Fee,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub sender_address: ContractAddress,
+    pub calldata: Calldata,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum InvokeTransaction {
+    V0(InvokeTransactionV0),
+    V1(InvokeTransactionV1),
+}
+
+impl InvokeTransaction {
+    pub fn transaction_hash(&self) -> TransactionHash {
+        match self {
+            Self::V0(tx) => tx.transaction_hash,
+            Self::V1(tx) => tx.transaction_hash,
+        }
+    }
 }
 
 /// An L1 handler transaction.
