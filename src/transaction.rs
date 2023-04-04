@@ -2,8 +2,8 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use derive_more::From;
+use primitive_types::H160;
 use serde::{Deserialize, Serialize};
-use web3::types::H160;
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
