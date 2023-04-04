@@ -53,7 +53,7 @@ pub fn sn_keccak(data: &[u8]) -> String {
     let masked_number = number & mask;
     let mut res_bytes: [u8; 32] = [0; 32];
     masked_number.to_big_endian(&mut res_bytes);
-    return format!("0x{}", hex::encode(res_bytes).trim_start_matches('0'));
+    format!("0x{}", hex::encode(res_bytes).trim_start_matches('0'))
 }
 
 // TODO: Move to a different crate.
@@ -76,7 +76,7 @@ impl Serialize for StarkFeltAsDecimal {
 
 impl Display for StarkFeltAsDecimal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return f.write_str(&self.0.to_string());
+        f.write_str(&self.0.to_string())
     }
 }
 
@@ -233,13 +233,13 @@ impl TryFrom<StarkFelt> for usize {
 
 impl From<StarkFelt> for U256 {
     fn from(felt: StarkFelt) -> Self {
-        return web3::types::U256::from_big_endian(&felt.0);
+        web3::types::U256::from_big_endian(&felt.0)
     }
 }
 
 impl From<StarkFelt> for StarkFeltAsDecimal {
     fn from(felt: StarkFelt) -> Self {
-        return StarkFeltAsDecimal(U256::from(felt));
+        StarkFeltAsDecimal(U256::from(felt))
     }
 }
 

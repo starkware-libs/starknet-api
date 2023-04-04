@@ -115,7 +115,7 @@ fn serde_deserialize_big_numbers_without_scientific_notation() {
     let input = r#"{
         "value": 20853273475220472486191784820
     }"#;
-    let json: serde_json::Value = serde_json::from_str(&input).unwrap();
+    let json: serde_json::Value = serde_json::from_str(input).unwrap();
     assert_eq!(json["value"].to_string(), "20853273475220472486191784820");
 }
 

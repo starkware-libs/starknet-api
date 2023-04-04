@@ -21,14 +21,14 @@ where
             for (key, value) in object {
                 let mut inner_obj = serde_json::Map::new();
 
-                if condition(key, &value) {
+                if condition(key, value) {
                     continue;
                 }
                 let inner_val = traverse_and_exclude_recursively(value, &mut inner_obj, condition);
                 new_object.insert(key.to_string(), inner_val);
             }
 
-            return Value::Object(new_object.clone());
+            Value::Object(new_object.clone())
         }
         // arrays are visited like the objects - recursively
         Value::Array(array) => {
@@ -38,17 +38,17 @@ where
                 let mut inner_obj = serde_json::Map::new();
                 let inner_val = traverse_and_exclude_recursively(value, &mut inner_obj, condition);
 
-                if !(inner_val.is_object() && inner_val.as_object().unwrap().is_empty()) {
+                if !(inner_val.is_object()
+                    && inner_val.as_object().expect("Not a json object").is_empty())
+                {
                     inner_arr.push(inner_val)
                 }
             }
 
-            return Value::Array(inner_arr);
+            Value::Array(inner_arr)
         }
         // handle non-object, non-array values
-        _ => {
-            return value.clone();
-        }
+        _ => value.clone(),
     }
 }
 
@@ -67,7 +67,7 @@ where
 
     let mut new_obj = serde_json::Map::new();
 
-    for (key, value) in value.as_object().unwrap() {
+    for (key, value) in value.as_object().expect("Not a json object") {
         if condition(key, value) {
             continue;
         }
@@ -75,5 +75,5 @@ where
         new_obj.insert(key.clone(), value.clone());
     }
 
-    return Value::Object(new_obj);
+    Value::Object(new_obj)
 }
