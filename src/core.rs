@@ -7,7 +7,7 @@ use std::fmt::Debug;
 use derive_more::Display;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json, Serializer};
+use serde_json::{json, Serializer, Value};
 use starknet_crypto::FieldElement;
 
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
@@ -74,7 +74,7 @@ pub fn calculate_contract_address(
     ContractAddress::try_from(StarkFelt::from(address))
 }
 
-fn compute_class_hash_from_json(contract_class: &Value) -> String{
+fn compute_class_hash_from_json(contract_class: &Value) -> String {
     let mut abi_json = json!({
         "abi": contract_class.get("abi").unwrap_or(&Value::Null),
         "program": contract_class.get("program").unwrap_or(&Value::Null)
@@ -82,31 +82,39 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String{
 
     let program_json = abi_json.get_mut("program").expect("msg");
     let debug_info_json = program_json.get_mut("debug_info");
-    if debug_info_json.is_some(){
-        program_json.as_object_mut().unwrap().insert("debug_info".to_owned(), serde_json::Value::Null);
+    if debug_info_json.is_some() {
+        program_json
+            .as_object_mut()
+            .unwrap()
+            .insert("debug_info".to_owned(), serde_json::Value::Null);
     }
 
     let mut new_object = serde_json::Map::<String, Value>::new();
-    let res = crate::utils::traverse_and_exclude_recursively(&abi_json, &mut new_object, &|key, value| {
-        return 
-            (key == "attributes" || key == "accessible_scopes") 
-            && value.is_array() 
-            && value.as_array().unwrap().is_empty();
-    });
+    let res = crate::utils::traverse_and_exclude_recursively(
+        &abi_json,
+        &mut new_object,
+        &|key, value| {
+            return (key == "attributes" || key == "accessible_scopes")
+                && value.is_array()
+                && value.as_array().unwrap().is_empty();
+        },
+    );
 
     let mut writer = Vec::with_capacity(128);
-    let mut serializer = Serializer::with_formatter(&mut writer, crate::serde_utils::StarknetFormatter);
+    let mut serializer =
+        Serializer::with_formatter(&mut writer, crate::serde_utils::StarknetFormatter);
     res.serialize(&mut serializer).unwrap();
-    let str_json = unsafe{
-        String::from_utf8_unchecked(writer)
-    };
+    let str_json = unsafe { String::from_utf8_unchecked(writer) };
     println!("{}", str_json);
 
     let keccak_result = crate::hash::sn_keccak(str_json.as_bytes());
     return keccak_result;
 }
 
-fn entry_points_hash_by_type_from_json(contract_class: &Value, entry_point_type: &str) -> StarkFelt{
+fn entry_points_hash_by_type_from_json(
+    contract_class: &Value,
+    entry_point_type: &str,
+) -> StarkFelt {
     let felts = contract_class
         .get("entry_points_by_type")
         .unwrap_or(&serde_json::Value::Null)
@@ -115,61 +123,83 @@ fn entry_points_hash_by_type_from_json(contract_class: &Value, entry_point_type:
         .as_array()
         .unwrap_or(&Vec::<serde_json::Value>::new())
         .iter()
-        .flat_map(|entry|{
+        .flat_map(|entry| {
             let selector = get_starkfelt_from_json_unsafe(&entry, "selector");
             let offset = get_starkfelt_from_json_unsafe(&entry, "offset");
 
             return vec![selector, offset];
-        }).collect::<Vec<StarkFelt>>();
+        })
+        .collect::<Vec<StarkFelt>>();
 
     return pedersen_hash_array(&felts);
 }
 
-fn get_starkfelt_from_json_unsafe(json: &Value, key: &str) -> StarkFelt{
+fn get_starkfelt_from_json_unsafe(json: &Value, key: &str) -> StarkFelt {
     StarkFelt::try_from(json.get(key).unwrap().as_str().unwrap()).unwrap()
 }
 
-pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> ClassHash{
+pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> ClassHash {
     // api version
     let api_version = StarkFelt::try_from(format!("0x{}", hex::encode([0u8])).as_str()).unwrap();
 
     // external entry points hash
-    let external_entry_points_hash = entry_points_hash_by_type_from_json(&contract_class, "EXTERNAL");
+    let external_entry_points_hash =
+        entry_points_hash_by_type_from_json(&contract_class, "EXTERNAL");
 
     // l1 handler entry points hash
     let l1_entry_points_hash = entry_points_hash_by_type_from_json(&contract_class, "L1_HANDLER");
 
     // constructor handler entry points hash
-    let constructor_entry_points_hash = entry_points_hash_by_type_from_json(&contract_class, "CONSTRUCTOR");
+    let constructor_entry_points_hash =
+        entry_points_hash_by_type_from_json(&contract_class, "CONSTRUCTOR");
 
     // builtins hash
     let builtins_encoded = contract_class
-        .get("program").unwrap_or(&serde_json::Value::Null)
-        .get("builtins").unwrap_or(&serde_json::Value::Null)
-        .as_array().unwrap_or(&Vec::<serde_json::Value>::new()).iter().map(|str| {
-        let hex_str = str.as_str().unwrap().as_bytes().iter().map(|b| format!("{:02x}", b))
-            .collect::<Vec<String>>().join("");
-        return format!("0x{}", hex_str);
-    }).collect::<Vec<String>>();
+        .get("program")
+        .unwrap_or(&serde_json::Value::Null)
+        .get("builtins")
+        .unwrap_or(&serde_json::Value::Null)
+        .as_array()
+        .unwrap_or(&Vec::<serde_json::Value>::new())
+        .iter()
+        .map(|str| {
+            let hex_str = str
+                .as_str()
+                .unwrap()
+                .as_bytes()
+                .iter()
+                .map(|b| format!("{:02x}", b))
+                .collect::<Vec<String>>()
+                .join("");
+            return format!("0x{}", hex_str);
+        })
+        .collect::<Vec<String>>();
 
-    let builtins_encoded_as_felts = builtins_encoded.iter().map(|s| {
-        return StarkFelt::try_from(s.as_str()).unwrap();      
-    }).collect::<Vec<StarkFelt>>();
+    let builtins_encoded_as_felts = builtins_encoded
+        .iter()
+        .map(|s| {
+            return StarkFelt::try_from(s.as_str()).unwrap();
+        })
+        .collect::<Vec<StarkFelt>>();
 
     let builtins_hash = pedersen_hash_array(&builtins_encoded_as_felts);
 
-    //hinted class hash
+    // hinted class hash
     let hinted_class_hash = compute_class_hash_from_json(&contract_class);
 
-    //program data hash
+    // program data hash
     let program_data_felts = contract_class
-        .get("program").unwrap_or(&Value::Null)
-        .get("data").unwrap_or(&Value::Null)
-        .as_array().unwrap_or(&Vec::<Value>::new())
+        .get("program")
+        .unwrap_or(&Value::Null)
+        .get("data")
+        .unwrap_or(&Value::Null)
+        .as_array()
+        .unwrap_or(&Vec::<Value>::new())
         .iter()
         .map(|str| {
             return StarkFelt::try_from(str.as_str().unwrap()).unwrap();
-    }).collect::<Vec<StarkFelt>>();
+        })
+        .collect::<Vec<StarkFelt>>();
 
     let program_data_hash = pedersen_hash_array(&program_data_felts);
 
@@ -180,7 +210,7 @@ pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> Cla
         constructor_entry_points_hash,
         builtins_hash,
         StarkFelt::try_from(hinted_class_hash.as_str()).unwrap(),
-        program_data_hash
+        program_data_hash,
     ]));
 }
 

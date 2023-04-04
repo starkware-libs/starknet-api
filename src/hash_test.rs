@@ -69,8 +69,11 @@ fn hash_serde() {
 }
 
 #[test]
-fn stark_felt_from_hex_to_decimal(){
+fn stark_felt_from_hex_to_decimal() {
     let felt = stark_felt!("0x264d6571d5f186bab2a9d5d8d30aa38bf5502bc4354870edbfe194c6f655c9b");
     let felt_decimal = StarkFeltAsDecimal::from(felt);
-    assert_eq!(felt_decimal.to_string(), "1082789725971120866445625682125121757273101071727151005357998861560691645595");
+    assert_eq!(
+        felt_decimal.to_string(),
+        "1082789725971120866445625682125121757273101071727151005357998861560691645595"
+    );
 }

@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use sha3::Digest;
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 use web3::types::U256;
+
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
 };
@@ -45,14 +46,13 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
 }
 
 /// Starknet Keccak Hash
-pub fn sn_keccak(data: &[u8]) -> String{
+pub fn sn_keccak(data: &[u8]) -> String {
     let keccak256 = sha3::Keccak256::digest(data);
     let number = U256::from_big_endian(keccak256.as_slice());
     let mask = U256::pow(U256::from(2), U256::from(250)) - U256::from(1);
     let masked_number = number & mask;
-    let mut res_bytes:[u8;32] = [0;32];
+    let mut res_bytes: [u8; 32] = [0; 32];
     masked_number.to_big_endian(&mut res_bytes);
-    
     return format!("0x{}", hex::encode(res_bytes).trim_start_matches('0'));
 }
 
@@ -65,15 +65,16 @@ pub struct StarkFelt([u8; 32]);
 #[derive(Clone, Copy, Eq, PartialEq, Default)]
 pub struct StarkFeltAsDecimal(U256);
 
-impl Serialize for StarkFeltAsDecimal{
+impl Serialize for StarkFeltAsDecimal {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: serde::Serializer {
+    where
+        S: serde::Serializer,
+    {
         serializer.serialize_str(&self.0.to_string())
     }
 }
 
-impl Display for StarkFeltAsDecimal{
+impl Display for StarkFeltAsDecimal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return f.write_str(&self.0.to_string());
     }
@@ -230,13 +231,13 @@ impl TryFrom<StarkFelt> for usize {
     }
 }
 
-impl From<StarkFelt> for U256{
+impl From<StarkFelt> for U256 {
     fn from(felt: StarkFelt) -> Self {
         return web3::types::U256::from_big_endian(&felt.0);
     }
 }
 
-impl From<StarkFelt> for StarkFeltAsDecimal{
+impl From<StarkFelt> for StarkFeltAsDecimal {
     fn from(felt: StarkFelt) -> Self {
         return StarkFeltAsDecimal(U256::from(felt));
     }

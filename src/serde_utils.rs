@@ -131,30 +131,25 @@ use std::io;
 use serde_json::ser::Formatter;
 pub struct StarknetFormatter;
 
-impl Formatter for StarknetFormatter{
+impl Formatter for StarknetFormatter {
     fn begin_object_value<W>(&mut self, writer: &mut W) -> io::Result<()>
-        where
-            W: ?Sized + io::Write, {
+    where
+        W: ?Sized + io::Write,
+    {
         writer.write_all(b": ")
     }
 
     fn begin_object_key<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
-        where
-            W: ?Sized + io::Write, {
-        if first {
-            Ok(())
-        } else {
-            writer.write_all(b", ")
-        }
+    where
+        W: ?Sized + io::Write,
+    {
+        if first { Ok(()) } else { writer.write_all(b", ") }
     }
 
     fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
-        where
-            W: ?Sized + io::Write, {
-        if first {
-            Ok(())
-        } else {
-            writer.write_all(b", ")
-        }
+    where
+        W: ?Sized + io::Write,
+    {
+        if first { Ok(()) } else { writer.write_all(b", ") }
     }
 }
