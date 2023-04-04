@@ -14,8 +14,8 @@ serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = { version = "1.0.81" }
 starknet-crypto = { version = "0.2.0" }
 thiserror = { version = "1.0.31" }
-web3 = { version = "0.18.0" }
-derive_more = {version = "0.99.17"}
+primitive-types = { version = "0.12.1", features = ["serde"] }
+derive_more = { version = "0.99.17" }
 
 [dev-dependencies]
 assert_matches = { version = "1.5.0" }
