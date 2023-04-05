@@ -62,7 +62,7 @@ pub fn sn_keccak(data: &[u8]) -> String {
 #[serde(try_from = "PrefixedBytesAsHex<32_usize>", into = "PrefixedBytesAsHex<32_usize>")]
 pub struct StarkFelt([u8; 32]);
 
-#[derive(Clone, Copy, Eq, PartialEq, Default)]
+#[derive(Clone, Copy, Eq, PartialEq, Default, Deserialize)]
 pub struct StarkFeltAsDecimal(U256);
 
 impl Serialize for StarkFeltAsDecimal {
