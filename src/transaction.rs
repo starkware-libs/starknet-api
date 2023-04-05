@@ -125,6 +125,14 @@ impl DeclareTransaction {
         (max_fee, Fee),
         (signature, TransactionSignature)
     );
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0)),
+            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1)),
+            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2)),
+        }
+    }
 }
 
 /// A deploy account transaction.
@@ -186,6 +194,13 @@ impl InvokeTransaction {
         match self {
             Self::V0(tx) => tx.transaction_hash,
             Self::V1(tx) => tx.transaction_hash,
+        }
+    }
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0)),
+            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1)),
         }
     }
 }
