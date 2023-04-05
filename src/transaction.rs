@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
+use derive_more::From;
 use serde::{Deserialize, Serialize};
 use web3::types::H160;
 
@@ -183,7 +184,7 @@ pub struct InvokeTransactionV1 {
     pub calldata: Calldata,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
 pub enum InvokeTransaction {
     V0(InvokeTransactionV0),
     V1(InvokeTransactionV1),
