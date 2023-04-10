@@ -9,6 +9,7 @@ use crate::StarknetApiError;
 
 /// A deprecated contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(default)]
 pub struct ContractClass {
     pub abi: Option<Vec<ContractClassAbiEntry>>,
     pub program: Program,
