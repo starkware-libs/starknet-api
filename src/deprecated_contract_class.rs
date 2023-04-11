@@ -54,7 +54,7 @@ pub enum FunctionAbiEntryType {
     Constructor,
     #[serde(rename = "l1_handler")]
     L1Handler,
-    #[serde(rename = "regular")]
+    #[serde(rename = "function")]
     #[default]
     Regular,
 }
