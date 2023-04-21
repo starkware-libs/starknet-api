@@ -12,10 +12,10 @@ indexmap = { version = "1.9.2", features = ["serde"] }
 once_cell = { version = "1.16.0" }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = { version = "1.0.81" }
-starknet-crypto = { version = "0.2.0" }
+starknet-crypto = { git = "https://github.com/xJonathanLEI/starknet-rs", rev = "5d3f9d7cc6df0d01a299f0fb0ebc00ec2f28b983" }
 thiserror = { version = "1.0.31" }
 web3 = { version = "0.18.0" }
-derive_more = {version = "0.99.17"}
+derive_more = { version = "0.99.17" }
 
 [dev-dependencies]
 assert_matches = { version = "1.5.0" }

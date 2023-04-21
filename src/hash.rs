@@ -154,6 +154,22 @@ impl From<u64> for StarkFelt {
     }
 }
 
+impl From<i32> for StarkFelt {
+    fn from(val: i32) -> Self {
+        let mut bytes = [0u8; 32];
+        bytes[28..32].copy_from_slice(&val.to_be_bytes());
+        Self(bytes)
+    }
+}
+
+impl From<u128> for StarkFelt {
+    fn from(val: u128) -> Self {
+        let mut bytes = [0u8; 32];
+        bytes[18..32].copy_from_slice(&val.to_be_bytes());
+        Self(bytes)
+    }
+}
+
 impl From<FieldElement> for StarkFelt {
     fn from(fe: FieldElement) -> Self {
         // Should not fail.
@@ -197,6 +213,18 @@ impl TryFrom<StarkFelt> for usize {
         Ok(usize::from_be_bytes(
             usize_bytes.try_into().expect("usize_bytes should be of size usize."),
         ))
+    }
+}
+
+impl TryInto<u128> for StarkFelt {
+    type Error = StarknetApiError;
+    fn try_into(self) -> Result<u128, Self::Error> {
+        let (rest, u128_bytes) = self.bytes().split_at(16);
+        if rest != [0u8; 16] {
+            return Err(StarknetApiError::OutOfRange { string: self.to_string() });
+        }
+
+        Ok(u128::from_be_bytes(u128_bytes.try_into().expect("u128_bytes should be of size u128.")))
     }
 }
 
