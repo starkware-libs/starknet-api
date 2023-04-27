@@ -189,20 +189,26 @@ pub enum InvokeTransaction {
     V1(InvokeTransactionV1),
 }
 
-impl InvokeTransaction {
-    pub fn transaction_hash(&self) -> TransactionHash {
-        match self {
-            Self::V0(tx) => tx.transaction_hash,
-            Self::V1(tx) => tx.transaction_hash,
-        }
-    }
+macro_rules! implement_invoke_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> $field_type {
+            match self {
+                Self::V0(tx) => tx.$field.clone(),
+                Self::V1(tx) => tx.$field.clone(),
+            }
+        })*
+    };
+}
 
-    pub fn version(&self) -> TransactionVersion {
-        match self {
-            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0)),
-            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1)),
-        }
-    }
+impl InvokeTransaction {
+    implement_invoke_tx_getters!(
+        (transaction_hash, TransactionHash),
+        (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce),
+        (sender_address, ContractAddress),
+        (calldata, Calldata)
+    );
 }
 
 /// An L1 handler transaction.
