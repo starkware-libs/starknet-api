@@ -7,6 +7,7 @@ edition = "2021"
 testing = []
 
 [dependencies]
+cairo-vm = { git = "https://github.com/lambdaclass/cairo-rs.git", rev = "d545372f" }
 hex = { version = "0.4.3" }
 indexmap = { version = "1.9.2", features = ["serde"] }
 once_cell = { version = "1.16.0" }

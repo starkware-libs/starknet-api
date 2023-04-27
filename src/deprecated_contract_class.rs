@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 
+use cairo_vm::serde::deserialize_program::{Attribute, BuiltinName, HintParams};
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::core::EntryPointSelector;
+use crate::hash::StarkFelt;
 use crate::StarknetApiError;
 
 /// A deprecated contract class.
@@ -87,16 +89,16 @@ pub struct StructMember {
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Program {
     #[serde(default)]
-    pub attributes: serde_json::Value,
-    pub builtins: serde_json::Value,
-    #[serde(default)]
-    pub compiler_version: serde_json::Value,
-    pub data: serde_json::Value,
+    pub attributes: Vec<Attribute>,
+    pub builtins: Vec<BuiltinName>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub compiler_version: Option<String>,
+    pub data: Vec<StarkFelt>,
     pub debug_info: serde_json::Value,
-    pub hints: serde_json::Value,
+    pub hints: HashMap<String, Vec<HintParams>>,
     pub identifiers: serde_json::Value,
-    pub main_scope: serde_json::Value,
-    pub prime: serde_json::Value,
+    pub main_scope: String,
+    pub prime: StarkFelt,
     pub reference_manager: serde_json::Value,
 }
 
