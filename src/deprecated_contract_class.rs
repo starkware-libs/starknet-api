@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -123,6 +124,17 @@ pub enum EntryPointType {
 pub struct EntryPoint {
     pub selector: EntryPointSelector,
     pub offset: EntryPointOffset,
+}
+
+impl TryFrom<CasmContractEntryPoint> for EntryPoint {
+    type Error = StarknetApiError;
+
+    fn try_from(value: CasmContractEntryPoint) -> Result<Self, Self::Error> {
+        Ok(EntryPoint {
+            selector: EntryPointSelector(value.selector.to_str_radix(16).as_str().try_into()?),
+            offset: EntryPointOffset(value.offset),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
