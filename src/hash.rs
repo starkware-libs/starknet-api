@@ -141,7 +141,8 @@ impl TryFrom<PrefixedBytesAsHex<32_usize>> for StarkFelt {
 impl TryFrom<&str> for StarkFelt {
     type Error = StarknetApiError;
     fn try_from(val: &str) -> Result<Self, Self::Error> {
-        let bytes = bytes_from_hex_str::<32, true>(val)?;
+        let val = val.trim_start_matches("0x");
+        let bytes = bytes_from_hex_str::<32, false>(val)?;
         Self::new(bytes)
     }
 }
