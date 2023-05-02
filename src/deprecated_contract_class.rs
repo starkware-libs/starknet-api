@@ -56,7 +56,7 @@ pub enum FunctionAbiEntryType {
     L1Handler,
     #[serde(rename = "function")]
     #[default]
-    Regular,
+    Function,
 }
 
 /// A function abi entry.
