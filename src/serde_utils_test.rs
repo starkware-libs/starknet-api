@@ -110,6 +110,10 @@ fn hex_as_bytes_serde_not_prefixed() {
     );
 }
 
+/// When serializing using serde_json without arbitrary_precision feature enabled,
+/// then big numbers gets serialized to scientific notation like 1.23E+10.
+/// This test is to ensure that when used serde_json feature arbitrary_precision
+/// the resulted string will not use scientific notation
 #[test]
 fn serde_deserialize_big_numbers_without_scientific_notation() {
     let input = r#"{
