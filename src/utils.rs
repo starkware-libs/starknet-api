@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "utils_test.rs"]
+mod utils_test;
+
 use serde_json::Value;
 
 /// because of the preserve_order feature enabled in the serde_json crate
