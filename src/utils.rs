@@ -39,7 +39,7 @@ where
                 let inner_val = traverse_and_exclude_recursively(value, &mut inner_obj, condition);
 
                 if !(inner_val.is_object()
-                    && inner_val.as_object().expect("Not a json object").is_empty())
+                    && inner_val.as_object().expect("Not a JSON object").is_empty())
                 {
                     inner_arr.push(inner_val)
                 }
@@ -67,7 +67,7 @@ where
 
     let mut new_obj = serde_json::Map::new();
 
-    for (key, value) in value.as_object().expect("Not a json object") {
+    for (key, value) in value.as_object().expect("Not a JSON object") {
         if condition(key, value) {
             continue;
         }

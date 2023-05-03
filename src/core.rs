@@ -85,7 +85,7 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
     if debug_info_json.is_some() {
         program_json
             .as_object_mut()
-            .expect("Not a json object")
+            .expect("Not a JSON object")
             .insert("debug_info".to_owned(), serde_json::Value::Null);
     }
 
@@ -96,7 +96,7 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
         &|key, value| {
             return (key == "attributes" || key == "accessible_scopes")
                 && value.is_array()
-                && value.as_array().expect("Not a json array").is_empty();
+                && value.as_array().expect("Not a JSON array").is_empty();
         },
     );
 
@@ -134,7 +134,7 @@ fn entry_points_hash_by_type_from_json(
 }
 
 fn get_starkfelt_from_json_unsafe(json: &Value, key: &str) -> StarkFelt {
-    StarkFelt::try_from(json.get(key).expect("Key not found").as_str().expect("Not a json string"))
+    StarkFelt::try_from(json.get(key).expect("Key not found").as_str().expect("Not a JSON string"))
         .expect("Not a valid hash")
 }
 
@@ -166,7 +166,7 @@ pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> Cla
         .map(|str| {
             let hex_str = str
                 .as_str()
-                .expect("Not a json string")
+                .expect("Not a JSON string")
                 .as_bytes()
                 .iter()
                 .map(|b| format!("{:02x}", b))
@@ -198,7 +198,7 @@ pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> Cla
         .unwrap_or(&Vec::<Value>::new())
         .iter()
         .map(|str| {
-            return StarkFelt::try_from(str.as_str().expect("Not a json string"))
+            return StarkFelt::try_from(str.as_str().expect("Not a JSON string"))
                 .expect("Not a valid hash");
         })
         .collect::<Vec<StarkFelt>>();
