@@ -1,4 +1,4 @@
-use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
+use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt, StarkFeltAsDecimal};
 use crate::stark_felt;
 
 #[test]
@@ -66,4 +66,17 @@ fn hash_serde() {
         let d = StarkFelt::deserialize(&mut reader).unwrap();
         assert_eq!(bytes, d.0);
     }
+}
+
+#[test]
+fn stark_felt_from_hex_to_decimal() {
+    let felt = stark_felt!("0x000000000000d");
+    assert_eq!(StarkFeltAsDecimal::from(felt).to_string(), "13");
+
+    let felt = stark_felt!("0x264d6571d5f186bab2a9d5d8d30aa38bf5502bc4354870edbfe194c6f655c9b");
+    let felt_decimal = StarkFeltAsDecimal::from(felt);
+    assert_eq!(
+        felt_decimal.to_string(),
+        "1082789725971120866445625682125121757273101071727151005357998861560691645595"
+    );
 }
