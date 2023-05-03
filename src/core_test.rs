@@ -67,7 +67,7 @@ fn test_calculate_contract_address() {
 }
 
 #[test]
-fn test_contract_class_hash_generation() {
+fn contract_class_hash_generation() {
     let data_str = std::fs::read_to_string("./resources/contract_compiled.json").unwrap();
     let data: serde_json::Value = serde_json::from_str(&data_str).unwrap();
     let expected_class_hash = ClassHash(
