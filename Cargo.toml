@@ -13,6 +13,7 @@ indexmap = { version = "1.9.2", features = ["serde"] }
 once_cell = { version = "1.16.0" }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = { version = "1.0.81" }
+sha3 = { version = "0.10.6"}
 starknet-crypto = { version = "0.2.0" }
 thiserror = { version = "1.0.31" }
 web3 = { version = "0.18.0" }
