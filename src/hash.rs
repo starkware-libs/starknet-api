@@ -21,7 +21,8 @@ pub const GENESIS_HASH: &str = "0x0";
 // Felt encoding constants.
 const CHOOSER_FULL: u8 = 15;
 const CHOOSER_HALF: u8 = 14;
-const MASK: U256 = U256([18446744073709551615, 18446744073709551615, 18446744073709551615, 288230376151711743]);
+const MASK: U256 =
+    U256([18446744073709551615, 18446744073709551615, 18446744073709551615, 288230376151711743]);
 
 /// An alias for [`StarkFelt`].
 /// The output of the [Pedersen hash](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash).
