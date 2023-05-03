@@ -108,3 +108,16 @@ fn hex_as_bytes_serde_not_prefixed() {
         serde_json::from_str(&serde_json::to_string(&hex_as_bytes).unwrap()).unwrap()
     );
 }
+
+/// When serializing using serde_json without arbitrary_precision feature enabled,
+/// then big numbers gets serialized to scientific notation like 1.23E+10.
+/// This test is to ensure that when used serde_json feature arbitrary_precision
+/// the resulted string will not use scientific notation
+#[test]
+fn serde_deserialize_big_numbers_without_scientific_notation() {
+    let input = r#"{
+        "value": 20853273475220472486191784820
+    }"#;
+    let json: serde_json::Value = serde_json::from_str(input).unwrap();
+    assert_eq!(json["value"].to_string(), "20853273475220472486191784820");
+}

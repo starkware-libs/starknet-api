@@ -158,10 +158,10 @@ impl TryFrom<String> for EntryPointOffset {
 
 pub fn number_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
     let usize_value = match Value::deserialize(deserializer)? {
-        Value::Number(number) => {
-            number.as_u64().ok_or(DeserializationError::custom("Cannot cast number to usize."))?
-                as usize
-        }
+        Value::Number(number) => number
+            .as_u64()
+            .ok_or_else(|| DeserializationError::custom("Cannot cast number to usize."))?
+            as usize,
         Value::String(s) => hex_string_try_into_usize(&s).map_err(DeserializationError::custom)?,
         _ => return Err(DeserializationError::custom("Cannot cast value into usize.")),
     };

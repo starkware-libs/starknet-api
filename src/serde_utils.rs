@@ -5,6 +5,8 @@ mod serde_utils_test;
 
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
+use serde_json::ser::Formatter;
+use std::io;
 
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
@@ -123,5 +125,46 @@ pub fn hex_str_from_bytes<const N: usize, const PREFIXED: bool>(bytes: [u8; N]) 
     let hex_str = hex::encode(bytes);
     let mut hex_str = hex_str.trim_start_matches('0');
     hex_str = if hex_str.is_empty() { "0" } else { hex_str };
-    if PREFIXED { format!("0x{hex_str}") } else { hex_str.to_string() }
+    if PREFIXED {
+        format!("0x{hex_str}")
+    } else {
+        hex_str.to_string()
+    }
+}
+
+/// JSON Formatter that serializes an object with the desired spaces
+/// So the serialized object can match the object structure when compiling cairo program.
+/// When serializing with the default formatter, the JSON string is without any spaces between elements.
+/// Example here <https://www.cairo-lang.org/docs/hello_starknet/intro.html#>.
+pub struct StarknetFormatter;
+
+impl Formatter for StarknetFormatter {
+    fn begin_object_value<W>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: ?Sized + io::Write,
+    {
+        writer.write_all(b": ")
+    }
+
+    fn begin_object_key<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    where
+        W: ?Sized + io::Write,
+    {
+        if first {
+            Ok(())
+        } else {
+            writer.write_all(b", ")
+        }
+    }
+
+    fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    where
+        W: ?Sized + io::Write,
+    {
+        if first {
+            Ok(())
+        } else {
+            writer.write_all(b", ")
+        }
+    }
 }
