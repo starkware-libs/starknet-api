@@ -106,8 +106,7 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
     res.serialize(&mut serializer).expect("Unable to serialize with custom formatter");
     let str_json = String::from_utf8(writer).expect("Cant convert to UTF-8 string");
 
-    let keccak_result = crate::hash::sn_keccak(str_json.as_bytes());
-    keccak_result
+    crate::hash::sn_keccak(str_json.as_bytes())
 }
 
 fn entry_points_hash_by_type_from_json(
