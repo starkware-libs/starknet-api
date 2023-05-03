@@ -80,7 +80,8 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
         "program": contract_class.get("program").unwrap_or(&Value::Null)
     });
 
-    let program_json = abi_json.get_mut("program").expect("Program key should be present in the JSON object");
+    let program_json =
+        abi_json.get_mut("program").expect("Program key should be present in the JSON object");
     let debug_info_json = program_json.get_mut("debug_info");
     if debug_info_json.is_some() {
         program_json

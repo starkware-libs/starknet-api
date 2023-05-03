@@ -125,7 +125,11 @@ pub fn hex_str_from_bytes<const N: usize, const PREFIXED: bool>(bytes: [u8; N]) 
     let hex_str = hex::encode(bytes);
     let mut hex_str = hex_str.trim_start_matches('0');
     hex_str = if hex_str.is_empty() { "0" } else { hex_str };
-    if PREFIXED { format!("0x{hex_str}") } else { hex_str.to_string() }
+    if PREFIXED {
+        format!("0x{hex_str}")
+    } else {
+        hex_str.to_string()
+    }
 }
 
 /// JSON Formatter that serializes an object with the desired spaces
@@ -146,13 +150,21 @@ impl Formatter for StarknetFormatter {
     where
         W: ?Sized + io::Write,
     {
-        if first { Ok(()) } else { writer.write_all(b", ") }
+        if first {
+            Ok(())
+        } else {
+            writer.write_all(b", ")
+        }
     }
 
     fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
     where
         W: ?Sized + io::Write,
     {
-        if first { Ok(()) } else { writer.write_all(b", ") }
+        if first {
+            Ok(())
+        } else {
+            writer.write_all(b", ")
+        }
     }
 }

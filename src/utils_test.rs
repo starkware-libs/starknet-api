@@ -1,6 +1,5 @@
 use serde_json::Value;
 
-
 #[test]
 fn serde_remove_elements_from_json() {
     let input = r#"
