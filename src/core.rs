@@ -104,8 +104,7 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
     let mut serializer =
         Serializer::with_formatter(&mut writer, crate::serde_utils::StarknetFormatter);
     res.serialize(&mut serializer).expect("Unable to serialize with custom formatter");
-    let str_json = unsafe { String::from_utf8_unchecked(writer) };
-    println!("{}", str_json);
+    let str_json = String::from_utf8(writer).expect("Cant convert to UTF-8 string");
 
     let keccak_result = crate::hash::sn_keccak(str_json.as_bytes());
     keccak_result
