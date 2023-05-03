@@ -5,6 +5,8 @@ mod serde_utils_test;
 
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
+use serde_json::ser::Formatter;
+use std::io;
 
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
@@ -126,9 +128,10 @@ pub fn hex_str_from_bytes<const N: usize, const PREFIXED: bool>(bytes: [u8; N]) 
     if PREFIXED { format!("0x{hex_str}") } else { hex_str.to_string() }
 }
 
-use std::io;
-
-use serde_json::ser::Formatter;
+/// JSON Formatter that serializes an object with the desired spaces
+/// So the serialized object can match the object structure when compiling cairo program.
+/// When serializing with the default formatter, the JSON string is without any spaces between elements.
+/// Example here <https://www.cairo-lang.org/docs/hello_starknet/intro.html#>.
 pub struct StarknetFormatter;
 
 impl Formatter for StarknetFormatter {
