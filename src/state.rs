@@ -17,6 +17,9 @@ use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::StarknetApiError;
 
+pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
+pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;
+
 /// The differences between two states before and after a block with hash block_hash
 /// and their respective roots.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
@@ -39,6 +42,56 @@ pub struct StateDiff {
     pub deprecated_declared_classes: IndexMap<ClassHash, DeprecatedContractClass>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
     pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
+}
+
+// Invariant: Addresses are strictly increasing.
+// The invariant is enforced as [`ThinStateDiff`] is created only from [`starknet_api`][`StateDiff`]
+// where the addresses are strictly increasing.
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ThinStateDiff {
+    pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
+    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    pub declared_classes: IndexMap<ClassHash, CompiledClassHash>,
+    pub deprecated_declared_classes: Vec<ClassHash>,
+    pub nonces: IndexMap<ContractAddress, Nonce>,
+    pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
+}
+
+impl ThinStateDiff {
+    // Returns also the declared classes without cloning them.
+    pub(crate) fn from_state_diff(
+        diff: StateDiff,
+    ) -> (Self, DeclaredClasses, DeprecatedDeclaredClasses) {
+        (
+            Self {
+                deployed_contracts: diff.deployed_contracts,
+                storage_diffs: diff.storage_diffs,
+                declared_classes: diff
+                    .declared_classes
+                    .iter()
+                    .map(|(class_hash, (compiled_hash, _class))| (*class_hash, *compiled_hash))
+                    .collect(),
+                deprecated_declared_classes: diff
+                    .deprecated_declared_classes
+                    .keys()
+                    .copied()
+                    .collect(),
+                nonces: diff.nonces,
+                replaced_classes: diff.replaced_classes,
+            },
+            diff.declared_classes
+                .into_iter()
+                .map(|(class_hash, (_compiled_class_hash, class))| (class_hash, class))
+                .collect(),
+            diff.deprecated_declared_classes,
+        )
+    }
+}
+
+impl From<StateDiff> for ThinStateDiff {
+    fn from(diff: StateDiff) -> Self {
+        Self::from_state_diff(diff).0
+    }
 }
 
 /// The sequential numbering of the states between blocks.
