@@ -17,6 +17,9 @@ use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::StarknetApiError;
 
+pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
+pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;
+
 /// The differences between two states before and after a block with hash block_hash
 /// and their respective roots.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
@@ -37,6 +40,19 @@ pub struct StateDiff {
     pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
     pub declared_classes: IndexMap<ClassHash, (CompiledClassHash, ContractClass)>,
     pub deprecated_declared_classes: IndexMap<ClassHash, DeprecatedContractClass>,
+    pub nonces: IndexMap<ContractAddress, Nonce>,
+    pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
+}
+
+// Invariant: Addresses are strictly increasing.
+// The invariant is enforced as [`ThinStateDiff`] is created only from [`starknet_api`][`StateDiff`]
+// where the addresses are strictly increasing.
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ThinStateDiff {
+    pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
+    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    pub declared_classes: IndexMap<ClassHash, CompiledClassHash>,
+    pub deprecated_declared_classes: Vec<ClassHash>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
     pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
 }
