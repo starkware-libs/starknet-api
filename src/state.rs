@@ -57,6 +57,41 @@ pub struct ThinStateDiff {
     pub replaced_classes: IndexMap<ContractAddress, ClassHash>,
 }
 
+impl ThinStateDiff {
+    // Returns also the declared classes without cloning them.
+    pub fn from_state_diff(diff: StateDiff) -> (Self, DeclaredClasses, DeprecatedDeclaredClasses) {
+        (
+            Self {
+                deployed_contracts: diff.deployed_contracts,
+                storage_diffs: diff.storage_diffs,
+                declared_classes: diff
+                    .declared_classes
+                    .iter()
+                    .map(|(class_hash, (compiled_hash, _class))| (*class_hash, *compiled_hash))
+                    .collect(),
+                deprecated_declared_classes: diff
+                    .deprecated_declared_classes
+                    .keys()
+                    .copied()
+                    .collect(),
+                nonces: diff.nonces,
+                replaced_classes: diff.replaced_classes,
+            },
+            diff.declared_classes
+                .into_iter()
+                .map(|(class_hash, (_compiled_class_hash, class))| (class_hash, class))
+                .collect(),
+            diff.deprecated_declared_classes,
+        )
+    }
+}
+
+impl From<StateDiff> for ThinStateDiff {
+    fn from(diff: StateDiff) -> Self {
+        Self::from_state_diff(diff).0
+    }
+}
+
 /// The sequential numbering of the states between blocks.
 // Example:
 // States: S0       S1       S2
