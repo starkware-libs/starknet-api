@@ -10,7 +10,7 @@ testing = []
 cairo-lang-starknet = { git = "https://github.com/starkware-libs/cairo", rev = "2390363" }
 hex = { version = "0.4.3" }
 indexmap = { version = "1.9.2", features = ["serde"] }
-once_cell = { version = "1.16.0" }
+once_cell = { version = "1.17.1" }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = { version = "1.0.81" }
 starknet-crypto = { version = "0.2.0" }
