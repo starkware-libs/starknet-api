@@ -100,7 +100,7 @@ fn compute_class_hash_from_json(contract_class: &Value) -> Result<String, Starkn
         &|key, value| {
             return (key == "attributes" || key == "accessible_scopes")
                 && value.is_array()
-                && value.as_array().unwrap().is_empty();
+                && value.as_array().expect("Not a valid JSON array").is_empty();
         },
     );
 

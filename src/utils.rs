@@ -42,7 +42,9 @@ where
                 let mut inner_obj = serde_json::Map::new();
                 let inner_val = traverse_and_exclude_recursively(value, &mut inner_obj, condition);
 
-                if !(inner_val.is_object() && inner_val.as_object().unwrap().is_empty()) {
+                if !(inner_val.is_object()
+                    && inner_val.as_object().expect("Not a valid JSON object").is_empty())
+                {
                     inner_arr.push(inner_val)
                 }
             }
