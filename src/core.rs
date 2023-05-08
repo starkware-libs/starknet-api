@@ -11,6 +11,7 @@ use serde_json::{json, Serializer, Value};
 use starknet_crypto::FieldElement;
 
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
+use crate::serde_utils::{InnerDeserializationError, InnerSerializationError};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::StarknetApiError;
 
@@ -74,19 +75,21 @@ pub fn calculate_contract_address(
     ContractAddress::try_from(StarkFelt::from(address))
 }
 
-fn compute_class_hash_from_json(contract_class: &Value) -> String {
+fn compute_class_hash_from_json(contract_class: &Value) -> Result<String, StarknetApiError> {
     let mut abi_json = json!({
         "abi": contract_class.get("abi").unwrap_or(&Value::Null),
         "program": contract_class.get("program").unwrap_or(&Value::Null)
     });
 
-    let program_json =
-        abi_json.get_mut("program").expect("Program key should be present in the JSON object");
+    let program_json = abi_json
+        .get_mut("program")
+        .ok_or(InnerDeserializationError::MissingKey { key: "program".to_string() })?;
+
     let debug_info_json = program_json.get_mut("debug_info");
     if debug_info_json.is_some() {
         program_json
             .as_object_mut()
-            .expect("Not a JSON object")
+            .ok_or(InnerDeserializationError::UnexpectedType { expected: "object".to_string() })?
             .insert("debug_info".to_owned(), serde_json::Value::Null);
     }
 
@@ -97,123 +100,135 @@ fn compute_class_hash_from_json(contract_class: &Value) -> String {
         &|key, value| {
             return (key == "attributes" || key == "accessible_scopes")
                 && value.is_array()
-                && value.as_array().expect("Not a JSON array").is_empty();
+                && value.as_array().unwrap().is_empty();
         },
     );
 
     let mut writer = Vec::with_capacity(128);
     let mut serializer =
         Serializer::with_formatter(&mut writer, crate::serde_utils::StarknetFormatter);
-    res.serialize(&mut serializer).expect("Unable to serialize with custom formatter");
-    let str_json = String::from_utf8(writer).expect("Cant convert to UTF-8 string");
+    res.serialize(&mut serializer).map_err(|_| InnerSerializationError::FormatterError {
+        formatter: "StarknetFormatter".to_string(),
+    })?;
 
-    crate::hash::sn_keccak(str_json.as_bytes())
+    let str_json = String::from_utf8(writer).map_err(|_| InnerSerializationError::Custom {
+        msg: "Cant convert from bytes to UTF-8 JSON string".to_string(),
+    })?;
+
+    Ok(crate::hash::sn_keccak(str_json.as_bytes()))
 }
 
 fn entry_points_hash_by_type_from_json(
     contract_class: &Value,
     entry_point_type: &str,
-) -> StarkFelt {
-    let felts = contract_class
+) -> Result<StarkFelt, StarknetApiError> {
+    let felts: Result<Vec<_>, _> = contract_class
         .get("entry_points_by_type")
         .unwrap_or(&serde_json::Value::Null)
         .get(entry_point_type)
         .unwrap_or(&serde_json::Value::Null)
         .as_array()
         .unwrap_or(&Vec::<serde_json::Value>::new())
-        .iter()
+        .clone()
+        .into_iter()
         .flat_map(|entry| {
-            let selector = get_starkfelt_from_json_unsafe(entry, "selector");
-            let offset = get_starkfelt_from_json_unsafe(entry, "offset");
+            let selector = get_starkfelt_from_json(&entry, "selector");
+            let offset = get_starkfelt_from_json(&entry, "offset");
 
             vec![selector, offset]
         })
-        .collect::<Vec<StarkFelt>>();
+        .collect();
 
-    pedersen_hash_array(&felts)
+    Ok(pedersen_hash_array(&felts?))
 }
 
-fn get_starkfelt_from_json_unsafe(json: &Value, key: &str) -> StarkFelt {
-    StarkFelt::try_from(json.get(key).expect("Key not found").as_str().expect("Not a JSON string"))
-        .expect("Not a valid hash")
+fn get_starkfelt_from_json(json: &Value, key: &str) -> Result<StarkFelt, StarknetApiError> {
+    StarkFelt::try_from(
+        json.get(key)
+            .ok_or(InnerDeserializationError::MissingKey { key: key.to_string() })?
+            .as_str()
+            .ok_or(InnerDeserializationError::UnexpectedType { expected: "string".to_string() })?,
+    )
 }
 
-pub fn compute_contract_class_hash_v0(contract_class: &serde_json::Value) -> ClassHash {
+pub fn compute_contract_class_hash_v0(
+    contract_class: &serde_json::Value,
+) -> Result<ClassHash, StarknetApiError> {
     // api version
-    let api_version = StarkFelt::try_from(format!("0x{}", hex::encode([0u8])).as_str())
-        .expect("Not a valid hash");
+    let api_version = StarkFelt::try_from(format!("0x{}", hex::encode([0u8])).as_str())?;
 
     // external entry points hash
     let external_entry_points_hash =
-        entry_points_hash_by_type_from_json(contract_class, "EXTERNAL");
+        entry_points_hash_by_type_from_json(contract_class, "EXTERNAL")?;
 
     // l1 handler entry points hash
-    let l1_entry_points_hash = entry_points_hash_by_type_from_json(contract_class, "L1_HANDLER");
+    let l1_entry_points_hash = entry_points_hash_by_type_from_json(contract_class, "L1_HANDLER")?;
 
     // constructor handler entry points hash
     let constructor_entry_points_hash =
-        entry_points_hash_by_type_from_json(contract_class, "CONSTRUCTOR");
+        entry_points_hash_by_type_from_json(contract_class, "CONSTRUCTOR")?;
 
     // builtins hash
-    let builtins_encoded = contract_class
+    let builtins_encoded: Result<Vec<_>, _> = contract_class
         .get("program")
         .unwrap_or(&serde_json::Value::Null)
         .get("builtins")
         .unwrap_or(&serde_json::Value::Null)
         .as_array()
         .unwrap_or(&Vec::<serde_json::Value>::new())
-        .iter()
+        .clone()
+        .into_iter()
         .map(|str| {
-            let hex_str = str
-                .as_str()
-                .expect("Not a JSON string")
+            let json_str = str.as_str().ok_or(InnerDeserializationError::UnexpectedType {
+                expected: "string".to_string(),
+            })?;
+            let hex_str = json_str
                 .as_bytes()
                 .iter()
                 .map(|b| format!("{:02x}", b))
                 .collect::<Vec<String>>()
                 .join("");
-            format!("0x{}", hex_str)
-        })
-        .collect::<Vec<String>>();
 
-    let builtins_encoded_as_felts = builtins_encoded
-        .iter()
-        .map(|s| {
-            return StarkFelt::try_from(s.as_str()).expect("Not a valid hash");
+            Ok::<String, StarknetApiError>(format!("0x{}", hex_str))
         })
-        .collect::<Vec<StarkFelt>>();
+        .collect();
 
-    let builtins_hash = pedersen_hash_array(&builtins_encoded_as_felts);
+    let builtins_encoded_as_felts: Result<Vec<_>, _> =
+        builtins_encoded?.into_iter().map(|s| StarkFelt::try_from(s.as_str())).collect();
+
+    let builtins_hash = pedersen_hash_array(&builtins_encoded_as_felts?);
 
     // hinted class hash
-    let hinted_class_hash = compute_class_hash_from_json(contract_class);
+    let hinted_class_hash = compute_class_hash_from_json(contract_class)?;
 
     // program data hash
-    let program_data_felts = contract_class
+    let program_data_felts: Result<Vec<_>, _> = contract_class
         .get("program")
         .unwrap_or(&Value::Null)
         .get("data")
         .unwrap_or(&Value::Null)
         .as_array()
         .unwrap_or(&Vec::<Value>::new())
-        .iter()
+        .clone()
+        .into_iter()
         .map(|str| {
-            return StarkFelt::try_from(str.as_str().expect("Not a JSON string"))
-                .expect("Not a valid hash");
+            StarkFelt::try_from(str.as_str().ok_or(InnerDeserializationError::UnexpectedType {
+                expected: "string".to_string(),
+            })?)
         })
-        .collect::<Vec<StarkFelt>>();
+        .collect();
 
-    let program_data_hash = pedersen_hash_array(&program_data_felts);
+    let program_data_hash = pedersen_hash_array(&program_data_felts?);
 
-    ClassHash(pedersen_hash_array(&vec![
+    Ok(ClassHash(pedersen_hash_array(&vec![
         api_version,
         external_entry_points_hash,
         l1_entry_points_hash,
         constructor_entry_points_hash,
         builtins_hash,
-        StarkFelt::try_from(hinted_class_hash.as_str()).expect("Not a valid hash"),
+        StarkFelt::try_from(hinted_class_hash.as_str())?,
         program_data_hash,
-    ]))
+    ])))
 }
 
 /// The hash of a ContractClass.

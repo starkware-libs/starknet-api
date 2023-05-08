@@ -75,6 +75,7 @@ fn contract_class_hash_generation() {
             .unwrap(),
     );
 
-    let resulted_class_hash = crate::core::compute_contract_class_hash_v0(&contract_class_json);
+    let resulted_class_hash =
+        crate::core::compute_contract_class_hash_v0(&contract_class_json).unwrap();
     assert_eq!(resulted_class_hash, expected_class_hash);
 }

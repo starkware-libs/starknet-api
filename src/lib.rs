@@ -13,7 +13,7 @@ pub mod utils;
 
 use std::num::ParseIntError;
 
-use serde_utils::InnerDeserializationError;
+use serde_utils::{InnerDeserializationError, InnerSerializationError};
 
 /// The error type returned by StarknetApi.
 #[derive(thiserror::Error, Clone, Debug)]
@@ -27,4 +27,7 @@ pub enum StarknetApiError {
     /// Error when serializing into number.
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
+    /// Error when serializing
+    #[error(transparent)]
+    InnerSerialization(#[from] InnerSerializationError),
 }

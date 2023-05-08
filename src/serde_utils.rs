@@ -89,6 +89,21 @@ pub enum InnerDeserializationError {
     /// Unexpected input byte count.
     #[error("Bad input - expected #bytes: {expected_byte_count}, string found: {string_found}.")]
     BadInput { expected_byte_count: usize, string_found: String },
+    #[error("Not found key {key}")]
+    MissingKey { key: String },
+    #[error("Received unexpected type, expected type is {expected}")]
+    UnexpectedType { expected: String },
+    #[error("{msg}")]
+    Custom { msg: String },
+}
+
+/// The error type returned by the inner deserialization.
+#[derive(thiserror::Error, Clone, Debug)]
+pub enum InnerSerializationError {
+    #[error("Cant serialize using formatter: {formatter}")]
+    FormatterError { formatter: String },
+    #[error("{msg}")]
+    Custom { msg: String },
 }
 
 /// Deserializes a Hex decoded as string to a byte array.
