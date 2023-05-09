@@ -7,7 +7,7 @@ edition = "2021"
 testing = []
 
 [dependencies]
-cairo-lang-starknet = { git = "https://github.com/starkware-libs/cairo", version = "1.0.0-rc0" }
+cairo-lang-starknet = { git = "https://github.com/starkware-libs/cairo", rev = "a0ead7c0b8e297d281c7213151cd43ac11de5042" }
 hex = "0.4.3"
 indexmap = { version = "1.9.2", features = ["serde"] }
 once_cell = "1.17.1"
