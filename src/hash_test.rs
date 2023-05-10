@@ -1,6 +1,6 @@
 use web3::types::U256;
 
-use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
+use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt, starknet_keccak, MASK};
 use crate::stark_felt;
 
 #[test]
@@ -73,16 +73,16 @@ fn hash_serde() {
 #[test]
 fn starknet_keccak_mask() {
     let mask: U256 = U256::pow(U256::from(2), U256::from(250)) - U256::from(1);
-    assert_eq!(mask, crate::hash::MASK);
+    assert_eq!(mask, MASK);
 }
 
 #[test]
-fn starknet_keccak() {
+fn starknet_keccak_calculation() {
     // Test result is taken from <https://www.cairo-lang.org/docs/hello_starknet/intro.html> tutorial.
     // increase_balance function selector can be found in contract_compiled.json ->
     // entry_points_by_type object.
     let expected_keccak_felt =
         stark_felt!("0x362398bec32bc0ebb411203221a35a0301193a96f317ebe5e40be9f60d15320");
-    let increase_balance_keccak_felt = crate::hash::starknet_keccak("increase_balance".as_bytes());
+    let increase_balance_keccak_felt = starknet_keccak("increase_balance".as_bytes()).unwrap();
     assert_eq!(increase_balance_keccak_felt, expected_keccak_felt);
 }
