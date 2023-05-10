@@ -6,7 +6,9 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
+use sha3::Digest;
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
+use web3::types::U256;
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
@@ -19,6 +21,9 @@ pub const GENESIS_HASH: &str = "0x0";
 // Felt encoding constants.
 const CHOOSER_FULL: u8 = 15;
 const CHOOSER_HALF: u8 = 14;
+/// the MASK equals to U256::pow(U256::from(2), U256::from(250)) - U256::from(1)
+const MASK: U256 =
+    U256([18446744073709551615, 18446744073709551615, 18446744073709551615, 288230376151711743]);
 
 /// An alias for [`StarkFelt`].
 /// The output of the [Pedersen hash](https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash).
@@ -41,6 +46,17 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
         .fold(StarkFelt::from(0), |current_hash, felt| pedersen_hash(&current_hash, felt));
     let data_len = StarkFelt::from(felts.len() as u64);
     pedersen_hash(&current_hash, &data_len)
+}
+
+/// Computes Starknet Keccak Hash, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#starknet-keccak.>
+pub fn starknet_keccak(data: &[u8]) -> Result<StarkFelt, StarknetApiError> {
+    let keccak256 = sha3::Keccak256::digest(data);
+    let number = U256::from_big_endian(keccak256.as_slice());
+    let masked_number = number & MASK;
+    let mut res_bytes: [u8; 32] = [0; 32];
+    masked_number.to_big_endian(&mut res_bytes);
+    StarkFelt::new(res_bytes)
 }
 
 // TODO: Move to a different crate.
