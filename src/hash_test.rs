@@ -1,6 +1,6 @@
 use web3::types::U256;
 
-use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt, starknet_keccak, MASK};
+use crate::hash::{pedersen_hash, pedersen_hash_array, starknet_keccak, StarkFelt, MASK};
 use crate::stark_felt;
 
 #[test]
