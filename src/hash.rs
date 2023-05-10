@@ -49,13 +49,13 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
 
 /// Computes Starknet Keccak Hash, as defined
 /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#starknet-keccak.>
-pub fn starknet_keccak(data: &[u8]) -> StarkFelt {
+pub fn starknet_keccak(data: &[u8]) -> Result<StarkFelt, StarknetApiError> {
     let keccak256 = sha3::Keccak256::digest(data);
     let number = U256::from_big_endian(keccak256.as_slice());
     let masked_number = number & MASK;
     let mut res_bytes: [u8; 32] = [0; 32];
     masked_number.to_big_endian(&mut res_bytes);
-    StarkFelt::new(res_bytes).expect("error when converting to StarkFelt")
+    StarkFelt::new(res_bytes)
 }
 
 // TODO: Move to a different crate.
