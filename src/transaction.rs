@@ -128,9 +128,9 @@ impl DeclareTransaction {
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0)),
-            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1)),
-            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2)),
+            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u64)),
+            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u64)),
+            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u64)),
         }
     }
 }
@@ -288,6 +288,12 @@ impl From<PrefixedBytesAsHex<16_usize>> for Fee {
 impl From<Fee> for PrefixedBytesAsHex<16_usize> {
     fn from(fee: Fee) -> Self {
         Self(fee.0.to_be_bytes())
+    }
+}
+
+impl From<Fee> for StarkFelt {
+    fn from(fee: Fee) -> Self {
+        Self::from(fee.0)
     }
 }
 
