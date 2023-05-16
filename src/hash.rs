@@ -7,6 +7,7 @@ use std::io::Error;
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
+use web3::types::U256;
 
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
@@ -48,6 +49,24 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
 #[derive(Copy, Clone, Eq, PartialEq, Default, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 #[serde(try_from = "PrefixedBytesAsHex<32_usize>", into = "PrefixedBytesAsHex<32_usize>")]
 pub struct StarkFelt([u8; 32]);
+
+#[derive(Clone, Copy, Eq, PartialEq, Default)]
+pub struct StarkFeltAsDecimal(U256);
+
+impl Serialize for StarkFeltAsDecimal {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
+
+impl Display for StarkFeltAsDecimal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0.to_string())
+    }
+}
 
 impl StarkFelt {
     /// Returns a new [`StarkFelt`].
@@ -198,6 +217,18 @@ impl TryFrom<StarkFelt> for usize {
         Ok(usize::from_be_bytes(
             usize_bytes.try_into().expect("usize_bytes should be of size usize."),
         ))
+    }
+}
+
+impl From<StarkFelt> for U256 {
+    fn from(felt: StarkFelt) -> Self {
+        web3::types::U256::from_big_endian(&felt.0)
+    }
+}
+
+impl From<StarkFelt> for StarkFeltAsDecimal {
+    fn from(felt: StarkFelt) -> Self {
+        StarkFeltAsDecimal(U256::from(felt))
     }
 }
 
