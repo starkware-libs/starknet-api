@@ -291,6 +291,12 @@ impl From<Fee> for PrefixedBytesAsHex<16_usize> {
     }
 }
 
+impl From<Fee> for StarkFelt {
+    fn from(fee: Fee) -> Self {
+        Self::from(fee.0)
+    }
+}
+
 /// The hash of a [Transaction](`crate::transaction::Transaction`).
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,

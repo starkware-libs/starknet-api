@@ -39,7 +39,7 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
     let current_hash = felts
         .iter()
         .fold(StarkFelt::from(0), |current_hash, felt| pedersen_hash(&current_hash, felt));
-    let data_len = StarkFelt::from(felts.len() as u64);
+    let data_len = StarkFelt::from(felts.len() as u128);
     pedersen_hash(&current_hash, &data_len)
 }
 
@@ -147,10 +147,10 @@ impl TryFrom<&str> for StarkFelt {
     }
 }
 
-impl From<u64> for StarkFelt {
-    fn from(val: u64) -> Self {
+impl From<u128> for StarkFelt {
+    fn from(val: u128) -> Self {
         let mut bytes = [0u8; 32];
-        bytes[24..32].copy_from_slice(&val.to_be_bytes());
+        bytes[16..32].copy_from_slice(&val.to_be_bytes());
         Self(bytes)
     }
 }
