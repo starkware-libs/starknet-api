@@ -1,5 +1,6 @@
 use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
 use crate::stark_felt;
+use crate::transaction::Fee;
 
 #[test]
 fn pedersen_hash_correctness() {
@@ -66,4 +67,11 @@ fn hash_serde() {
         let d = StarkFelt::deserialize(&mut reader).unwrap();
         assert_eq!(bytes, d.0);
     }
+}
+
+#[test]
+fn fee_to_starkfelt() {
+    let fee = Fee(u128::MAX);
+    let felt = StarkFelt::from(fee);
+    assert_eq!(format!("{}", felt), "0xffffffffffffffff");
 }
