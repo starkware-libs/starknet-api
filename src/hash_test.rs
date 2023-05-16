@@ -67,3 +67,10 @@ fn hash_serde() {
         assert_eq!(bytes, d.0);
     }
 }
+
+#[test]
+fn fee_to_starkfelt() {
+    let fee = Fee(u128::MAX);
+    let felt = StarkFelt::from(fee);
+    assert_eq!(format!("{}", felt), "0xffffffffffffffff");
+}
