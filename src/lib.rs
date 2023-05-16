@@ -9,6 +9,7 @@ pub mod hash;
 pub mod serde_utils;
 pub mod state;
 pub mod transaction;
+pub mod type_utils;
 
 use std::num::ParseIntError;
 
