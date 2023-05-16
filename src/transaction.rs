@@ -128,9 +128,9 @@ impl DeclareTransaction {
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u64)),
-            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u64)),
-            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u64)),
+            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0)),
+            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1)),
+            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2)),
         }
     }
 }
