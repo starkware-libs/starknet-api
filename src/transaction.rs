@@ -220,6 +220,7 @@ pub struct L1HandlerTransaction {
     pub contract_address: ContractAddress,
     pub entry_point_selector: EntryPointSelector,
     pub calldata: Calldata,
+    pub paid_fee_on_l1: Fee,
 }
 
 /// A declare transaction output.
