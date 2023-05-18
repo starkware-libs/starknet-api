@@ -41,11 +41,11 @@ fn patricia_key_macro() {
 
 #[test]
 fn test_calculate_contract_address() {
-    let salt = ContractAddressSalt(stark_felt!(1337));
+    let salt = ContractAddressSalt(stark_felt!(1337_u16));
     let class_hash = ClassHash(stark_felt!("0x110"));
     let deployer_address = ContractAddress::default();
     let constructor_calldata =
-        Calldata(vec![stark_felt!(60), stark_felt!(70), FieldElement::MAX.into()].into());
+        Calldata(vec![stark_felt!(60_u16), stark_felt!(70_u16), FieldElement::MAX.into()].into());
 
     let actual_address =
         calculate_contract_address(salt, class_hash, &constructor_calldata, deployer_address)
