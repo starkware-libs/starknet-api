@@ -11,7 +11,7 @@ use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldEleme
 use crate::serde_utils::{
     bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
 };
-use crate::StarknetApiError;
+use crate::{impl_from_through_intermediate, StarknetApiError};
 
 /// Genesis state hash.
 pub const GENESIS_HASH: &str = "0x0";
@@ -38,8 +38,8 @@ pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
 pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
     let current_hash = felts
         .iter()
-        .fold(StarkFelt::from(0), |current_hash, felt| pedersen_hash(&current_hash, felt));
-    let data_len = StarkFelt::from(felts.len() as u64);
+        .fold(StarkFelt::from(0_u8), |current_hash, felt| pedersen_hash(&current_hash, felt));
+    let data_len = StarkFelt::from(u128::try_from(felts.len()).expect("Got 2^128 felts or more."));
     pedersen_hash(&current_hash, &data_len)
 }
 
@@ -147,13 +147,15 @@ impl TryFrom<&str> for StarkFelt {
     }
 }
 
-impl From<u64> for StarkFelt {
-    fn from(val: u64) -> Self {
+impl From<u128> for StarkFelt {
+    fn from(val: u128) -> Self {
         let mut bytes = [0u8; 32];
-        bytes[24..32].copy_from_slice(&val.to_be_bytes());
+        bytes[16..32].copy_from_slice(&val.to_be_bytes());
         Self(bytes)
     }
 }
+
+impl_from_through_intermediate!(u128, StarkFelt, u8, u16, u32, u64);
 
 impl From<FieldElement> for StarkFelt {
     fn from(fe: FieldElement) -> Self {
