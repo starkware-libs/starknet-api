@@ -5,6 +5,9 @@ mod serde_utils_test;
 
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
+use serde::Deserializer;
+
+use crate::deprecated_contract_class::ContractClassAbiEntry;
 
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
@@ -124,4 +127,21 @@ pub fn hex_str_from_bytes<const N: usize, const PREFIXED: bool>(bytes: [u8; N]) 
     let mut hex_str = hex_str.trim_start_matches('0');
     hex_str = if hex_str.is_empty() { "0" } else { hex_str };
     if PREFIXED { format!("0x{hex_str}") } else { hex_str.to_string() }
+}
+
+pub fn deserialize_optional_contract_class_abi_entry_vector<'de, D>(
+    deserializer: D,
+) -> Result<Option<Vec<ContractClassAbiEntry>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    // Deserialize the field as an `Option<Vec<ContractClassAbiEntry>>`
+    let result: Result<Option<Vec<ContractClassAbiEntry>>, _> =
+        Option::<Vec<ContractClassAbiEntry>>::deserialize(deserializer);
+
+    // If the field contains junk or an invalid value, return `None`.
+    match result {
+        Ok(value) => Ok(value),
+        Err(_) => Ok(None),
+    }
 }

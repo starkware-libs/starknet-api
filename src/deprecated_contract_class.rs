@@ -6,11 +6,14 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::core::EntryPointSelector;
+use crate::serde_utils::deserialize_optional_contract_class_abi_entry_vector;
 use crate::StarknetApiError;
 
 /// A deprecated contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ContractClass {
+    // Starknet does not verify the abi. If we can't parse it, we set it to None.
+    #[serde(deserialize_with = "deserialize_optional_contract_class_abi_entry_vector")]
     pub abi: Option<Vec<ContractClassAbiEntry>>,
     pub program: Program,
     /// The selector of each entry point is a unique identifier in the program.
