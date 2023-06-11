@@ -1,7 +1,13 @@
 use assert_matches::assert_matches;
+use serde::Deserialize;
 
+use crate::deprecated_contract_class::{
+    ContractClassAbiEntry, FunctionAbiEntry, FunctionAbiEntryType, FunctionAbiEntryWithType,
+    TypedParameter,
+};
 use crate::serde_utils::{
-    bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, InnerDeserializationError,
+    bytes_from_hex_str, deserialize_optional_contract_class_abi_entry_vector, hex_str_from_bytes,
+    BytesAsHex, InnerDeserializationError,
 };
 
 #[test]
@@ -107,4 +113,60 @@ fn hex_as_bytes_serde_not_prefixed() {
         hex_as_bytes,
         serde_json::from_str(&serde_json::to_string(&hex_as_bytes).unwrap()).unwrap()
     );
+}
+
+#[derive(Deserialize, PartialEq, Eq, Debug)]
+struct DummyContractClass {
+    #[serde(deserialize_with = "deserialize_optional_contract_class_abi_entry_vector")]
+    pub abi: Option<Vec<ContractClassAbiEntry>>,
+}
+
+#[test]
+fn deserialize_valid_optional_contract_class_abi_entry_vector() {
+    let json = r#"
+    {
+        "abi":
+        [
+            {
+                "inputs": [
+                    {
+                        "name": "implementation",
+                        "type": "felt"
+                    }
+                ],
+                "name": "constructor",
+                "outputs": [],
+                "type": "constructor"
+            }
+        ]
+    }
+    "#;
+    let res: DummyContractClass = serde_json::from_str(json).unwrap();
+    assert_eq!(
+        res,
+        DummyContractClass {
+            abi: Some(vec![ContractClassAbiEntry::Function(FunctionAbiEntryWithType {
+                r#type: FunctionAbiEntryType::Constructor,
+                entry: FunctionAbiEntry {
+                    name: "constructor".to_string(),
+                    inputs: vec![TypedParameter {
+                        name: "implementation".to_string(),
+                        r#type: "felt".to_string(),
+                    }],
+                    outputs: vec![],
+                },
+            })])
+        }
+    );
+}
+
+#[test]
+fn deserialize_optional_contract_class_abi_entry_vector_junk() {
+    let json = r#"
+    {
+        "abi": "Junk"
+    }
+    "#;
+    let res: DummyContractClass = serde_json::from_str(json).unwrap();
+    assert_eq!(res, DummyContractClass { abi: None });
 }
