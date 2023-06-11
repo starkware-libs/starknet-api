@@ -136,8 +136,7 @@ where
     D: Deserializer<'de>,
 {
     // Deserialize the field as an `Option<Vec<ContractClassAbiEntry>>`
-    let result: Result<Option<Vec<ContractClassAbiEntry>>, _> =
-        Option::<Vec<ContractClassAbiEntry>>::deserialize(deserializer);
+    let result: Result<Option<Vec<ContractClassAbiEntry>>, _> = Option::deserialize(deserializer);
 
     // If the field contains junk or an invalid value, return `None`.
     match result {

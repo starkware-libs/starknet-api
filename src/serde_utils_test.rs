@@ -117,7 +117,7 @@ fn hex_as_bytes_serde_not_prefixed() {
 
 #[derive(Deserialize, PartialEq, Eq, Debug)]
 struct DummyContractClass {
-    #[serde(deserialize_with = "deserialize_optional_contract_class_abi_entry_vector")]
+    #[serde(default, deserialize_with = "deserialize_optional_contract_class_abi_entry_vector")]
     pub abi: Option<Vec<ContractClassAbiEntry>>,
 }
 
@@ -165,6 +165,16 @@ fn deserialize_optional_contract_class_abi_entry_vector_junk() {
     let json = r#"
     {
         "abi": "Junk"
+    }
+    "#;
+    let res: DummyContractClass = serde_json::from_str(json).unwrap();
+    assert_eq!(res, DummyContractClass { abi: None });
+}
+
+#[test]
+fn deserialize_optional_contract_class_abi_entry_vector_none() {
+    let json = r#"
+    {
     }
     "#;
     let res: DummyContractClass = serde_json::from_str(json).unwrap();
