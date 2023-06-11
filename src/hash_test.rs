@@ -1,6 +1,6 @@
 use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
-use crate::stark_felt;
 use crate::transaction::Fee;
+use crate::{stark_felt, StarknetApiError};
 
 #[test]
 fn pedersen_hash_correctness() {
@@ -73,4 +73,32 @@ fn hash_serde() {
 fn fee_to_starkfelt() {
     let fee = Fee(u128::MAX);
     assert_eq!(format!("{}", StarkFelt::from(fee)), format!("{:#066x}", fee.0));
+}
+
+#[test]
+fn felt_to_u128_and_back() {
+    let value = u128::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value_result: Result<u128, _> = felt.try_into();
+    match new_value_result {
+        Ok(new_value) => assert_eq!(value, new_value),
+        Err(_) => unreachable!(),
+    };
+
+    let mut bytes = [0u8; 32];
+    bytes[15] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let result: Result<u128, _> = another_felt.try_into();
+    match result {
+        Ok(_) => unreachable!(),
+        Err(e) => match e {
+            StarknetApiError::OutOfRange { string } => {
+                assert_eq!(
+                    string,
+                    "0x0000000000000000000000000000000100000000000000000000000000000000".to_owned()
+                )
+            }
+            _ => unreachable!(),
+        },
+    }
 }
