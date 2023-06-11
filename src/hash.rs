@@ -157,6 +157,25 @@ impl From<u128> for StarkFelt {
 
 impl_from_through_intermediate!(u128, StarkFelt, u8, u16, u32, u64);
 
+impl TryFrom<StarkFelt> for u128 {
+    type Error = StarknetApiError;
+
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        let bytes = felt.0;
+        let mut first_bytes_sub = [0u8; 16];
+        first_bytes_sub.copy_from_slice(&bytes[0..16]);
+        if u128::from_be_bytes(first_bytes_sub) != 0 {
+            return Err(StarknetApiError::OutOfRange {
+                string: "Felt too big to be converted into u128.".to_owned(),
+            });
+        }
+
+        let mut bytes_sub = [0u8; 16];
+        bytes_sub.copy_from_slice(&bytes[16..32]);
+        Ok(Self::from_be_bytes(bytes_sub))
+    }
+}
+
 impl From<FieldElement> for StarkFelt {
     fn from(fe: FieldElement) -> Self {
         // Should not fail.
