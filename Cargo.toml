@@ -10,7 +10,7 @@ license-file = "LICENSE"
 testing = []
 
 [dependencies]
-cairo-lang-starknet = "2.0.0-rc1"
+cairo-lang-starknet = { git = "https://github.com/starkware-libs/cairo", rev = "dc80f9e" }
 derive_more = "0.99.17"
 hex = "0.4.3"
 indexmap = { version = "1.9.2", features = ["serde"] }
