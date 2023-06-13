@@ -1,6 +1,6 @@
-//! Representations of canonical [`StarkNet`] components.
+//! Representations of canonical [`Starknet`] components.
 //!
-//! [`StarkNet`]: https://starknet.io/
+//! [`Starknet`]: https://starknet.io/
 
 pub mod block;
 pub mod core;
