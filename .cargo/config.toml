@@ -1,4 +1,2 @@
 [build]
-rustflags = [
-    "-Dwarnings", "-Dfuture-incompatible", "-Dnonstandard-style", "-Drust-2018-idioms", "-Dunused" , "-Dclippy::unwrap_used"
-]
+rustflags = ["-Wall", "-Wextra", "-Wpedantic", "-Wfuture-incompatible", "-Wnonstandard-style", "-Wunused", "-Dclippy::unwrap_used"]
