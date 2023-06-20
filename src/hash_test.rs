@@ -83,8 +83,70 @@ fn felt_to_u128_and_back() {
     assert_eq!(value, new_value);
 
     let mut bytes = [0u8; 32];
-    bytes[15] = 1_u8;
+    const COMPLIMENT_OF_U128: usize =
+        std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u128>();
+    bytes[COMPLIMENT_OF_U128 - 1] = 1_u8;
     let another_felt = StarkFelt(bytes);
     let err = u128::try_from(another_felt).unwrap_err();
+    assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
+}
+
+#[test]
+fn felt_to_u64_and_back() {
+    let value = u64::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value: u64 = felt.try_into().unwrap();
+    assert_eq!(value, new_value);
+
+    let mut bytes = [0u8; 32];
+    const COMPLIMENT_OF_U64: usize = std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u64>();
+    bytes[COMPLIMENT_OF_U64 - 1] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let err = u64::try_from(another_felt).unwrap_err();
+    assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
+}
+
+#[test]
+fn felt_to_u32_and_back() {
+    let value = u32::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value = u32::try_from(felt).unwrap();
+    assert_eq!(value, new_value);
+
+    let mut bytes = [0u8; 32];
+    const COMPLIMENT_OF_U32: usize = std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u32>();
+    bytes[COMPLIMENT_OF_U32 - 1] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let err = u32::try_from(another_felt).unwrap_err();
+    assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
+}
+
+#[test]
+fn felt_to_u16_and_back() {
+    let value = u16::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value: u16 = felt.try_into().unwrap();
+    assert_eq!(value, new_value);
+
+    let mut bytes = [0u8; 32];
+    const COMPLIMENT_OF_U16: usize = std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u16>();
+    bytes[COMPLIMENT_OF_U16 - 1] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let err = u16::try_from(another_felt).unwrap_err();
+    assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
+}
+
+#[test]
+fn felt_to_u8_and_back() {
+    let value = u8::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value: u8 = felt.try_into().unwrap();
+    assert_eq!(value, new_value);
+
+    let mut bytes = [0u8; 32];
+    const COMPLIMENT_OF_U8: usize = std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u8>();
+    bytes[COMPLIMENT_OF_U8 - 1] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let err = u8::try_from(another_felt).unwrap_err();
     assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
 }
