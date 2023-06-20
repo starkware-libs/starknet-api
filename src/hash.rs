@@ -186,39 +186,6 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
     }
 }
 
-impl TryFrom<StarkFelt> for usize {
-    type Error = StarknetApiError;
-    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_USIZE: usize =
-            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<usize>();
-
-        let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
-        if rest != [0u8; COMPLIMENT_OF_USIZE] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
-        }
-
-        Ok(usize::from_be_bytes(
-            usize_bytes.try_into().expect("usize_bytes should be of size usize."),
-        ))
-    }
-}
-
-impl TryFrom<StarkFelt> for u128 {
-    type Error = StarknetApiError;
-    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_U128: usize =
-            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u128>();
-
-        let (rest, u128_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U128);
-        if rest != [0u8; COMPLIMENT_OF_U128] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
-        }
-
-        let msg = format!("u128_bytes should be of size {}.", std::any::type_name::<Self>());
-        Ok(Self::from_be_bytes(u128_bytes.try_into().expect(&msg)))
-    }
-}
-
 #[macro_export]
 macro_rules! impl_try_from_felt_to_int_type {
     ($($int_type:ty),+) => {
@@ -244,7 +211,7 @@ macro_rules! impl_try_from_felt_to_int_type {
     };
 }
 
-impl_try_from_felt_to_int_type!(u8, u16, u32, u64);
+impl_try_from_felt_to_int_type!(u8, u16, u32, u64, u128, usize);
 
 impl Debug for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
