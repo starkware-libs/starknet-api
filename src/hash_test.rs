@@ -102,3 +102,115 @@ fn felt_to_u128_and_back() {
         },
     }
 }
+
+#[test]
+fn felt_to_u64_and_back() {
+    let value = u64::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value_result: Result<u64, _> = felt.try_into();
+    match new_value_result {
+        Ok(new_value) => assert_eq!(value, new_value),
+        Err(_) => unreachable!(),
+    };
+
+    let mut bytes = [0u8; 32];
+    bytes[23] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let result: Result<u64, _> = another_felt.try_into();
+    match result {
+        Ok(_) => unreachable!(),
+        Err(e) => match e {
+            StarknetApiError::OutOfRange { string } => {
+                assert_eq!(
+                    string,
+                    "0x0000000000000000000000000000000000000000000000010000000000000000".to_owned()
+                )
+            }
+            _ => unreachable!(),
+        },
+    }
+}
+
+#[test]
+fn felt_to_u32_and_back() {
+    let value = u32::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value_result: Result<u32, _> = felt.try_into();
+    match new_value_result {
+        Ok(new_value) => assert_eq!(value, new_value),
+        Err(_) => unreachable!(),
+    };
+
+    let mut bytes = [0u8; 32];
+    bytes[27] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let result: Result<u32, _> = another_felt.try_into();
+    match result {
+        Ok(_) => unreachable!(),
+        Err(e) => match e {
+            StarknetApiError::OutOfRange { string } => {
+                assert_eq!(
+                    string,
+                    "0x0000000000000000000000000000000000000000000000000000000100000000".to_owned()
+                )
+            }
+            _ => unreachable!(),
+        },
+    }
+}
+
+#[test]
+fn felt_to_u16_and_back() {
+    let value = u16::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value_result: Result<u16, _> = felt.try_into();
+    match new_value_result {
+        Ok(new_value) => assert_eq!(value, new_value),
+        Err(_) => unreachable!(),
+    };
+
+    let mut bytes = [0u8; 32];
+    bytes[29] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let result: Result<u16, _> = another_felt.try_into();
+    match result {
+        Ok(_) => unreachable!(),
+        Err(e) => match e {
+            StarknetApiError::OutOfRange { string } => {
+                assert_eq!(
+                    string,
+                    "0x0000000000000000000000000000000000000000000000000000000000010000".to_owned()
+                )
+            }
+            _ => unreachable!(),
+        },
+    }
+}
+
+#[test]
+fn felt_to_u8_and_back() {
+    let value = u8::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value_result: Result<u8, _> = felt.try_into();
+    match new_value_result {
+        Ok(new_value) => assert_eq!(value, new_value),
+        Err(_) => unreachable!(),
+    };
+
+    let mut bytes = [0u8; 32];
+    bytes[30] = 1_u8;
+    let another_felt = StarkFelt(bytes);
+    let result: Result<u8, _> = another_felt.try_into();
+    match result {
+        Ok(_) => unreachable!(),
+        Err(e) => match e {
+            StarknetApiError::OutOfRange { string } => {
+                assert_eq!(
+                    string,
+                    "0x0000000000000000000000000000000000000000000000000000000000000100".to_owned()
+                )
+            }
+            _ => unreachable!(),
+        },
+    }
+}
