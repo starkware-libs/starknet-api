@@ -1,4 +1,6 @@
 use crate::block::BlockNumber;
+use crate::hash::StarkFelt;
+use crate::{stark_felt, StarknetApiError};
 
 #[test]
 fn test_block_number_iteration() {
@@ -19,4 +21,19 @@ fn test_block_number_iteration() {
     }
 
     assert_eq!(expected, from_iter);
+}
+
+#[test]
+fn test_felt_try_into_block_number() {
+    let value = u64::MAX;
+    let felt: StarkFelt = stark_felt![value];
+    let block_number: BlockNumber = felt.try_into().unwrap();
+    assert_eq!(value, block_number.0);
+
+    // Negative flow.
+    let value: u128 = u64::MAX.into();
+    let value = value + 1;
+    let felt: StarkFelt = stark_felt![value];
+    let err = BlockNumber::try_from(felt).unwrap_err();
+    assert!(matches!(err, StarknetApiError::OutOfRange { .. }));
 }

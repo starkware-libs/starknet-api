@@ -6,9 +6,10 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{ContractAddress, GlobalRoot};
-use crate::hash::StarkHash;
+use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Transaction, TransactionOutput};
+use crate::StarknetApiError;
 
 /// A block.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -106,6 +107,14 @@ impl BlockNumber {
     pub fn iter_up_to(&self, up_to: Self) -> impl Iterator<Item = BlockNumber> {
         let range = self.0..up_to.0;
         range.map(Self)
+    }
+}
+
+impl TryFrom<StarkFelt> for BlockNumber {
+    type Error = StarknetApiError;
+
+    fn try_from(value: StarkFelt) -> Result<Self, Self::Error> {
+        Ok(BlockNumber(value.try_into()?))
     }
 }
 
