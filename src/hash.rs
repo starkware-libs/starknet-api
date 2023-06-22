@@ -186,6 +186,8 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
     }
 }
 
+// TODO(Arni, 25/6/2023): Remove impl TryFrom<StarkFelt> for usize. Leave only one conversion from
+//  StarkFelt to integer type.
 impl TryFrom<StarkFelt> for usize {
     type Error = StarknetApiError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
@@ -200,6 +202,23 @@ impl TryFrom<StarkFelt> for usize {
         Ok(usize::from_be_bytes(
             usize_bytes.try_into().expect("usize_bytes should be of size usize."),
         ))
+    }
+}
+
+// TODO(Arni, 1/1/2024): This is a Hack. Remove this and implement arethmetics for StarkFelt.
+impl TryFrom<StarkFelt> for u64 {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const SIZE_OF_U64: usize = 8;
+        const COMPLIMENT_OF_U64: usize = 24;
+        let (rest, u64_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U64);
+        if rest != [0u8; COMPLIMENT_OF_U64] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        let bytes: [u8; SIZE_OF_U64] =
+            u64_bytes.try_into().expect("u64_bytes should be of size 8.");
+        Ok(u64::from_be_bytes(bytes))
     }
 }
 

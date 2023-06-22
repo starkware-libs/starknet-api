@@ -1,6 +1,8 @@
+use assert_matches::assert_matches;
+
 use crate::hash::{pedersen_hash, pedersen_hash_array, StarkFelt};
-use crate::stark_felt;
 use crate::transaction::Fee;
+use crate::{stark_felt, StarknetApiError};
 
 #[test]
 fn pedersen_hash_correctness() {
@@ -73,4 +75,19 @@ fn hash_serde() {
 fn fee_to_starkfelt() {
     let fee = Fee(u128::MAX);
     assert_eq!(format!("{}", StarkFelt::from(fee)), format!("{:#066x}", fee.0));
+}
+
+#[test]
+fn felt_to_u64_and_back() {
+    // Positive flow.
+    let value = u64::MAX;
+    let felt: StarkFelt = value.into();
+    let new_value: u64 = felt.try_into().unwrap();
+    assert_eq!(value, new_value);
+
+    // Negative flow.
+    let value: u128 = u128::from(u64::MAX) + 1;
+    let another_felt: StarkFelt = value.into();
+    let err = u64::try_from(another_felt).unwrap_err();
+    assert_matches!(err, StarknetApiError::OutOfRange { .. });
 }
