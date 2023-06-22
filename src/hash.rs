@@ -203,6 +203,24 @@ impl TryFrom<StarkFelt> for usize {
     }
 }
 
+// TODO(Arni, 25/6/2023): Remove impl TryFrom<StarkFelt> for usize. Leave only one such conversion.
+// TODO(Arni, 1/1/2024): Remove impl TryFrom<StarkFelt> for u64. Implement arethmetic operations on
+//  StarkFelt.
+impl TryFrom<StarkFelt> for u64 {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_U64: usize =
+            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<u64>();
+
+        let (rest, u64_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U64);
+        if rest != [0u8; COMPLIMENT_OF_U64] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        Ok(u64::from_be_bytes(u64_bytes.try_into().expect("u64_bytes should be of size u64.")))
+    }
+}
+
 impl Debug for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.str_format(f)
