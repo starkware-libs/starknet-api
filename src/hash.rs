@@ -215,7 +215,7 @@ impl TryFrom<StarkFelt> for u64 {
             return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
         }
 
-        let bytes: [u8; 8] = u64_bytes.try_into().expect("u64_bytes should be of size 8.");
+        let bytes: [u8; 8] = u64_bytes.try_into().unwrap();
         Ok(u64::from_be_bytes(bytes))
     }
 }
