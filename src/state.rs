@@ -15,7 +15,7 @@ use crate::core::{
 };
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
-use crate::StarknetApiError;
+use crate::{impl_from_through_intermediate, StarknetApiError};
 
 pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
 pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;
@@ -138,6 +138,14 @@ impl TryFrom<StarkHash> for StorageKey {
         Ok(Self(PatriciaKey::try_from(val)?))
     }
 }
+
+impl From<u128> for StorageKey {
+    fn from(val: u128) -> Self {
+        StorageKey(PatriciaKey::from(val))
+    }
+}
+
+impl_from_through_intermediate!(u128, StorageKey, u8, u16, u32, u64);
 
 /// A contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
