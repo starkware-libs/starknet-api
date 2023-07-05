@@ -211,20 +211,20 @@ impl InvokeTransaction {
     pub fn nonce(&self) -> Nonce {
         match self {
             InvokeTransaction::V0(_) => unreachable!("V0 invoke txs don't have a nonce"),
-            InvokeTransaction::V1(tx) => tx.nonce.clone(),
+            InvokeTransaction::V1(tx) => tx.nonce,
         }
     }
 
     pub fn sender_address(&self) -> ContractAddress {
         match self {
             InvokeTransaction::V0(_) => unreachable!("V0 invoke txs don't have a sender address"),
-            InvokeTransaction::V1(tx) => tx.sender_address.clone(),
+            InvokeTransaction::V1(tx) => tx.sender_address,
         }
     }
 
     pub fn contract_address(&self) -> ContractAddress {
         match self {
-            InvokeTransaction::V0(tx) => tx.contract_address.clone(),
+            InvokeTransaction::V0(tx) => tx.contract_address,
             InvokeTransaction::V1(_) => unreachable!("V1 invoke txs don't have a contract address"),
         }
     }
