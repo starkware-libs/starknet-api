@@ -167,8 +167,7 @@ pub struct InvokeTransactionV0 {
     pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
-    pub nonce: Nonce,
-    pub sender_address: ContractAddress,
+    pub contract_address: ContractAddress,
     pub entry_point_selector: EntryPointSelector,
     pub calldata: Calldata,
 }
