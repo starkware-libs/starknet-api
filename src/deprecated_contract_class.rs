@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 use crate::core::EntryPointSelector;
+use crate::hash::StarkFelt;
 use crate::serde_utils::deserialize_optional_contract_class_abi_entry_vector;
 use crate::StarknetApiError;
 
@@ -135,7 +136,7 @@ impl TryFrom<CasmContractEntryPoint> for EntryPoint {
     fn try_from(value: CasmContractEntryPoint) -> Result<Self, Self::Error> {
         Ok(EntryPoint {
             selector: EntryPointSelector(value.selector.to_str_radix(16).as_str().try_into()?),
-            offset: EntryPointOffset(value.offset),
+            offset: EntryPointOffset(StarkFelt::from(value.offset as u32)),
         })
     }
 }
@@ -150,14 +151,7 @@ pub struct TypedParameter {
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct EntryPointOffset(#[serde(deserialize_with = "number_or_string")] pub usize);
-impl TryFrom<String> for EntryPointOffset {
-    type Error = StarknetApiError;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Self(hex_string_try_into_usize(&value)?))
-    }
-}
+pub struct EntryPointOffset(pub StarkFelt);
 
 pub fn number_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<usize, D::Error> {
     let usize_value = match Value::deserialize(deserializer)? {
