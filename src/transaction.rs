@@ -2,14 +2,14 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use derive_more::From;
-use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 
 use crate::block::{BlockHash, BlockNumber};
-use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
+use crate::core::{
+    ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
+};
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
-use crate::StarknetApiError;
 
 /// A transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -347,26 +347,6 @@ pub struct MessageToL1 {
     pub from_address: ContractAddress,
     pub to_address: EthAddress,
     pub payload: L2ToL1Payload,
-}
-
-/// An Ethereum address.
-#[derive(
-    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
-)]
-pub struct EthAddress(pub H160);
-
-impl TryFrom<StarkFelt> for EthAddress {
-    type Error = StarknetApiError;
-    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
-
-        let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
-        if rest != [0u8; COMPLIMENT_OF_H160] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
-        }
-
-        Ok(EthAddress(H160::from_slice(h160_bytes)))
-    }
 }
 
 /// The payload of [`MessageToL2`].

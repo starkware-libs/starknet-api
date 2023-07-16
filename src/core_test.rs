@@ -2,8 +2,8 @@ use assert_matches::assert_matches;
 use starknet_crypto::FieldElement;
 
 use crate::core::{
-    calculate_contract_address, ClassHash, ContractAddress, PatriciaKey, StarknetApiError,
-    CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
+    calculate_contract_address, ClassHash, ContractAddress, EthAddress, PatriciaKey,
+    StarknetApiError, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
 };
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::transaction::{Calldata, ContractAddressSalt};
@@ -64,4 +64,14 @@ fn test_calculate_contract_address() {
     let expected_address = ContractAddress::try_from(StarkFelt::from(mod_address)).unwrap();
 
     assert_eq!(actual_address, expected_address);
+}
+
+#[test]
+fn eth_address_serde() {
+    let eth_address = EthAddress::try_from(StarkFelt::try_from("0x001").unwrap()).unwrap();
+    let serialized = serde_json::to_string(&eth_address).unwrap();
+    assert_eq!(serialized, r#""0x1""#);
+
+    let restored = serde_json::from_str::<EthAddress>(&serialized).unwrap();
+    assert_eq!(restored, eth_address);
 }
