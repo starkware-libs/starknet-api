@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
@@ -11,11 +12,15 @@ use crate::StarknetApiError;
 
 /// A deprecated contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
-pub struct ContractClass {
+pub struct ContractClass<
+    'a, 'b,
+    ProgramT: Debug + Clone + Default + Eq + PartialEq + Deserialize<'a> + Serialize = Program,
+    ContractClassAbiEntryT: Debug + Clone + Eq + PartialEq + Deserialize<'b> + Serialize = ContractClassAbiEntry,
+> {
     // Starknet does not verify the abi. If we can't parse it, we set it to None.
     #[serde(default, deserialize_with = "deserialize_optional_contract_class_abi_entry_vector")]
-    pub abi: Option<Vec<ContractClassAbiEntry>>,
-    pub program: Program,
+    pub abi: Option<Vec<ContractClassAbiEntryT>>,
+    pub program: ProgramT,
     /// The selector of each entry point is a unique identifier in the program.
     // TODO: Consider changing to IndexMap, since this is used for computing the
     // class hash.
