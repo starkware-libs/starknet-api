@@ -145,7 +145,6 @@ pub struct DeployAccountTransaction {
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
-    pub contract_address: ContractAddress,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
 }
@@ -156,7 +155,6 @@ pub struct DeployTransaction {
     pub transaction_hash: TransactionHash,
     pub version: TransactionVersion,
     pub class_hash: ClassHash,
-    pub contract_address: ContractAddress,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
 }
@@ -234,6 +232,7 @@ pub struct DeployAccountTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    pub contract_address: ContractAddress,
 }
 
 /// A deploy transaction output.
@@ -242,6 +241,7 @@ pub struct DeployTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    pub contract_address: ContractAddress,
 }
 
 /// An invoke transaction output.
