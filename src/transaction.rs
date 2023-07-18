@@ -277,6 +277,10 @@ pub struct TransactionReceipt {
 #[serde(from = "PrefixedBytesAsHex<16_usize>", into = "PrefixedBytesAsHex<16_usize>")]
 pub struct Fee(pub u128);
 
+impl Fee {
+    pub const ZERO: Self = Self(0);
+}
+
 impl From<PrefixedBytesAsHex<16_usize>> for Fee {
     fn from(val: PrefixedBytesAsHex<16_usize>) -> Self {
         Self(u128::from_be_bytes(val.0))
