@@ -65,10 +65,30 @@ pub enum FunctionAbiEntryType {
 
 /// A function abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
-pub struct FunctionAbiEntry {
+pub struct CommonFunctionAbiEntry {
     pub name: String,
     pub inputs: Vec<TypedParameter>,
     pub outputs: Vec<TypedParameter>,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum FunctionAbiEntry {
+    WithoutStateMutability(CommonFunctionAbiEntry),
+    WithStateMutability {
+        #[serde(flatten)]
+        common: CommonFunctionAbiEntry,
+        #[serde(rename = "stateMutability")]
+        state_mutability: FunctionStateMutability,
+    },
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(untagged)]
+pub enum FunctionStateMutability {
+    #[serde(rename = "view")]
+    #[default]
+    View,
 }
 
 /// A struct abi entry.
