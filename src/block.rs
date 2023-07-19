@@ -38,7 +38,7 @@ pub struct BlockHeader {
 pub struct BlockBody {
     pub transactions: Vec<Transaction>,
     pub transaction_outputs: Vec<TransactionOutput>,
-    pub transaction_execution_status: Vec<TransactionExecutionStatus>,
+    pub transaction_execution_statuses: Vec<TransactionExecutionStatus>,
 }
 
 /// The status of a [Block](`crate::block::Block`).

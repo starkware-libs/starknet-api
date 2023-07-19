@@ -271,9 +271,10 @@ pub struct TransactionReceipt {
 }
 
 /// Transaction execution status.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, Default)]
 pub enum TransactionExecutionStatus {
     #[serde(rename = "SUCCEEDED")]
+    #[default]
     Succeeded,
     #[serde(rename = "REVERTED")]
     Reverted,
