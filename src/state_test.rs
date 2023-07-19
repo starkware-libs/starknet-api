@@ -20,5 +20,5 @@ fn entry_point_offset_from_json_str() {
 #[test]
 fn entry_point_offset_into_json_str() {
     let offset = EntryPointOffset(123);
-    assert_eq!(json!(offset), json!(123));
+    assert_eq!(json!(offset), json!(format!("{:#x}", offset.0)));
 }

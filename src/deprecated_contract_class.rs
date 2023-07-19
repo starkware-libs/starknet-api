@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::core::EntryPointSelector;
@@ -150,7 +150,9 @@ pub struct TypedParameter {
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct EntryPointOffset(#[serde(deserialize_with = "number_or_string")] pub usize);
+pub struct EntryPointOffset(
+    #[serde(deserialize_with = "number_or_string", serialize_with = "usize_to_hex")] pub usize,
+);
 impl TryFrom<String> for EntryPointOffset {
     type Error = StarknetApiError;
 
@@ -173,4 +175,11 @@ pub fn number_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<us
 
 fn hex_string_try_into_usize(hex_string: &str) -> Result<usize, std::num::ParseIntError> {
     usize::from_str_radix(hex_string.trim_start_matches("0x"), 16)
+}
+
+fn usize_to_hex<S>(value: &usize, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    s.serialize_str(format!("{:#x}", value).as_str())
 }
