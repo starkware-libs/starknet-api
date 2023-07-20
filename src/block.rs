@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
-use crate::transaction::{Transaction, TransactionOutput};
+use crate::transaction::{Fee, Transaction, TransactionOutput};
 
 /// A block.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -125,6 +125,12 @@ impl From<PrefixedBytesAsHex<16_usize>> for GasPrice {
 impl From<GasPrice> for PrefixedBytesAsHex<16_usize> {
     fn from(val: GasPrice) -> Self {
         BytesAsHex(val.0.to_be_bytes())
+    }
+}
+
+impl GasPrice {
+    pub fn calculate_fee_by_gas_usage(&self, gas_usage: f64) -> Fee {
+        Fee((gas_usage.ceil() as u128) * self.0)
     }
 }
 
