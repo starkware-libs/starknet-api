@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
-use crate::transaction::{Transaction, TransactionOutput};
+use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
 /// A block.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -38,6 +38,7 @@ pub struct BlockHeader {
 pub struct BlockBody {
     pub transactions: Vec<Transaction>,
     pub transaction_outputs: Vec<TransactionOutput>,
+    pub transaction_hashes: Vec<TransactionHash>,
 }
 
 /// The status of a [Block](`crate::block::Block`).

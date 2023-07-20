@@ -26,18 +26,6 @@ pub enum Transaction {
     L1Handler(L1HandlerTransaction),
 }
 
-impl Transaction {
-    pub fn transaction_hash(&self) -> TransactionHash {
-        match self {
-            Transaction::Declare(tx) => tx.transaction_hash(),
-            Transaction::Deploy(tx) => tx.transaction_hash,
-            Transaction::DeployAccount(tx) => tx.transaction_hash,
-            Transaction::Invoke(tx) => tx.transaction_hash(),
-            Transaction::L1Handler(tx) => tx.transaction_hash,
-        }
-    }
-}
-
 /// A transaction output.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub enum TransactionOutput {
@@ -78,7 +66,6 @@ impl TransactionOutput {
 /// A declare V0 or V1 transaction (same schema but different version).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV0V1 {
-    pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
@@ -89,7 +76,6 @@ pub struct DeclareTransactionV0V1 {
 /// A declare V2 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV2 {
-    pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
@@ -119,7 +105,6 @@ macro_rules! implement_declare_tx_getters {
 
 impl DeclareTransaction {
     implement_declare_tx_getters!(
-        (transaction_hash, TransactionHash),
         (class_hash, ClassHash),
         (nonce, Nonce),
         (sender_address, ContractAddress),
@@ -139,7 +124,6 @@ impl DeclareTransaction {
 /// A deploy account transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployAccountTransaction {
-    pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub version: TransactionVersion,
     pub signature: TransactionSignature,
@@ -152,7 +136,6 @@ pub struct DeployAccountTransaction {
 /// A deploy transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployTransaction {
-    pub transaction_hash: TransactionHash,
     pub version: TransactionVersion,
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
@@ -162,7 +145,6 @@ pub struct DeployTransaction {
 /// An invoke V0 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV0 {
-    pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub contract_address: ContractAddress,
@@ -173,7 +155,6 @@ pub struct InvokeTransactionV0 {
 /// An invoke V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV1 {
-    pub transaction_hash: TransactionHash,
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
@@ -200,7 +181,6 @@ macro_rules! implement_invoke_tx_getters {
 
 impl InvokeTransaction {
     implement_invoke_tx_getters!(
-        (transaction_hash, TransactionHash),
         (max_fee, Fee),
         (signature, TransactionSignature),
         (calldata, Calldata)
@@ -210,7 +190,6 @@ impl InvokeTransaction {
 /// An L1 handler transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct L1HandlerTransaction {
-    pub transaction_hash: TransactionHash,
     pub version: TransactionVersion,
     pub nonce: Nonce,
     pub contract_address: ContractAddress,
