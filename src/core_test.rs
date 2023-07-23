@@ -7,7 +7,7 @@ use crate::core::{
 };
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::transaction::{Calldata, ContractAddressSalt};
-use crate::{patricia_key, stark_felt};
+use crate::{class_hash, patricia_key, stark_felt};
 
 #[test]
 fn patricia_key_valid() {
@@ -42,7 +42,7 @@ fn patricia_key_macro() {
 #[test]
 fn test_calculate_contract_address() {
     let salt = ContractAddressSalt(stark_felt!(1337_u16));
-    let class_hash = ClassHash(stark_felt!("0x110"));
+    let class_hash = class_hash!("0x110");
     let deployer_address = ContractAddress::default();
     let constructor_calldata =
         Calldata(vec![stark_felt!(60_u16), stark_felt!(70_u16), FieldElement::MAX.into()].into());

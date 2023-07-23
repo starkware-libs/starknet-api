@@ -193,3 +193,21 @@ macro_rules! patricia_key {
         PatriciaKey::try_from(StarkHash::try_from($s).unwrap()).unwrap()
     };
 }
+
+/// A utility macro to create a [`ClassHash`] from a hex string representation.
+#[cfg(any(feature = "testing", test))]
+#[macro_export]
+macro_rules! class_hash {
+    ($s:expr) => {
+        ClassHash(StarkHash::try_from($s).unwrap())
+    };
+}
+
+/// A utility macro to create a [`ContractAddress`] from a hex string representation.
+#[cfg(any(feature = "testing", test))]
+#[macro_export]
+macro_rules! contract_address {
+    ($s:expr) => {
+        ContractAddress(patricia_key!($s))
+    };
+}
