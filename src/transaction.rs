@@ -249,6 +249,18 @@ pub struct TransactionReceipt {
     pub output: TransactionOutput,
 }
 
+/// Transaction execution status.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, Default)]
+pub enum TransactionExecutionStatus {
+    #[serde(rename = "SUCCEEDED")]
+    #[default]
+    // Succeeded is the default variant because old versions of Starknet don't have an execution
+    // status and every transaction is considered succeeded
+    Succeeded,
+    #[serde(rename = "REVERTED")]
+    Reverted,
+}
+
 /// A fee.
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
