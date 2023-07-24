@@ -63,12 +63,33 @@ impl TransactionOutput {
     }
 }
 
-/// A declare V0 or V1 transaction (same schema but different version).
+/// Account parameters.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransactionV0V1 {
+pub struct AccountParams {
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
+}
+
+macro_rules! implement_account_params_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> $field_type {
+            self.$field.clone()
+        })*
+    };
+}
+
+impl AccountParams {
+    implement_account_params_getters!(
+        (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce)
+    );
+}
+/// A declare V0 or V1 transaction (same schema but different version).
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeclareTransactionV0V1 {
+    pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub sender_address: ContractAddress,
 }
@@ -76,9 +97,7 @@ pub struct DeclareTransactionV0V1 {
 /// A declare V2 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV2 {
-    pub max_fee: Fee,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+    pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
@@ -92,24 +111,39 @@ pub enum DeclareTransaction {
 }
 
 macro_rules! implement_declare_tx_getters {
-    ($(($field:ident, $field_type:ty)),*) => {
-        $(pub fn $field(&self) -> $field_type {
-            match self {
-                Self::V0(tx) => tx.$field.clone(),
-                Self::V1(tx) => tx.$field.clone(),
-                Self::V2(tx) => tx.$field.clone(),
+    (account_params: $(($internal:ident, $int_field_type:ty)),* ; $(($field:ident, $field_type:ty)),*) => {
+        $(
+            // Getter for internal account_params fields
+            pub fn $internal(&self) -> &$int_field_type {
+                match self {
+                    Self::V0(tx) => &tx.account_params.$internal,
+                    Self::V1(tx) => &tx.account_params.$internal,
+                    Self::V2(tx) => &tx.account_params.$internal,
+                }
             }
-        })*
+        )*
+
+        $(
+            // Getter for external fields
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V0(tx) => &tx.$field,
+                    Self::V1(tx) => &tx.$field,
+                    Self::V2(tx) => &tx.$field,
+                }
+            }
+        )*
     };
 }
 
 impl DeclareTransaction {
     implement_declare_tx_getters!(
+        account_params: (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce);
         (class_hash, ClassHash),
-        (nonce, Nonce),
-        (sender_address, ContractAddress),
-        (max_fee, Fee),
-        (signature, TransactionSignature)
+        (account_params, AccountParams),
+        (sender_address, ContractAddress)
     );
 
     pub fn version(&self) -> TransactionVersion {
@@ -121,16 +155,58 @@ impl DeclareTransaction {
     }
 }
 
-/// A deploy account transaction.
+/// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeployAccountTransaction {
-    pub max_fee: Fee,
-    pub version: TransactionVersion,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+pub struct DeployAccountTransactionV1 {
+    pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum DeployAccountTransaction {
+    V1(DeployAccountTransactionV1),
+}
+
+macro_rules! implement_deploy_account_tx_getters {
+    (account_params: $(($internal:ident, $int_field_type:ty)),* ; $(($field:ident, $field_type:ty)),*) => {
+        $(
+            // Getter for internal account_params fields
+            pub fn $internal(&self) -> $int_field_type {
+                match self {
+                    Self::V1(tx) => tx.account_params.$internal.clone(),
+                }
+            }
+        )*
+
+        $(
+            // Getter for external fields
+            pub fn $field(&self) -> $field_type {
+                match self {
+                    Self::V1(tx) => tx.$field.clone(),
+                }
+            }
+        )*
+    };
+}
+
+impl DeployAccountTransaction {
+    implement_deploy_account_tx_getters!(
+        account_params: (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce);
+        (class_hash, ClassHash),
+        (account_params, AccountParams),
+        (constructor_calldata, Calldata),
+        (contract_address_salt, ContractAddressSalt)
+    );
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            DeployAccountTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+        }
+    }
 }
 
 /// A deploy transaction.
@@ -155,9 +231,7 @@ pub struct InvokeTransactionV0 {
 /// An invoke V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV1 {
-    pub max_fee: Fee,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+    pub account_params: AccountParams,
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
 }
@@ -169,22 +243,54 @@ pub enum InvokeTransaction {
 }
 
 macro_rules! implement_invoke_tx_getters {
-    ($(($field:ident, $field_type:ty)),*) => {
-        $(pub fn $field(&self) -> $field_type {
-            match self {
-                Self::V0(tx) => tx.$field.clone(),
-                Self::V1(tx) => tx.$field.clone(),
+    (account_params: $(($internal:ident, $int_field_type:ty)),* ;
+     $(($field:ident, $field_type:ty)),*) => {
+        $(
+            // Getter for internal account_params fields
+            pub fn $internal(&self) -> $int_field_type {
+                match self {
+                    Self::V0(tx) => tx.$internal.clone(),
+                    Self::V1(tx) => tx.account_params.$internal.clone(),
+                }
             }
-        })*
+        )*
+
+        $(
+            // Getter for external fields
+            pub fn $field(&self) -> $field_type {
+                match self {
+                    Self::V0(tx) => tx.$field.clone(),
+                    Self::V1(tx) => tx.$field.clone(),
+                }
+            }
+        )*
     };
 }
 
 impl InvokeTransaction {
     implement_invoke_tx_getters!(
-        (max_fee, Fee),
-        (signature, TransactionSignature),
+        account_params: (max_fee, Fee),
+        (signature, TransactionSignature);
         (calldata, Calldata)
     );
+    pub fn nonce(&self) -> Option<&Nonce> {
+        match self {
+            Self::V0(_tx) => None,
+            Self::V1(tx) => Some(&tx.account_params.nonce),
+        }
+    }
+    pub fn account_params(&self) -> Option<&AccountParams> {
+        match self {
+            Self::V0(_) => None,
+            Self::V1(tx) => Some(&tx.account_params),
+        }
+    }
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
+            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+        }
+    }
 }
 
 /// An L1 handler transaction.
