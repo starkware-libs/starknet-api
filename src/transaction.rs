@@ -6,7 +6,10 @@ use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 
 use crate::block::{BlockHash, BlockNumber};
-use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
+use crate::core::{
+    calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector,
+    Nonce,
+};
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::StarknetApiError;
@@ -133,6 +136,17 @@ pub struct DeployAccountTransaction {
     pub constructor_calldata: Calldata,
 }
 
+impl DeployAccountTransaction {
+    pub fn contract_address(&self) -> Result<ContractAddress, StarknetApiError> {
+        calculate_contract_address(
+            self.contract_address_salt,
+            self.class_hash,
+            &self.constructor_calldata,
+            ContractAddress::default(),
+        )
+    }
+}
+
 /// A deploy transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployTransaction {
@@ -185,6 +199,20 @@ impl InvokeTransaction {
         (signature, TransactionSignature),
         (calldata, Calldata)
     );
+
+    pub fn nonce(&self) -> Nonce {
+        match self {
+            InvokeTransaction::V0(_) => Nonce::default(),
+            InvokeTransaction::V1(tx_v1) => tx_v1.nonce,
+        }
+    }
+
+    pub fn sender_address(&self) -> ContractAddress {
+        match self {
+            InvokeTransaction::V0(tx_v0) => tx_v0.contract_address,
+            InvokeTransaction::V1(tx_v1) => tx_v1.sender_address,
+        }
+    }
 }
 
 /// An L1 handler transaction.
