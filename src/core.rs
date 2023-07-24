@@ -185,11 +185,30 @@ impl Debug for PatriciaKey {
     }
 }
 
-/// A utility macro to create a [`PatriciaKey`] from a hex string representation.
+/// A utility macro to create a [`PatriciaKey`] from a hex string / unsigned integer representation.
 #[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! patricia_key {
     ($s:expr) => {
         PatriciaKey::try_from(StarkHash::try_from($s).unwrap()).unwrap()
+    };
+}
+
+/// A utility macro to create a [`ClassHash`] from a hex string / unsigned integer representation.
+#[cfg(any(feature = "testing", test))]
+#[macro_export]
+macro_rules! class_hash {
+    ($s:expr) => {
+        ClassHash(StarkHash::try_from($s).unwrap())
+    };
+}
+
+/// A utility macro to create a [`ContractAddress`] from a hex string / unsigned integer
+/// representation.
+#[cfg(any(feature = "testing", test))]
+#[macro_export]
+macro_rules! contract_address {
+    ($s:expr) => {
+        ContractAddress(patricia_key!($s))
     };
 }
