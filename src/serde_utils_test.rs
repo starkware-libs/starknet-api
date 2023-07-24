@@ -154,6 +154,7 @@ fn deserialize_valid_optional_contract_class_abi_entry_vector() {
                         r#type: "felt".to_string(),
                     }],
                     outputs: vec![],
+                    state_mutability: None,
                 },
             })])
         }
