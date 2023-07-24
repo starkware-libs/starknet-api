@@ -21,6 +21,8 @@ pub enum StarknetApiError {
     /// Error in the inner deserialization of the node.
     #[error(transparent)]
     InnerDeserialization(#[from] InnerDeserializationError),
+    #[error("An InvokeFunction transaction (version = 0) cannot have a nonce.")]
+    InvalidTransactionNonce,
     #[error("Out of range {string}.")]
     /// An error for when a value is out of range.
     OutOfRange { string: String },
