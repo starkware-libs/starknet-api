@@ -63,12 +63,80 @@ impl TransactionOutput {
     }
 }
 
-/// A declare V0 or V1 transaction (same schema but different version).
+/// A StorageDomain.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeclareTransactionV0V1 {
+pub enum StorageDomain {
+    #[default]
+    OnChain,
+    OffChain,
+}
+
+/// Account parameters V0.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct AccountParamsV0 {
     pub max_fee: Fee,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
+}
+
+macro_rules! implement_account_params_v3_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> &$field_type {
+            &self.$field
+        })*
+    };
+}
+
+/// Account parameters V3.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct AccountParamsV3 {
+    pub max_fee: Fee,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub nonce_da_mode: StorageDomain,
+    pub fee_da_mode: StorageDomain,
+    pub max_resouce_amount: Resources,
+    pub max_price_per_resource_unit: Resources,
+    pub tip: Tip,
+}
+
+impl AccountParamsV3 {
+    implement_account_params_v3_getters!(
+        (nonce_da_mode, StorageDomain),
+        (fee_da_mode, StorageDomain),
+        (max_resouce_amount, Resources),
+        (max_price_per_resource_unit, Resources),
+        (tip, Tip)
+    );
+}
+macro_rules! implement_account_params_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(pub fn $field(&self) -> &$field_type {
+            match self {
+                Self::V0(tx) => &tx.$field,
+                Self::V3(tx) => &tx.$field,
+            }
+        })*
+    };
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum AccountParams {
+    V0(AccountParamsV0),
+    V3(AccountParamsV3),
+}
+
+impl AccountParams {
+    implement_account_params_getters!(
+        (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce)
+    );
+}
+/// A declare V0 or V1 transaction (same schema but different version).
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeclareTransactionV0V1 {
+    pub account_params: AccountParamsV0,
     pub class_hash: ClassHash,
     pub sender_address: ContractAddress,
 }
@@ -76,9 +144,16 @@ pub struct DeclareTransactionV0V1 {
 /// A declare V2 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV2 {
-    pub max_fee: Fee,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+    pub account_params: AccountParamsV0,
+    pub class_hash: ClassHash,
+    pub compiled_class_hash: CompiledClassHash,
+    pub sender_address: ContractAddress,
+}
+
+/// A declare V3 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeclareTransactionV3 {
+    pub account_params: AccountParamsV3,
     pub class_hash: ClassHash,
     pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
@@ -89,48 +164,125 @@ pub enum DeclareTransaction {
     V0(DeclareTransactionV0V1),
     V1(DeclareTransactionV0V1),
     V2(DeclareTransactionV2),
+    V3(DeclareTransactionV3),
+}
+
+macro_rules! implement_declare_tx_account_params_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V0(tx) => &tx.account_params.$field,
+                    Self::V1(tx) => &tx.account_params.$field,
+                    Self::V2(tx) => &tx.account_params.$field,
+                    Self::V3(tx) => &tx.account_params.$field,
+                }
+            }
+        )*
+    };
 }
 
 macro_rules! implement_declare_tx_getters {
     ($(($field:ident, $field_type:ty)),*) => {
-        $(pub fn $field(&self) -> $field_type {
-            match self {
-                Self::V0(tx) => tx.$field.clone(),
-                Self::V1(tx) => tx.$field.clone(),
-                Self::V2(tx) => tx.$field.clone(),
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V0(tx) => &tx.$field,
+                    Self::V1(tx) => &tx.$field,
+                    Self::V2(tx) => &tx.$field,
+                    Self::V3(tx) => &tx.$field,
+                }
             }
-        })*
+        )*
     };
 }
 
 impl DeclareTransaction {
-    implement_declare_tx_getters!(
-        (class_hash, ClassHash),
-        (nonce, Nonce),
-        (sender_address, ContractAddress),
+    implement_declare_tx_account_params_getters!(
         (max_fee, Fee),
-        (signature, TransactionSignature)
+        (signature, TransactionSignature),
+        (nonce, Nonce)
     );
+    implement_declare_tx_getters!((class_hash, ClassHash), (sender_address, ContractAddress));
 
     pub fn version(&self) -> TransactionVersion {
         match self {
             DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
             DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
             DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u8)),
+            DeclareTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
         }
     }
 }
 
-/// A deploy account transaction.
+/// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeployAccountTransaction {
-    pub max_fee: Fee,
-    pub version: TransactionVersion,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+pub struct DeployAccountTransactionV1 {
+    pub account_params: AccountParamsV0,
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
+}
+
+/// A deploy account V3 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeployAccountTransactionV3 {
+    pub account_params: AccountParamsV3,
+    pub class_hash: ClassHash,
+    pub contract_address_salt: ContractAddressSalt,
+    pub constructor_calldata: Calldata,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
+pub enum DeployAccountTransaction {
+    V1(DeployAccountTransactionV1),
+    V3(DeployAccountTransactionV3),
+}
+
+macro_rules! implement_deploy_account_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V1(tx) => &tx.$field,
+                    Self::V3(tx) => &tx.$field,
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! implement_deploy_account_tx_account_params_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V1(tx) => &tx.account_params.$field,
+                    Self::V3(tx) => &tx.account_params.$field,
+                }
+            }
+        )*
+    };
+}
+
+impl DeployAccountTransaction {
+    implement_deploy_account_tx_account_params_getters!(
+        (max_fee, Fee),
+        (signature, TransactionSignature),
+        (nonce, Nonce)
+    );
+    implement_deploy_account_tx_getters!(
+        (class_hash, ClassHash),
+        (constructor_calldata, Calldata),
+        (contract_address_salt, ContractAddressSalt)
+    );
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            DeployAccountTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+            DeployAccountTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+        }
+    }
 }
 
 /// A deploy transaction.
@@ -155,9 +307,15 @@ pub struct InvokeTransactionV0 {
 /// An invoke V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV1 {
-    pub max_fee: Fee,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
+    pub account_params: AccountParamsV0,
+    pub sender_address: ContractAddress,
+    pub calldata: Calldata,
+}
+
+/// An invoke V3 transaction.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct InvokeTransactionV3 {
+    pub account_params: AccountParamsV3,
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
 }
@@ -166,25 +324,61 @@ pub struct InvokeTransactionV1 {
 pub enum InvokeTransaction {
     V0(InvokeTransactionV0),
     V1(InvokeTransactionV1),
+    V3(InvokeTransactionV3),
+}
+
+macro_rules! implement_invoke_tx_account_params_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V0(tx) => &tx.$field,
+                    Self::V1(tx) => &tx.account_params.$field,
+                    Self::V3(tx) => &tx.account_params.$field,
+                }
+            }
+        )*
+    };
 }
 
 macro_rules! implement_invoke_tx_getters {
     ($(($field:ident, $field_type:ty)),*) => {
-        $(pub fn $field(&self) -> $field_type {
-            match self {
-                Self::V0(tx) => tx.$field.clone(),
-                Self::V1(tx) => tx.$field.clone(),
+        $(
+            pub fn $field(&self) -> &$field_type {
+                match self {
+                    Self::V0(tx) => &tx.$field,
+                    Self::V1(tx) => &tx.$field,
+                    Self::V3(tx) => &tx.$field,
+                }
             }
-        })*
+        )*
     };
 }
 
 impl InvokeTransaction {
-    implement_invoke_tx_getters!(
-        (max_fee, Fee),
-        (signature, TransactionSignature),
-        (calldata, Calldata)
-    );
+    implement_invoke_tx_account_params_getters!((max_fee, Fee), (signature, TransactionSignature));
+    implement_invoke_tx_getters!((calldata, Calldata));
+    pub fn nonce(&self) -> Option<Nonce> {
+        match self {
+            Self::V0(_) => None,
+            Self::V1(tx) => Some(tx.account_params.nonce),
+            Self::V3(tx) => Some(tx.account_params.nonce),
+        }
+    }
+    pub fn sender_address(&self) -> ContractAddress {
+        match self {
+            Self::V0(tx) => tx.contract_address,
+            Self::V1(tx) => tx.sender_address,
+            Self::V3(tx) => tx.sender_address,
+        }
+    }
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
+            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+            InvokeTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+        }
+    }
 }
 
 /// An L1 handler transaction.
@@ -285,6 +479,35 @@ impl From<Fee> for StarkFelt {
         Self::from(fee.0)
     }
 }
+
+/// A Tip.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+#[serde(from = "PrefixedBytesAsHex<16_usize>", into = "PrefixedBytesAsHex<16_usize>")]
+pub struct Tip(pub u128);
+
+impl From<PrefixedBytesAsHex<16_usize>> for Tip {
+    fn from(val: PrefixedBytesAsHex<16_usize>) -> Self {
+        Self(u128::from_be_bytes(val.0))
+    }
+}
+
+impl From<Tip> for PrefixedBytesAsHex<16_usize> {
+    fn from(tip: Tip) -> Self {
+        Self(tip.0.to_be_bytes())
+    }
+}
+
+impl From<Tip> for StarkFelt {
+    fn from(tip: Tip) -> Self {
+        Self::from(tip.0)
+    }
+}
+
+/// A Resourcs.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct Resources(pub Vec<u128>);
 
 /// The hash of a [Transaction](`crate::transaction::Transaction`).
 #[derive(
