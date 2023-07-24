@@ -69,6 +69,16 @@ pub struct FunctionAbiEntry {
     pub name: String,
     pub inputs: Vec<TypedParameter>,
     pub outputs: Vec<TypedParameter>,
+    #[serde(rename = "stateMutability", default, skip_serializing_if = "Option::is_none")]
+    pub state_mutability: Option<FunctionStateMutability>,
+}
+
+/// A function state mutability.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub enum FunctionStateMutability {
+    #[serde(rename = "view")]
+    #[default]
+    View,
 }
 
 /// A struct abi entry.
