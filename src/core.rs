@@ -6,10 +6,12 @@ use std::fmt::Debug;
 
 use derive_more::Display;
 use once_cell::sync::Lazy;
+use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
+use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
@@ -211,4 +213,38 @@ macro_rules! contract_address {
     ($s:expr) => {
         ContractAddress(patricia_key!($s))
     };
+}
+
+/// An Ethereum address.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+#[serde(try_from = "PrefixedBytesAsHex<20_usize>", into = "PrefixedBytesAsHex<20_usize>")]
+pub struct EthAddress(pub H160);
+
+impl TryFrom<StarkFelt> for EthAddress {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
+
+        let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
+        if rest != [0u8; COMPLIMENT_OF_H160] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        Ok(EthAddress(H160::from_slice(h160_bytes)))
+    }
+}
+
+impl TryFrom<PrefixedBytesAsHex<20_usize>> for EthAddress {
+    type Error = StarknetApiError;
+    fn try_from(val: PrefixedBytesAsHex<20_usize>) -> Result<Self, Self::Error> {
+        Ok(EthAddress(H160::from_slice(&val.0)))
+    }
+}
+
+impl From<EthAddress> for PrefixedBytesAsHex<20_usize> {
+    fn from(felt: EthAddress) -> Self {
+        BytesAsHex(felt.0.to_fixed_bytes())
+    }
 }
