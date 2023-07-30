@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -61,6 +62,14 @@ impl TransactionOutput {
             TransactionOutput::L1Handler(output) => &output.events,
         }
     }
+}
+
+/// A StorageDomain.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum StorageDomain {
+    #[default]
+    OnChain,
+    OffChain,
 }
 
 /// Account parameters.
@@ -374,6 +383,10 @@ impl From<Fee> for StarkFelt {
         Self::from(fee.0)
     }
 }
+
+/// A Resourcs.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ResourceBounds(pub HashMap<String, (u128, u128)>);
 
 /// The hash of a [Transaction](`crate::transaction::Transaction`).
 #[derive(
