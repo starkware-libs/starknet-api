@@ -1,5 +1,7 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Display;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
 
 use derive_more::From;
@@ -384,9 +386,77 @@ impl From<Fee> for StarkFelt {
     }
 }
 
-/// A Resourcs.
+// /// A Resourcs.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum Resource {
+    L1Gas,
+    L2Gas,
+}
+
+// /// A ResourceBounds.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct ResourceBounds {
+    pub max_amount: u128, /* Specifies the maximum amount of each resource allowed for usage
+                           * during the execution */
+    pub max_price_per_unit: u128, /* Specifies the maximum price the user is willing to pay for
+                                   * each resource unit. */
+}
+
+// /// A ResourcesBounds.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
-pub struct ResourceBounds(pub HashMap<String, (u128, u128)>);
+pub struct ResourcesBounds(pub HashMap<Resource, ResourceBounds>);
+
+impl Ord for ResourcesBounds {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // Compare the lengths of the HashMaps first
+        let length_cmp = self.0.len().cmp(&other.0.len());
+
+        if length_cmp != Ordering::Equal {
+            return length_cmp;
+        }
+        // If the lengths are equal, compare the key-value pairs lexicographically
+        let mut self_iter = self.0.iter();
+        let mut other_iter = other.0.iter();
+
+        loop {
+            match (self_iter.next(), other_iter.next()) {
+                (Some((self_key, self_value)), Some((other_key, other_value))) => {
+                    let key_cmp = self_key.cmp(other_key);
+                    if key_cmp != Ordering::Equal {
+                        return key_cmp;
+                    }
+
+                    let value_cmp = self_value.cmp(other_value);
+                    if value_cmp != Ordering::Equal {
+                        return value_cmp;
+                    }
+                }
+                (None, None) => break,
+                (None, _) => return Ordering::Less,
+                (_, None) => return Ordering::Greater,
+            }
+        }
+
+        Ordering::Equal
+    }
+}
+
+impl PartialOrd for ResourcesBounds {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Hash for ResourcesBounds {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.len().hash(state);
+
+        for (key, value) in self.0.clone() {
+            key.hash(state);
+            value.hash(state);
+        }
+    }
+}
 
 /// The hash of a [Transaction](`crate::transaction::Transaction`).
 #[derive(
