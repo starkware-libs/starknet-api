@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -61,6 +62,14 @@ impl TransactionOutput {
             TransactionOutput::L1Handler(output) => &output.events,
         }
     }
+}
+
+/// A StorageDomain.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum StorageDomain {
+    #[default]
+    OnChain,
+    OffChain,
 }
 
 /// Account parameters.
@@ -374,6 +383,51 @@ impl From<Fee> for StarkFelt {
         Self::from(fee.0)
     }
 }
+
+/// A Tip.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+#[serde(from = "PrefixedBytesAsHex<8_usize>", into = "PrefixedBytesAsHex<8_usize>")]
+pub struct Tip(pub u64);
+
+impl From<PrefixedBytesAsHex<8_usize>> for Tip {
+    fn from(val: PrefixedBytesAsHex<8_usize>) -> Self {
+        Self(u64::from_be_bytes(val.0))
+    }
+}
+
+impl From<Tip> for PrefixedBytesAsHex<8_usize> {
+    fn from(tip: Tip) -> Self {
+        Self(tip.0.to_be_bytes())
+    }
+}
+
+impl From<Tip> for StarkFelt {
+    fn from(tip: Tip) -> Self {
+        Self::from(tip.0)
+    }
+}
+
+/// A Resourcs.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub enum Resource {
+    L1Gas,
+    L2Gas,
+}
+
+/// A ResourceBounds.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct ResourceBounds {
+    // Specifies the maximum amount of each resource allowed for usage during the execution.
+    pub max_amount: u64,
+    // Specifies the maximum price the user is willing to pay for each resource unit.
+    pub max_price_per_unit: u128,
+}
+
+/// A ResourcesBounds.
+#[derive(Debug, Clone, Default, Eq, Hash, PartialEq, Deserialize, Serialize, Ord, PartialOrd)]
+pub struct ResourcesBounds(pub BTreeMap<Resource, ResourceBounds>);
 
 /// The hash of a [Transaction](`crate::transaction::Transaction`).
 #[derive(
