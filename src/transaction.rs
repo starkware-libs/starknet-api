@@ -94,6 +94,7 @@ pub struct TransactionParamsV3 {
 /// A declare V0 or V1 transaction (same schema but different version).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV0V1 {
+    #[serde(flatten)]
     pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub sender_address: ContractAddress,
@@ -102,6 +103,7 @@ pub struct DeclareTransactionV0V1 {
 /// A declare V2 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV2 {
+    #[serde(flatten)]
     pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub compiled_class_hash: CompiledClassHash,
@@ -188,6 +190,7 @@ impl DeclareTransaction {
 /// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployAccountTransactionV1 {
+    #[serde(flatten)]
     pub account_params: AccountParams,
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
@@ -277,6 +280,7 @@ pub struct InvokeTransactionV0 {
 /// An invoke V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV1 {
+    #[serde(flatten)]
     pub account_params: AccountParams,
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
