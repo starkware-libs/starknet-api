@@ -113,6 +113,7 @@ pub struct DeclareTransactionV2 {
 /// A declare V3 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV3 {
+    #[serde(flatten)]
     pub transaction_params: TransactionParamsV3,
     pub class_hash: ClassHash,
     pub compiled_class_hash: CompiledClassHash,
@@ -200,6 +201,7 @@ pub struct DeployAccountTransactionV1 {
 /// A deploy account V3 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployAccountTransactionV3 {
+    #[serde(flatten)]
     pub transaction_params: TransactionParamsV3,
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
@@ -289,6 +291,7 @@ pub struct InvokeTransactionV1 {
 /// An invoke V3 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV3 {
+    #[serde(flatten)]
     pub transaction_params: TransactionParamsV3,
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
