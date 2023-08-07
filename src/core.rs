@@ -248,3 +248,12 @@ impl From<EthAddress> for PrefixedBytesAsHex<20_usize> {
         BytesAsHex(felt.0.to_fixed_bytes())
     }
 }
+
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub enum DataAvailabilityMode {
+    Starknet = 0,
+    #[default]
+    Ethereum = 1,
+}

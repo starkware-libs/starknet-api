@@ -7,7 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
-    ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
+    ClassHash, CompiledClassHash, ContractAddress, DataAvailabilityMode, EntryPointSelector,
+    EthAddress, Nonce,
 };
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
@@ -64,14 +65,6 @@ impl TransactionOutput {
     }
 }
 
-/// A StorageDomain.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub enum StorageDomain {
-    #[default]
-    OnChain,
-    OffChain,
-}
-
 /// Account parameters.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct AccountParams {
@@ -85,8 +78,8 @@ pub struct AccountParams {
 pub struct TransactionParamsV3 {
     pub signature: TransactionSignature,
     pub nonce: Nonce,
-    pub nonce_da_mode: StorageDomain,
-    pub fee_da_mode: StorageDomain,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
     pub resource_bounds: ResourceBounds,
     pub tip: Tip,
 }
