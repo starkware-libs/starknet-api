@@ -25,13 +25,17 @@ pub struct ContractClass {
 /// A [ContractClass](`crate::deprecated_contract_class::ContractClass`) abi entry.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-#[serde(untagged)]
+#[serde(tag = "type")]
 pub enum ContractClassAbiEntry {
-    /// An event abi entry.
+    #[serde(rename = "event")]
     Event(EventAbiEntry),
-    /// A function abi entry.
-    Function(FunctionAbiEntryWithType),
-    /// A struct abi entry.
+    #[serde(rename = "function")]
+    Function(FunctionAbiEntry),
+    #[serde(rename = "constructor")]
+    Constructor(FunctionAbiEntry),
+    #[serde(rename = "l1_handler")]
+    L1Handler(FunctionAbiEntry),
+    #[serde(rename = "struct")]
     Struct(StructAbiEntry),
 }
 
@@ -41,26 +45,6 @@ pub struct EventAbiEntry {
     pub name: String,
     pub keys: Vec<TypedParameter>,
     pub data: Vec<TypedParameter>,
-}
-
-/// A function abi entry with type.
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
-pub struct FunctionAbiEntryWithType {
-    pub r#type: FunctionAbiEntryType,
-    #[serde(flatten)]
-    pub entry: FunctionAbiEntry,
-}
-
-/// A function abi entry type.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
-pub enum FunctionAbiEntryType {
-    #[serde(rename = "constructor")]
-    Constructor,
-    #[serde(rename = "l1_handler")]
-    L1Handler,
-    #[serde(rename = "function")]
-    #[default]
-    Function,
 }
 
 /// A function abi entry.
