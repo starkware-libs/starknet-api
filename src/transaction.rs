@@ -203,6 +203,7 @@ pub struct DeclareTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    pub execution_status: TransactionExecutionStatus,
 }
 
 /// A deploy-account transaction output.
@@ -212,6 +213,7 @@ pub struct DeployAccountTransactionOutput {
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
+    pub execution_status: TransactionExecutionStatus,
 }
 
 /// A deploy transaction output.
@@ -221,6 +223,7 @@ pub struct DeployTransactionOutput {
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
+    pub execution_status: TransactionExecutionStatus,
 }
 
 /// An invoke transaction output.
@@ -229,6 +232,7 @@ pub struct InvokeTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    pub execution_status: TransactionExecutionStatus,
 }
 
 /// An L1 handler transaction output.
@@ -237,6 +241,7 @@ pub struct L1HandlerTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    pub execution_status: TransactionExecutionStatus,
 }
 
 /// A transaction receipt.
