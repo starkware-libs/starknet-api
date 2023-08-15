@@ -33,6 +33,12 @@ impl ChainId {
 )]
 pub struct ContractAddress(pub PatriciaKey);
 
+impl ContractAddress {
+    pub const fn one() -> Self {
+        Self(PatriciaKey::one())
+    }
+}
+
 impl From<u128> for ContractAddress {
     fn from(val: u128) -> Self {
         ContractAddress(PatriciaKey::from(val))
@@ -159,6 +165,10 @@ pub const PATRICIA_KEY_UPPER_BOUND: &str =
 impl PatriciaKey {
     pub fn key(&self) -> &StarkHash {
         &self.0
+    }
+
+    pub const fn one() -> Self {
+        Self(StarkHash::one())
     }
 }
 

@@ -59,6 +59,14 @@ impl StarkFelt {
         Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
+    pub const fn one() -> Self {
+        Self([
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x01,
+        ])
+    }
+
     /// Storage efficient serialization for field elements.
     pub fn serialize(&self, res: &mut impl std::io::Write) -> Result<(), Error> {
         // We use the fact that bytes[0] < 0x10 and encode the size of the felt in the 4 most
