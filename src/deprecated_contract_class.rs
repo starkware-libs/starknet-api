@@ -90,6 +90,7 @@ pub struct Program {
     #[serde(default)]
     pub compiler_version: serde_json::Value,
     pub data: serde_json::Value,
+    #[serde(default)]
     pub debug_info: serde_json::Value,
     pub hints: serde_json::Value,
     pub identifiers: serde_json::Value,
