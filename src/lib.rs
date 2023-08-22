@@ -4,6 +4,7 @@
 
 pub mod block;
 pub mod core;
+pub mod data_availability;
 pub mod deprecated_contract_class;
 pub mod hash;
 pub mod serde_utils;
