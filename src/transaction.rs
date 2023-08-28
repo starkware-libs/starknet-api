@@ -228,10 +228,24 @@ pub struct InvokeTransactionV1 {
     pub calldata: Calldata,
 }
 
+/// An invoke V3 transaction.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct InvokeTransactionV3 {
+    pub resource_bounds: ResourceBounds,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub sender_address: ContractAddress,
+    pub calldata: Calldata,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
 pub enum InvokeTransaction {
     V0(InvokeTransactionV0),
     V1(InvokeTransactionV1),
+    V3(InvokeTransactionV3),
 }
 
 macro_rules! implement_invoke_tx_getters {
@@ -240,17 +254,46 @@ macro_rules! implement_invoke_tx_getters {
             match self {
                 Self::V0(tx) => tx.$field.clone(),
                 Self::V1(tx) => tx.$field.clone(),
+                Self::V3(tx) => tx.$field.clone(),
             }
         })*
     };
 }
 
 impl InvokeTransaction {
-    implement_invoke_tx_getters!(
-        (max_fee, Fee),
-        (signature, TransactionSignature),
-        (calldata, Calldata)
-    );
+    implement_invoke_tx_getters!((calldata, Calldata), (signature, TransactionSignature));
+
+    pub fn max_fee(&self) -> Option<Fee> {
+        match self {
+            Self::V0(tx) => Some(tx.max_fee),
+            Self::V1(tx) => Some(tx.max_fee),
+            Self::V3(_) => None,
+        }
+    }
+
+    pub fn nonce(&self) -> Nonce {
+        match self {
+            Self::V0(_) => Nonce::default(),
+            Self::V1(tx) => tx.nonce,
+            Self::V3(tx) => tx.nonce,
+        }
+    }
+
+    pub fn sender_address(&self) -> ContractAddress {
+        match self {
+            Self::V0(tx) => tx.contract_address,
+            Self::V1(tx) => tx.sender_address,
+            Self::V3(tx) => tx.sender_address,
+        }
+    }
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
+            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+            InvokeTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+        }
+    }
 }
 
 /// An L1 handler transaction.
