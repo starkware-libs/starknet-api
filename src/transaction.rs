@@ -9,6 +9,7 @@ use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
     ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
 };
+use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
 
@@ -85,11 +86,28 @@ pub struct DeclareTransactionV2 {
     pub sender_address: ContractAddress,
 }
 
+/// A declare V3 transaction.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct DeclareTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub compiled_class_hash: CompiledClassHash,
+    pub sender_address: ContractAddress,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+    pub account_deployment_data: AccountDeploymentData,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub enum DeclareTransaction {
     V0(DeclareTransactionV0V1),
     V1(DeclareTransactionV0V1),
     V2(DeclareTransactionV2),
+    V3(DeclareTransactionV3),
 }
 
 macro_rules! implement_declare_tx_getters {
@@ -99,6 +117,7 @@ macro_rules! implement_declare_tx_getters {
                 Self::V0(tx) => tx.$field.clone(),
                 Self::V1(tx) => tx.$field.clone(),
                 Self::V2(tx) => tx.$field.clone(),
+                Self::V3(tx) => tx.$field.clone(),
             }
         })*
     };
@@ -109,7 +128,6 @@ impl DeclareTransaction {
         (class_hash, ClassHash),
         (nonce, Nonce),
         (sender_address, ContractAddress),
-        (max_fee, Fee),
         (signature, TransactionSignature)
     );
 
@@ -118,6 +136,7 @@ impl DeclareTransaction {
             DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
             DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
             DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u8)),
+            DeclareTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
         }
     }
 }
