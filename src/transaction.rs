@@ -139,11 +139,10 @@ impl DeclareTransaction {
     }
 }
 
-/// A deploy account transaction.
+/// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeployAccountTransaction {
+pub struct DeployAccountTransactionV1 {
     pub max_fee: Fee,
-    pub version: TransactionVersion,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
@@ -151,6 +150,55 @@ pub struct DeployAccountTransaction {
     pub constructor_calldata: Calldata,
 }
 
+/// A deploy account V3 transaction.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeployAccountTransactionV3 {
+    pub resource_bounds: ResourceBounds,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub contract_address_salt: ContractAddressSalt,
+    pub constructor_calldata: Calldata,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
+pub enum DeployAccountTransaction {
+    V1(DeployAccountTransactionV1),
+    V3(DeployAccountTransactionV3),
+}
+
+macro_rules! implement_deploy_account_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> $field_type {
+                match self {
+                    Self::V1(tx) => tx.$field.clone(),
+                    Self::V3(tx) => tx.$field.clone(),
+                }
+            }
+        )*
+    };
+}
+
+impl DeployAccountTransaction {
+    implement_deploy_account_tx_getters!(
+        (class_hash, ClassHash),
+        (constructor_calldata, Calldata),
+        (contract_address_salt, ContractAddressSalt),
+        (nonce, Nonce),
+        (signature, TransactionSignature)
+    );
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            DeployAccountTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
+            DeployAccountTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+        }
+    }
+}
 /// A deploy transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployTransaction {
