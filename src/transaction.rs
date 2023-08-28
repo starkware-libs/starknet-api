@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -387,3 +388,48 @@ pub struct TransactionOffsetInBlock(pub usize);
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct EventIndexInTransactionOutput(pub usize);
+
+/// A Tip.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(from = "PrefixedBytesAsHex<8_usize>", into = "PrefixedBytesAsHex<8_usize>")]
+pub struct Tip(pub u64);
+
+impl From<PrefixedBytesAsHex<8_usize>> for Tip {
+    fn from(val: PrefixedBytesAsHex<8_usize>) -> Self {
+        Self(u64::from_be_bytes(val.0))
+    }
+}
+
+impl From<Tip> for PrefixedBytesAsHex<8_usize> {
+    fn from(tip: Tip) -> Self {
+        Self(tip.0.to_be_bytes())
+    }
+}
+
+impl From<Tip> for StarkFelt {
+    fn from(tip: Tip) -> Self {
+        Self::from(tip.0)
+    }
+}
+
+/// A Resources.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum Resource {
+    L1Gas,
+    L2Gas,
+}
+
+/// A ResourceBounds.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct ResourceBounds {
+    // Specifies the maximum amount of each resource allowed for usage during the execution.
+    pub max_amount: u64,
+    // Specifies the maximum price the user is willing to pay for each resource unit.
+    pub max_price_per_unit: u128,
+}
+
+/// A ResourcesBounds.
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct ResourcesBounds(pub BTreeMap<Resource, ResourceBounds>);
