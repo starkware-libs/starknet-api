@@ -66,6 +66,17 @@ impl StarkFelt {
         ])
     }
 
+    pub const fn from_u128(val: u128) -> Self {
+        let mut bytes = [0u8; 32];
+        let val_bytes = val.to_be_bytes();
+        let mut index = 16;
+        while index < 32 {
+            bytes[index] = val_bytes[index - 16];
+            index += 1;
+        }
+        Self(bytes)
+    }
+
     /// Storage efficient serialization for field elements.
     pub fn serialize(&self, res: &mut impl std::io::Write) -> Result<(), Error> {
         // We use the fact that bytes[0] < 0x10 and encode the size of the felt in the 4 most
@@ -156,9 +167,7 @@ impl TryFrom<&str> for StarkFelt {
 
 impl From<u128> for StarkFelt {
     fn from(val: u128) -> Self {
-        let mut bytes = [0u8; 32];
-        bytes[16..32].copy_from_slice(&val.to_be_bytes());
-        Self(bytes)
+        Self::from_u128(val)
     }
 }
 
