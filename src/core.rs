@@ -32,7 +32,7 @@ impl ChainId {
 // The block hash table is stored in address 0x1,
 // this is a special address that is not used for contracts.
 pub const BLOCK_HASH_TABLE_ADDRESS: ContractAddress =
-    ContractAddress(PatriciaKey(StarkHash::one()));
+    ContractAddress(PatriciaKey(StarkHash::from_u128(1_u128)));
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
