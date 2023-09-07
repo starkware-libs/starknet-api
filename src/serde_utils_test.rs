@@ -175,3 +175,17 @@ fn deserialize_optional_contract_class_abi_entry_vector_none() {
     let res: DummyContractClass = serde_json::from_str(json).unwrap();
     assert_eq!(res, DummyContractClass { abi: None });
 }
+
+#[test]
+fn chain_id_non_ascii() {
+    let chain_id_str = r#""חלודה""#;
+    let chain_id = serde_json::from_str::<crate::core::ChainId>(chain_id_str);
+    assert_matches!(chain_id, Err(serde_json::Error { .. }));
+}
+
+#[test]
+fn valid_chain_id() {
+    let chain_id_str = r#""chain_ID""#;
+    let chain_id = serde_json::from_str::<crate::core::ChainId>(chain_id_str).unwrap();
+    assert_eq!(chain_id_str, serde_json::to_string(&chain_id).unwrap())
+}

@@ -3,9 +3,10 @@
 #[path = "serde_utils_test.rs"]
 mod serde_utils_test;
 
-use serde::de::{Deserialize, Visitor};
+use serde::de::{Deserialize, Error as DeserializationError, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
 use serde::Deserializer;
+use serde_json::Value;
 
 use crate::deprecated_contract_class::ContractClassAbiEntry;
 
@@ -143,4 +144,21 @@ where
         Ok(value) => Ok(value),
         Err(_) => Ok(None),
     }
+}
+
+pub fn deserialize_ascii_string<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<String, D::Error> {
+    let chian_id: _ = match Value::deserialize(deserializer)? {
+        Value::String(string) => match string.chars().all(|c| c.is_ascii()) {
+            true => string,
+            false => {
+                return Err(DeserializationError::custom(format!(
+                    "Chain id ({string}) must contain only ASCII characters."
+                )));
+            }
+        },
+        _ => return Err(DeserializationError::custom("Cannot cast value into String.")),
+    };
+    Ok(chian_id)
 }
