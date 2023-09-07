@@ -1,3 +1,5 @@
+pub mod transaction_hash;
+
 use std::fmt::Display;
 use std::sync::Arc;
 

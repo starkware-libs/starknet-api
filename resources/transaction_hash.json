@@ -1,0 +1,139 @@
+[
+  {
+    "transaction": {
+      "DeployAccount": {
+        "max_fee": "0x81ca6d7a5d",
+        "version": "0x1",
+        "signature": [
+          "0x787e77d333665c7c830a8257e36270410f038fb278e8a468d5c89ec09f2c361",
+          "0x4310e1aad5c88a32439bf5b64b0b4114c2a42c8468aa97f374a0738d7733a49"
+        ],
+        "nonce": "0x0",
+        "class_hash": "0x1fac3074c9d5282f0acc5c69a4781a1c711efea5e73c550c5d9fb253cf7fd3d",
+        "contract_address_salt": "0x548987f6a88ad1a506c639f4da4571dfabcfa7fa2abc5da30d3c3c1af71b5d9",
+        "constructor_calldata": [
+          "0x3d03f1e51b6be7edf29c4fa772cf4294259a8449ed32e76ee2169479b06afdd"
+        ]
+      }
+    },
+    "transaction_hash": "0xd74a7310e8739a8586b851b928bcc32c955009e3a49057e986d0f2c0a06f16",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "Deploy": {
+        "version": "0x0",
+        "class_hash": "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918",
+        "contract_address_salt": "0x535c361a7ec21e5b863763b7c2f81ed395c6c23e6001720a1bcac9f4e0b145d",
+        "constructor_calldata": [
+          "0x3e327de1c40540b98d05cbcb13552008e36f0ec8d61d46956d2f9752c294328",
+          "0x79dc0da7c54b95f10aa182ad0a46400db63156920adb65eca2654c0945a463",
+          "0x2",
+          "0x535c361a7ec21e5b863763b7c2f81ed395c6c23e6001720a1bcac9f4e0b145d",
+          "0x0"
+        ]
+      }
+    },
+    "transaction_hash": "0x39017e29a3e0f7f01478ef718096ba4529eabe7e554614f26ff4d0000e2c248",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "Invoke": {
+        "V1": {
+          "max_fee": "0x174876e8000",
+          "signature": [
+            "0xdd6e2f69ef2c90df1913d93a1a26fb232555a7cc72a279b790a4d869c2db2d",
+            "0x7f8c1ad6e33514733b8a947e25fbede07e572ace6a85a07e88f42cf531dd1c8"
+          ],
+          "nonce": "0x0",
+          "sender_address": "0x70e1e23753c9dbfb01f1a49dc0a37fedeadf57620792e33ab00049e501816a4",
+          "calldata": [
+            "0x1",
+            "0x70e1e23753c9dbfb01f1a49dc0a37fedeadf57620792e33ab00049e501816a4",
+            "0x2730079d734ee55315f4f141eaed376bddd8c2133523d223a344c5604e0f7f8",
+            "0x0",
+            "0x4",
+            "0x4",
+            "0x1e48f20c157f50d7b135363d3684785e2e05cc7cccb7ddca3f55a7601328c81",
+            "0x46440f630201391aa9e59608828f559ae01b18d344c711111b66da7ecc69520",
+            "0x0",
+            "0x0"
+          ]
+        }
+      }
+    },
+    "transaction_hash": "0x2a50202d4c6936c70f3c604c0f8059f17eab30329b662436b02069a7dd27cc9",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "L1Handler": {
+        "version": "0x0",
+        "contract_address": "0x73314940630fd6dcda0d772d4c972c4e0a9946bef9dabf4ef84eda8ef542b82",
+        "entry_point_selector": "0x2d757788a8d8d6f21d1cd40bce38a8222d70654214e96ff95d8086e684fbee5",
+        "nonce": "0x43d9a",
+        "calldata": [
+          "0xc3511006c04ef1d78af4c8e0e74ec18a6e64ff9e",
+          "0x32f2c435695ab22bb83199ec49bed6c1b14db4d1bdefb8a04c3d821509ceced",
+          "0x16345785d8a0000",
+          "0x0"
+        ]
+      }
+    },
+    "transaction_hash": "0xa5eeb0d17fe3262c2b7b95bd934c5a5ee7243b0e7584a8d2a3fbb9bd456241",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "Declare": {
+        "V0": {
+          "max_fee": "0x0",
+          "signature": [],
+          "nonce": "0x0",
+          "class_hash": "0x70ffba803149d9cfe1762b5099d15ec129de0e998d1cbd2a29c2abca40c2ce1",
+          "sender_address": "0x1"
+        }
+      }
+    },
+    "transaction_hash": "0x5a5e819664c7550d60d9e4bce8da3478a133602b81e4d0bfdbbc4bb30125a96",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "Declare": {
+        "V1": {
+          "max_fee": "0x174876e8000",
+          "signature": [
+            "0x6b2c99aac0e375ecca77d5056be39c00328e45c541045d89aeb7458acaffbdb",
+            "0x732e2b1604487609fdabd9be05ea0e2d828f50bca1e5dd86ca0beabf4670866"
+          ],
+          "nonce": "0x5",
+          "class_hash": "0x4da612e187f8ea1508ca96c726e1da9891bc480f97a157df25568f9dc8ea1dc",
+          "sender_address": "0x92e02752e4309de75f8f07f4a9efca32649ba83d798f13897714b1a5acd93d"
+        }
+      }
+    },
+    "transaction_hash": "0x64b91efce5648a65b950d3aa560b4e265eedd9b49b232a85170510c4c77e9bc",
+    "chain_id": "SN_GOERLI"
+  },
+  {
+    "transaction": {
+      "Declare": {
+        "V2": {
+          "max_fee": "0xb7efe7b25236",
+          "signature": [
+            "0x2a1abe101f6651801e5faf2adab17feb726d440fb19a0f1d75e3ea7786b9459",
+            "0x2fda52f14100da5d87ddffdbc2b48981947285bb549a7760d4f472ce06dba5e"
+          ],
+          "nonce": "0x17",
+          "class_hash": "0x702a9e80c74a214caf0e77326180e72ba3bd3f53dbd5519ede339eb3ae9eed4",
+          "compiled_class_hash": "0x1be58ebac8e3bc17ae4b7de633ed9c78f2d6dd1acd49c12985bcd5002bdb824",
+          "sender_address": "0x349d9bdae264d4d613f34a7bcb68e287417e4cd3651e1ff7a89fd75ff04b662"
+        }
+      }
+    },
+    "transaction_hash": "0x29410c3ab8d8a7d593e915f3051b9c71e48626cf688c7c8c526f400648cf24c",
+    "chain_id": "SN_GOERLI"
+  }
+]
