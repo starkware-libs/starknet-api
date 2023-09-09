@@ -134,10 +134,10 @@ impl DeclareTransaction {
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
-            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
-            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u8)),
-            DeclareTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+            DeclareTransaction::V0(_) => TransactionVersion::ZERO,
+            DeclareTransaction::V1(_) => TransactionVersion::ONE,
+            DeclareTransaction::V2(_) => TransactionVersion::TWO,
+            DeclareTransaction::V3(_) => TransactionVersion::THREE,
         }
     }
 }
@@ -199,8 +199,8 @@ impl DeployAccountTransaction {
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            DeployAccountTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
-            DeployAccountTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+            DeployAccountTransaction::V1(_) => TransactionVersion::ONE,
+            DeployAccountTransaction::V3(_) => TransactionVersion::THREE,
         }
     }
 }
@@ -289,9 +289,9 @@ impl InvokeTransaction {
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            InvokeTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
-            InvokeTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
-            InvokeTransaction::V3(_) => TransactionVersion(StarkFelt::from(3_u8)),
+            InvokeTransaction::V0(_) => TransactionVersion::ZERO,
+            InvokeTransaction::V1(_) => TransactionVersion::ONE,
+            InvokeTransaction::V3(_) => TransactionVersion::THREE,
         }
     }
 }
@@ -427,6 +427,20 @@ pub struct TransactionSignature(pub Vec<StarkFelt>);
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct TransactionVersion(pub StarkFelt);
+
+impl TransactionVersion {
+    /// [TransactionVersion] constant that's equal to 0.
+    pub const ZERO: Self = { Self(StarkFelt::ZERO) };
+
+    /// [TransactionVersion] constant that's equal to 1.
+    pub const ONE: Self = { Self(StarkFelt::ONE) };
+
+    /// [TransactionVersion] constant that's equal to 2.
+    pub const TWO: Self = { Self(StarkFelt::TWO) };
+
+    /// [TransactionVersion] constant that's equal to 3.
+    pub const THREE: Self = { Self(StarkFelt::THREE) };
+}
 
 /// The calldata of a transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
