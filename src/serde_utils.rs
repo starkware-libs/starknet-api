@@ -12,9 +12,6 @@ use crate::deprecated_contract_class::ContractClassAbiEntry;
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
 
-/// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) non-prefixed.
-pub type NonPrefixedBytesAsHex<const N: usize> = BytesAsHex<N, false>;
-
 /// A byte array that serializes as a hex string.
 ///
 /// The `PREFIXED` generic type symbolize whether a string representation of the hex value should be
