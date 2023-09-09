@@ -8,9 +8,7 @@ use std::io::Error;
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 
-use crate::serde_utils::{
-    bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, NonPrefixedBytesAsHex, PrefixedBytesAsHex,
-};
+use crate::serde_utils::{bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, PrefixedBytesAsHex};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
 /// Genesis state hash.
@@ -184,15 +182,6 @@ impl From<StarkFelt> for FieldElement {
     fn from(felt: StarkFelt) -> Self {
         // Should not fail.
         Self::from_bytes_be(&felt.0).expect("Convert StarkFelf to FieldElement.")
-    }
-}
-
-// TODO: Remove once Starknet sequencer returns the global root hash as a hex string with a
-// "0x" prefix.
-impl TryFrom<NonPrefixedBytesAsHex<32_usize>> for StarkFelt {
-    type Error = StarknetApiError;
-    fn try_from(val: NonPrefixedBytesAsHex<32_usize>) -> Result<Self, Self::Error> {
-        StarkFelt::new(val.0)
     }
 }
 
