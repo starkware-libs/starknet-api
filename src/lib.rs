@@ -4,6 +4,7 @@
 
 pub mod block;
 pub mod core;
+pub mod crypto;
 pub mod data_availability;
 pub mod deprecated_contract_class;
 pub mod hash;
