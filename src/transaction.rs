@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -8,6 +9,7 @@ use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
     ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
 };
+use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
 
@@ -84,11 +86,28 @@ pub struct DeclareTransactionV2 {
     pub sender_address: ContractAddress,
 }
 
+/// A declare V3 transaction.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct DeclareTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub compiled_class_hash: CompiledClassHash,
+    pub sender_address: ContractAddress,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+    pub account_deployment_data: AccountDeploymentData,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub enum DeclareTransaction {
     V0(DeclareTransactionV0V1),
     V1(DeclareTransactionV0V1),
     V2(DeclareTransactionV2),
+    V3(DeclareTransactionV3),
 }
 
 macro_rules! implement_declare_tx_getters {
@@ -98,6 +117,7 @@ macro_rules! implement_declare_tx_getters {
                 Self::V0(tx) => tx.$field.clone(),
                 Self::V1(tx) => tx.$field.clone(),
                 Self::V2(tx) => tx.$field.clone(),
+                Self::V3(tx) => tx.$field.clone(),
             }
         })*
     };
@@ -108,24 +128,23 @@ impl DeclareTransaction {
         (class_hash, ClassHash),
         (nonce, Nonce),
         (sender_address, ContractAddress),
-        (max_fee, Fee),
         (signature, TransactionSignature)
     );
 
     pub fn version(&self) -> TransactionVersion {
         match self {
-            DeclareTransaction::V0(_) => TransactionVersion(StarkFelt::from(0_u8)),
-            DeclareTransaction::V1(_) => TransactionVersion(StarkFelt::from(1_u8)),
-            DeclareTransaction::V2(_) => TransactionVersion(StarkFelt::from(2_u8)),
+            DeclareTransaction::V0(_) => TransactionVersion::ZERO,
+            DeclareTransaction::V1(_) => TransactionVersion::ONE,
+            DeclareTransaction::V2(_) => TransactionVersion::TWO,
+            DeclareTransaction::V3(_) => TransactionVersion::THREE,
         }
     }
 }
 
-/// A deploy account transaction.
+/// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct DeployAccountTransaction {
+pub struct DeployAccountTransactionV1 {
     pub max_fee: Fee,
-    pub version: TransactionVersion,
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
@@ -133,6 +152,56 @@ pub struct DeployAccountTransaction {
     pub constructor_calldata: Calldata,
 }
 
+/// A deploy account V3 transaction.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct DeployAccountTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub contract_address_salt: ContractAddressSalt,
+    pub constructor_calldata: Calldata,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
+pub enum DeployAccountTransaction {
+    V1(DeployAccountTransactionV1),
+    V3(DeployAccountTransactionV3),
+}
+
+macro_rules! implement_deploy_account_tx_getters {
+    ($(($field:ident, $field_type:ty)),*) => {
+        $(
+            pub fn $field(&self) -> $field_type {
+                match self {
+                    Self::V1(tx) => tx.$field.clone(),
+                    Self::V3(tx) => tx.$field.clone(),
+                }
+            }
+        )*
+    };
+}
+
+impl DeployAccountTransaction {
+    implement_deploy_account_tx_getters!(
+        (class_hash, ClassHash),
+        (constructor_calldata, Calldata),
+        (contract_address_salt, ContractAddressSalt),
+        (nonce, Nonce),
+        (signature, TransactionSignature)
+    );
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            DeployAccountTransaction::V1(_) => TransactionVersion::ONE,
+            DeployAccountTransaction::V3(_) => TransactionVersion::THREE,
+        }
+    }
+}
 /// A deploy transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployTransaction {
@@ -162,10 +231,26 @@ pub struct InvokeTransactionV1 {
     pub calldata: Calldata,
 }
 
+/// An invoke V3 transaction.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct InvokeTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub sender_address: ContractAddress,
+    pub calldata: Calldata,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+    pub account_deployment_data: AccountDeploymentData,
+}
+
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
 pub enum InvokeTransaction {
     V0(InvokeTransactionV0),
     V1(InvokeTransactionV1),
+    V3(InvokeTransactionV3),
 }
 
 macro_rules! implement_invoke_tx_getters {
@@ -174,17 +259,38 @@ macro_rules! implement_invoke_tx_getters {
             match self {
                 Self::V0(tx) => tx.$field.clone(),
                 Self::V1(tx) => tx.$field.clone(),
+                Self::V3(tx) => tx.$field.clone(),
             }
         })*
     };
 }
 
 impl InvokeTransaction {
-    implement_invoke_tx_getters!(
-        (max_fee, Fee),
-        (signature, TransactionSignature),
-        (calldata, Calldata)
-    );
+    implement_invoke_tx_getters!((calldata, Calldata), (signature, TransactionSignature));
+
+    pub fn nonce(&self) -> Nonce {
+        match self {
+            Self::V0(_) => Nonce::default(),
+            Self::V1(tx) => tx.nonce,
+            Self::V3(tx) => tx.nonce,
+        }
+    }
+
+    pub fn sender_address(&self) -> ContractAddress {
+        match self {
+            Self::V0(tx) => tx.contract_address,
+            Self::V1(tx) => tx.sender_address,
+            Self::V3(tx) => tx.sender_address,
+        }
+    }
+
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            InvokeTransaction::V0(_) => TransactionVersion::ZERO,
+            InvokeTransaction::V1(_) => TransactionVersion::ONE,
+            InvokeTransaction::V3(_) => TransactionVersion::THREE,
+        }
+    }
 }
 
 /// An L1 handler transaction.
@@ -274,8 +380,8 @@ pub enum TransactionExecutionStatus {
 pub struct Fee(pub u128);
 
 impl From<PrefixedBytesAsHex<16_usize>> for Fee {
-    fn from(val: PrefixedBytesAsHex<16_usize>) -> Self {
-        Self(u128::from_be_bytes(val.0))
+    fn from(value: PrefixedBytesAsHex<16_usize>) -> Self {
+        Self(u128::from_be_bytes(value.0))
     }
 }
 
@@ -318,6 +424,20 @@ pub struct TransactionSignature(pub Vec<StarkFelt>);
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct TransactionVersion(pub StarkFelt);
+
+impl TransactionVersion {
+    /// [TransactionVersion] constant that's equal to 0.
+    pub const ZERO: Self = { Self(StarkFelt::ZERO) };
+
+    /// [TransactionVersion] constant that's equal to 1.
+    pub const ONE: Self = { Self(StarkFelt::ONE) };
+
+    /// [TransactionVersion] constant that's equal to 2.
+    pub const TWO: Self = { Self(StarkFelt::TWO) };
+
+    /// [TransactionVersion] constant that's equal to 3.
+    pub const THREE: Self = { Self(StarkFelt::THREE) };
+}
 
 /// The calldata of a transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -387,3 +507,59 @@ pub struct TransactionOffsetInBlock(pub usize);
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct EventIndexInTransactionOutput(pub usize);
+
+/// Transaction fee tip.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(from = "PrefixedBytesAsHex<8_usize>", into = "PrefixedBytesAsHex<8_usize>")]
+pub struct Tip(pub u64);
+
+impl From<PrefixedBytesAsHex<8_usize>> for Tip {
+    fn from(value: PrefixedBytesAsHex<8_usize>) -> Self {
+        Self(u64::from_be_bytes(value.0))
+    }
+}
+
+impl From<Tip> for PrefixedBytesAsHex<8_usize> {
+    fn from(tip: Tip) -> Self {
+        Self(tip.0.to_be_bytes())
+    }
+}
+
+impl From<Tip> for StarkFelt {
+    fn from(tip: Tip) -> Self {
+        Self::from(tip.0)
+    }
+}
+
+/// Execution resource.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub enum Resource {
+    L1Gas,
+    L2Gas,
+}
+
+/// Fee bounds for an execution resource.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+pub struct ResourceBounds {
+    // Specifies the maximum amount of each resource allowed for usage during the execution.
+    pub max_amount: u64,
+    // Specifies the maximum price the user is willing to pay for each resource unit.
+    pub max_price_per_unit: u128,
+}
+
+/// A mapping from execution resources to their corresponding fee bounds..
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct ResourceBoundsMapping(pub BTreeMap<Resource, ResourceBounds>);
+
+/// Paymaster-related data.
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct PaymasterData(pub Vec<StarkFelt>);
+
+/// If nonempty, will contain the required data for deploying and initializing an account contract:
+/// its class hash, address salt and constructor calldata.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct AccountDeploymentData(pub Vec<StarkFelt>);
