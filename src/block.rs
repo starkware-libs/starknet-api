@@ -15,6 +15,7 @@ use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 pub struct Block {
     pub header: BlockHeader,
     pub body: BlockBody,
+    pub commitments: BlockBodyCommitments,
 }
 
 /// The header of a [Block](`crate::block::Block`).
@@ -29,7 +30,8 @@ pub struct BlockHeader {
     pub state_root: GlobalRoot,
     pub sequencer: ContractAddress,
     pub timestamp: BlockTimestamp,
-    // TODO: add missing commitments.
+    pub n_transactions: u64,
+    pub n_events: u64,
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their
@@ -39,6 +41,13 @@ pub struct BlockBody {
     pub transactions: Vec<Transaction>,
     pub transaction_outputs: Vec<TransactionOutput>,
     pub transaction_hashes: Vec<TransactionHash>,
+}
+
+/// The commitments of the elements in a [BlockBody](`crate::block::BlockBody`).
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct BlockBodyCommitments {
+    pub transactions_commitment: StarkHash,
+    pub events_commitment: StarkHash,
 }
 
 /// The status of a [Block](`crate::block::Block`).
