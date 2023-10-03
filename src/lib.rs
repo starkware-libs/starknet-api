@@ -28,4 +28,7 @@ pub enum StarknetApiError {
     /// Error when serializing into number.
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
+    /// Missing resource type / duplicated resource type.
+    #[error("Missing resource type / duplicated resource type; got {0}.")]
+    InvalidResourceMappingInitializer(String),
 }
