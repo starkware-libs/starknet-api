@@ -1,9 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::Display;
 use std::sync::Arc;
 
 use derive_more::From;
 use serde::{Deserialize, Serialize};
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
@@ -12,6 +14,7 @@ use crate::core::{
 use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
+use crate::StarknetApiError;
 
 /// A transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -534,7 +537,9 @@ impl From<Tip> for StarkFelt {
 }
 
 /// Execution resource.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(
+    Clone, Copy, Debug, Deserialize, EnumIter, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
 pub enum Resource {
     L1Gas,
     L2Gas,
@@ -554,6 +559,25 @@ pub struct ResourceBounds {
 /// A mapping from execution resources to their corresponding fee bounds..
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ResourceBoundsMapping(pub BTreeMap<Resource, ResourceBounds>);
+
+impl TryFrom<Vec<(Resource, ResourceBounds)>> for ResourceBoundsMapping {
+    type Error = StarknetApiError;
+    fn try_from(
+        resource_resource_bounds_pairs: Vec<(Resource, ResourceBounds)>,
+    ) -> Result<Self, Self::Error> {
+        let n_variants = Resource::iter().count();
+        let unique_keys: HashSet<Resource> =
+            HashSet::from_iter(resource_resource_bounds_pairs.iter().map(|(k, _)| *k));
+        if unique_keys.len() != n_variants || resource_resource_bounds_pairs.len() != n_variants {
+            Err(StarknetApiError::InvalidResourceMappingInitializer(format!(
+                "{:?}",
+                resource_resource_bounds_pairs
+            )))
+        } else {
+            Ok(Self(resource_resource_bounds_pairs.into_iter().collect::<BTreeMap<_, _>>()))
+        }
+    }
+}
 
 /// Paymaster-related data.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
