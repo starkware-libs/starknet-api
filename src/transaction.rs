@@ -555,6 +555,12 @@ pub struct ResourceBounds {
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ResourceBoundsMapping(pub BTreeMap<Resource, ResourceBounds>);
 
+impl From<Vec<(Resource, ResourceBounds)>> for ResourceBoundsMapping {
+    fn from(value: Vec<(Resource, ResourceBounds)>) -> Self {
+        Self(value.into_iter().collect::<BTreeMap<_, _>>())
+    }
+}
+
 /// Paymaster-related data.
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct PaymasterData(pub Vec<StarkFelt>);
