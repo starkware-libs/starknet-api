@@ -26,10 +26,11 @@ pub struct BlockHeader {
     pub block_hash: BlockHash,
     pub parent_hash: BlockHash,
     pub block_number: BlockNumber,
-    pub gas_price: GasPrice,
     pub state_root: GlobalRoot,
     pub sequencer: ContractAddress,
     pub timestamp: BlockTimestamp,
+    pub l1_gas_price: ResourcePrice,
+    pub starknet_version: String,
     pub n_transactions: u64,
     pub n_events: u64,
 }
@@ -143,3 +144,11 @@ impl From<GasPrice> for PrefixedBytesAsHex<16_usize> {
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct BlockTimestamp(pub u64);
+
+#[derive(
+    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct ResourcePrice {
+    pub price_in_strk: GasPrice,
+    pub price_in_wei: GasPrice,
+}

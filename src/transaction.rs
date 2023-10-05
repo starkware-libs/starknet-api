@@ -328,8 +328,8 @@ pub struct DeployTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
-    pub contract_address: ContractAddress,
     pub execution_status: TransactionExecutionStatus,
+    pub contract_address: ContractAddress,
 }
 
 /// An invoke transaction output.
@@ -348,6 +348,7 @@ pub struct L1HandlerTransactionOutput {
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
+    pub message_hash: StarkFelt,
 }
 
 /// A transaction receipt.
