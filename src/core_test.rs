@@ -2,7 +2,7 @@ use assert_matches::assert_matches;
 use starknet_crypto::FieldElement;
 
 use crate::core::{
-    calculate_contract_address, ClassHash, ContractAddress, EthAddress, PatriciaKey,
+    calculate_contract_address, ClassHash, ContractAddress, EthAddress, Nonce, PatriciaKey,
     StarknetApiError, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
 };
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
@@ -74,4 +74,13 @@ fn eth_address_serde() {
 
     let restored = serde_json::from_str::<EthAddress>(&serialized).unwrap();
     assert_eq!(restored, eth_address);
+}
+
+#[test]
+fn nonce_overflow() {
+    // Increment on this value should overflow back to 0.
+    let max_nonce = Nonce(StarkFelt::from(FieldElement::MAX));
+
+    let overflowed_nonce = max_nonce.try_increment();
+    assert_matches!(overflowed_nonce, Err(StarknetApiError::OutOfRange { string: _err_str }));
 }

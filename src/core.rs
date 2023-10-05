@@ -123,9 +123,34 @@ pub struct CompiledClassHash(pub StarkHash);
 
 /// A general type for nonces.
 #[derive(
-    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    derive_more::Deref,
 )]
 pub struct Nonce(pub StarkFelt);
+
+impl Nonce {
+    pub fn try_increment(&self) -> Result<Self, StarknetApiError> {
+        let current_nonce = FieldElement::from(self.0);
+        let incremented_felt = StarkFelt::from(current_nonce + FieldElement::ONE);
+
+        // Check if an overflow occurred during increment.
+        let is_overflow = incremented_felt == StarkFelt::ZERO;
+        match is_overflow {
+            true => Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) }),
+            false => Ok(Self(incremented_felt)),
+        }
+    }
+}
 
 /// The selector of an [EntryPoint](`crate::deprecated_contract_class::EntryPoint`).
 #[derive(
