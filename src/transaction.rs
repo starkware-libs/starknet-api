@@ -489,6 +489,20 @@ pub struct EventContent {
     pub data: EventData,
 }
 
+/// An ordered event.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct OrderedEvent {
+    pub order: usize,
+    pub event: EventContent,
+}
+
+/// An ordered L2 to L1 message.
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct OrderedL2ToL1Message {
+    pub order: usize,
+    pub message: MessageToL1,
+}
+
 /// An event key.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct EventKey(pub StarkFelt);
