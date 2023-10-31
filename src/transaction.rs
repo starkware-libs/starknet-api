@@ -511,6 +511,44 @@ pub struct TransactionOffsetInBlock(pub usize);
 )]
 pub struct EventIndexInTransactionOutput(pub usize);
 
+/// Resource price.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(from = "PrefixedBytesAsHex<16_usize>", into = "PrefixedBytesAsHex<16_usize>")]
+pub struct ResourcePrice(pub u128);
+
+impl From<PrefixedBytesAsHex<16_usize>> for ResourcePrice {
+    fn from(value: PrefixedBytesAsHex<16_usize>) -> Self {
+        Self(u128::from_be_bytes(value.0))
+    }
+}
+
+impl From<ResourcePrice> for PrefixedBytesAsHex<16_usize> {
+    fn from(resource_price: ResourcePrice) -> Self {
+        Self(resource_price.0.to_be_bytes())
+    }
+}
+
+/// Resource amount.
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(from = "PrefixedBytesAsHex<8_usize>", into = "PrefixedBytesAsHex<8_usize>")]
+pub struct ResourceAmount(pub u64);
+
+impl From<PrefixedBytesAsHex<8_usize>> for ResourceAmount {
+    fn from(value: PrefixedBytesAsHex<8_usize>) -> Self {
+        Self(u64::from_be_bytes(value.0))
+    }
+}
+
+impl From<ResourceAmount> for PrefixedBytesAsHex<8_usize> {
+    fn from(resource_amount: ResourceAmount) -> Self {
+        Self(resource_amount.0.to_be_bytes())
+    }
+}
+
 /// Transaction fee tip.
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
@@ -551,9 +589,9 @@ pub enum Resource {
 )]
 pub struct ResourceBounds {
     // Specifies the maximum amount of each resource allowed for usage during the execution.
-    pub max_amount: u64,
+    pub max_amount: ResourceAmount,
     // Specifies the maximum price the user is willing to pay for each resource unit.
-    pub max_price_per_unit: u128,
+    pub max_price_per_unit: ResourcePrice,
 }
 
 /// A mapping from execution resources to their corresponding fee bounds..
