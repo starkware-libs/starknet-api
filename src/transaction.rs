@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::sync::Arc;
 
 use derive_more::From;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -546,14 +546,48 @@ pub enum Resource {
 }
 
 /// Fee bounds for an execution resource.
+/// TODO(Yael): add types ResourceAmount and ResourcePrice and use them instead of u64 and u128.
 #[derive(
     Clone, Copy, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
 pub struct ResourceBounds {
     // Specifies the maximum amount of each resource allowed for usage during the execution.
+    #[serde(serialize_with = "u64_to_hex", deserialize_with = "hex_to_u64")]
     pub max_amount: u64,
+
     // Specifies the maximum price the user is willing to pay for each resource unit.
+    #[serde(serialize_with = "u128_to_hex", deserialize_with = "hex_to_u128")]
     pub max_price_per_unit: u128,
+}
+
+fn u64_to_hex<S>(value: &u64, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&format!("0x{:x}", value))
+}
+
+fn hex_to_u64<'de, D>(deserializer: D) -> Result<u64, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    u64::from_str_radix(s.trim_start_matches("0x"), 16).map_err(serde::de::Error::custom)
+}
+
+fn u128_to_hex<S>(value: &u128, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&format!("0x{:x}", value))
+}
+
+fn hex_to_u128<'de, D>(deserializer: D) -> Result<u128, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    u128::from_str_radix(s.trim_start_matches("0x"), 16).map_err(serde::de::Error::custom)
 }
 
 /// A mapping from execution resources to their corresponding fee bounds..
