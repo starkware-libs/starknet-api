@@ -28,20 +28,20 @@ jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Rust Toolchain Setup
       run: rustup show
-    - uses: Swatinem/rust-cache@v1
+    - uses: Swatinem/rust-cache@v2
     - name: Check format
       run: cargo clippy --all-targets --all-features
 
   run-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Rust Toolchain Setup
       run: rustup show
-    - uses: Swatinem/rust-cache@v1
+    - uses: Swatinem/rust-cache@v2
     - run: pip install cairo-lang; cargo test -- --include-ignored
 
   udeps:
