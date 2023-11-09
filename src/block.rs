@@ -29,7 +29,10 @@ pub struct BlockHeader {
     pub state_root: GlobalRoot,
     pub sequencer: ContractAddress,
     pub timestamp: BlockTimestamp,
-    // TODO: add missing commitments.
+    pub transaction_count: usize,
+    pub transaction_commitment: StarkHash,
+    pub event_count: usize,
+    pub event_commitment: StarkHash,
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their
