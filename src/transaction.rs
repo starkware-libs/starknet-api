@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 use std::sync::Arc;
 
@@ -32,7 +32,7 @@ pub enum Transaction {
 }
 
 /// A transaction output.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum TransactionOutput {
     /// A declare transaction output.
     Declare(DeclareTransactionOutput),
@@ -64,6 +64,16 @@ impl TransactionOutput {
             TransactionOutput::DeployAccount(output) => &output.events,
             TransactionOutput::Invoke(output) => &output.events,
             TransactionOutput::L1Handler(output) => &output.events,
+        }
+    }
+
+    pub fn execution_resources(&self) -> &ExecutionResources {
+        match self {
+            TransactionOutput::Declare(output) => &output.execution_resources,
+            TransactionOutput::Deploy(output) => &output.execution_resources,
+            TransactionOutput::DeployAccount(output) => &output.execution_resources,
+            TransactionOutput::Invoke(output) => &output.execution_resources,
+            TransactionOutput::L1Handler(output) => &output.execution_resources,
         }
     }
 }
@@ -307,54 +317,59 @@ pub struct L1HandlerTransaction {
 }
 
 /// A declare transaction output.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeclareTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
+    pub execution_resources: ExecutionResources,
 }
 
 /// A deploy-account transaction output.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeployAccountTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
     pub execution_status: TransactionExecutionStatus,
+    pub execution_resources: ExecutionResources,
 }
 
 /// A deploy transaction output.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeployTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
     pub execution_status: TransactionExecutionStatus,
+    pub execution_resources: ExecutionResources,
 }
 
 /// An invoke transaction output.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct InvokeTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
+    pub execution_resources: ExecutionResources,
 }
 
 /// An L1 handler transaction output.
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct L1HandlerTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
+    pub execution_resources: ExecutionResources,
 }
 
 /// A transaction receipt.
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct TransactionReceipt {
     pub transaction_hash: TransactionHash,
     pub block_hash: BlockHash,
@@ -625,3 +640,29 @@ pub struct PaymasterData(pub Vec<StarkFelt>);
 /// its class hash, address salt and constructor calldata.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct AccountDeploymentData(pub Vec<StarkFelt>);
+
+/// The execution resources used by a transaction.
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Eq, PartialEq)]
+pub struct ExecutionResources {
+    pub n_steps: u64,
+    pub builtin_instance_counter: BuiltinInstanceCounter,
+    pub n_memory_holes: u64,
+}
+
+/// A mapping from builtin instance names to their usage count.
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+#[serde(untagged)]
+pub enum BuiltinInstanceCounter {
+    NonEmpty(HashMap<String, u64>),
+    Empty(EmptyBuiltinInstanceCounter),
+}
+
+impl Default for BuiltinInstanceCounter {
+    fn default() -> Self {
+        BuiltinInstanceCounter::Empty(EmptyBuiltinInstanceCounter {})
+    }
+}
+
+/// An empty builtin instance counter.
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Eq, PartialEq)]
+pub struct EmptyBuiltinInstanceCounter {}
