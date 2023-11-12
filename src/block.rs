@@ -11,7 +11,7 @@ use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
 /// A block.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Block {
     pub header: BlockHeader,
     pub body: BlockBody,
@@ -34,7 +34,7 @@ pub struct BlockHeader {
 
 /// The [transactions](`crate::transaction::Transaction`) and their
 /// [outputs](`crate::transaction::TransactionOutput`) in a [block](`crate::block::Block`).
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct BlockBody {
     pub transactions: Vec<Transaction>,
     pub transaction_outputs: Vec<TransactionOutput>,
