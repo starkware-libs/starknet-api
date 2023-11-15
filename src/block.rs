@@ -1,6 +1,7 @@
 #[cfg(test)]
 #[path = "block_test.rs"]
 mod block_test;
+use std::fmt::Display;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
@@ -134,3 +135,19 @@ impl From<GasPrice> for PrefixedBytesAsHex<16_usize> {
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct BlockTimestamp(pub u64);
+
+/// A version of the Starknet protocol used when creating a block.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+pub struct StarknetVersion(pub String);
+
+impl Default for StarknetVersion {
+    fn default() -> Self {
+        Self("0.0.0".to_string())
+    }
+}
+
+impl Display for StarknetVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
