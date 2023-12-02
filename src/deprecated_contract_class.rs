@@ -1,4 +1,17 @@
-use std::collections::HashMap;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::collections::HashMap;
+        use std::num;
+    } else {
+        use alloc::format;
+        use alloc::vec::Vec;
+        use alloc::string::String;
+
+        use core::num;
+
+        use hashbrown::HashMap;
+    }
+}
 
 use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
@@ -168,7 +181,7 @@ pub fn number_or_string<'de, D: Deserializer<'de>>(deserializer: D) -> Result<us
     Ok(usize_value)
 }
 
-fn hex_string_try_into_usize(hex_string: &str) -> Result<usize, std::num::ParseIntError> {
+fn hex_string_try_into_usize(hex_string: &str) -> Result<usize, num::ParseIntError> {
     usize::from_str_radix(hex_string.trim_start_matches("0x"), 16)
 }
 

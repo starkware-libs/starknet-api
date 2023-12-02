@@ -2,6 +2,9 @@
 #[path = "block_test.rs"]
 mod block_test;
 
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 

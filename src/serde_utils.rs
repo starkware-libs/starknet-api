@@ -3,6 +3,20 @@
 #[path = "serde_utils_test.rs"]
 mod serde_utils_test;
 
+cfg_if::cfg_if! {
+    if #[cfg(not(feature = "std"))] {
+        use alloc::borrow::ToOwned;
+        use alloc::fmt;
+        use alloc::format;
+        use alloc::string::String;
+        use alloc::string::ToString;
+        use alloc::vec;
+        use alloc::vec::Vec;
+    } else {
+        use std::fmt;
+    }
+}
+
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
 use serde::Deserializer;
@@ -28,7 +42,7 @@ impl<'de, const N: usize, const PREFIXED: bool> Deserialize<'de> for BytesAsHex<
         impl<'de, const N: usize, const PREFIXED: bool> Visitor<'de> for ByteArrayVisitor<N, PREFIXED> {
             type Value = BytesAsHex<N, PREFIXED>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a byte array")
             }
 

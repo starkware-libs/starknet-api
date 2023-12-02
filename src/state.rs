@@ -2,8 +2,17 @@
 #[path = "state_test.rs"]
 mod state_test;
 
-use std::collections::HashMap;
-use std::fmt::Debug;
+cfg_if::cfg_if! {
+    if #[cfg(features = "std")] {
+        use std::collections::HashMap;
+    } else {
+        use alloc::fmt::Debug;
+        use alloc::string::String;
+        use alloc::vec::Vec;
+
+        use hashbrown::HashMap;
+    }
+}
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};

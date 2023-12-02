@@ -1,3 +1,6 @@
+#[cfg(not(feature = "std"))]
+use alloc::format;
+
 use serde::{Deserialize, Serialize};
 
 use crate::hash::StarkFelt;

@@ -1,6 +1,21 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::fmt::Display;
-use std::sync::Arc;
+cfg_if::cfg_if! {
+    if #[cfg(features = "std")] {
+        use std::collections::{BTreeMap, HashMap, HashSet};
+        use std::fmt;
+        use std::fmt::Display;
+        use std::sync::Arc;
+    } else {
+        use alloc::collections::BTreeMap;
+        use alloc::fmt;
+        use alloc::fmt::Display;
+        use alloc::format;
+        use alloc::string::String;
+        use alloc::sync::Arc;
+        use alloc::vec::Vec;
+
+        use hashbrown::{HashMap, HashSet};
+    }
+}
 
 use derive_more::From;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -422,7 +437,7 @@ impl From<Fee> for StarkFelt {
 pub struct TransactionHash(pub StarkHash);
 
 impl Display for TransactionHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }

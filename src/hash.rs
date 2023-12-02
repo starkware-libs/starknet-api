@@ -2,8 +2,18 @@
 #[path = "hash_test.rs"]
 mod hash_test;
 
-use std::fmt::{Debug, Display};
-use std::io::Error;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "std")] {
+        use std::fmt;
+        use std::fmt::{Debug, Display};
+        use std::io::Error;
+    } else {
+        use alloc::fmt;
+        use alloc::fmt::{Debug, Display};
+        use alloc::format;
+        use alloc::string::ToString;
+    }
+}
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
@@ -15,7 +25,9 @@ use crate::{impl_from_through_intermediate, StarknetApiError};
 pub const GENESIS_HASH: &str = "0x0";
 
 // Felt encoding constants.
+#[cfg(feature = "std")]
 const CHOOSER_FULL: u8 = 15;
+#[cfg(feature = "std")]
 const CHOOSER_HALF: u8 = 14;
 
 /// An alias for [`StarkFelt`].
@@ -80,6 +92,7 @@ impl StarkFelt {
         Self(bytes)
     }
 
+    #[cfg(feature = "std")]
     /// Storage efficient serialization for field elements.
     pub fn serialize(&self, res: &mut impl std::io::Write) -> Result<(), Error> {
         // We use the fact that bytes[0] < 0x10 and encode the size of the felt in the 4 most
@@ -120,6 +133,7 @@ impl StarkFelt {
         Ok(())
     }
 
+    #[cfg(feature = "std")]
     /// Storage efficient deserialization for field elements.
     pub fn deserialize(bytes: &mut impl std::io::Read) -> Option<Self> {
         let mut res = [0u8; 32];
@@ -146,7 +160,7 @@ impl StarkFelt {
         &self.0
     }
 
-    fn str_format(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn str_format(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let s = format!("0x{}", hex::encode(self.0));
         f.debug_tuple("StarkFelt").field(&s).finish()
     }
@@ -202,7 +216,7 @@ impl TryFrom<StarkFelt> for usize {
     type Error = StarknetApiError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
         const COMPLIMENT_OF_USIZE: usize =
-            std::mem::size_of::<StarkFelt>() - std::mem::size_of::<usize>();
+            core::mem::size_of::<StarkFelt>() - core::mem::size_of::<usize>();
 
         let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
         if rest != [0u8; COMPLIMENT_OF_USIZE] {
@@ -231,13 +245,13 @@ impl TryFrom<StarkFelt> for u64 {
 }
 
 impl Debug for StarkFelt {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.str_format(f)
     }
 }
 
 impl Display for StarkFelt {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "0x{}", hex::encode(self.0))
     }
 }
