@@ -2,18 +2,6 @@
 #[path = "state_test.rs"]
 mod state_test;
 
-cfg_if::cfg_if! {
-    if #[cfg(features = "std")] {
-        use std::collections::HashMap;
-    } else {
-        use alloc::fmt::Debug;
-        use alloc::string::String;
-        use alloc::vec::Vec;
-
-        use hashbrown::HashMap;
-    }
-}
-
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -24,6 +12,10 @@ use crate::core::{
 };
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
+use crate::stdlib::collections::HashMap;
+use crate::stdlib::fmt::Debug;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
 pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;

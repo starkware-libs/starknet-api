@@ -1,22 +1,3 @@
-cfg_if::cfg_if! {
-    if #[cfg(features = "std")] {
-        use std::collections::{BTreeMap, HashMap, HashSet};
-        use std::fmt;
-        use std::fmt::Display;
-        use std::sync::Arc;
-    } else {
-        use alloc::collections::BTreeMap;
-        use alloc::fmt;
-        use alloc::fmt::Display;
-        use alloc::format;
-        use alloc::string::String;
-        use alloc::sync::Arc;
-        use alloc::vec::Vec;
-
-        use hashbrown::{HashMap, HashSet};
-    }
-}
-
 use derive_more::From;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::IntoEnumIterator;
@@ -29,6 +10,12 @@ use crate::core::{
 use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
+use crate::stdlib::collections::{BTreeMap, HashMap, HashSet};
+use crate::stdlib::fmt;
+use crate::stdlib::fmt::Display;
+use crate::stdlib::string::String;
+use crate::stdlib::sync::Arc;
+use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// A transaction.

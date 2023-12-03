@@ -1,9 +1,7 @@
-#[cfg(not(feature = "std"))]
-use alloc::format;
-
 use serde::{Deserialize, Serialize};
 
 use crate::hash::StarkFelt;
+use crate::stdlib::format;
 use crate::StarknetApiError;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]

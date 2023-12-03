@@ -3,25 +3,16 @@
 #[path = "serde_utils_test.rs"]
 mod serde_utils_test;
 
-cfg_if::cfg_if! {
-    if #[cfg(not(feature = "std"))] {
-        use alloc::borrow::ToOwned;
-        use alloc::fmt;
-        use alloc::format;
-        use alloc::string::String;
-        use alloc::string::ToString;
-        use alloc::vec;
-        use alloc::vec::Vec;
-    } else {
-        use std::fmt;
-    }
-}
-
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
 use serde::Deserializer;
+use thiserror_no_std::Error;
 
 use crate::deprecated_contract_class::ContractClassAbiEntry;
+use crate::stdlib::borrow::ToOwned;
+use crate::stdlib::string::{String, ToString};
+use crate::stdlib::vec::Vec;
+use crate::stdlib::{fmt, format, vec};
 
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
@@ -90,7 +81,7 @@ impl<const N: usize, const PREFIXED: bool> Serialize for BytesAsHex<N, PREFIXED>
 }
 
 /// The error type returned by the inner deserialization.
-#[derive(thiserror::Error, Clone, Debug)]
+#[derive(Error, Clone, Debug)]
 pub enum InnerDeserializationError {
     /// Error parsing the hex string.
     #[error(transparent)]

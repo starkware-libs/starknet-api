@@ -2,23 +2,16 @@
 #[path = "hash_test.rs"]
 mod hash_test;
 
-cfg_if::cfg_if! {
-    if #[cfg(feature = "std")] {
-        use std::fmt;
-        use std::fmt::{Debug, Display};
-        use std::io::Error;
-    } else {
-        use alloc::fmt;
-        use alloc::fmt::{Debug, Display};
-        use alloc::format;
-        use alloc::string::ToString;
-    }
-}
+#[cfg(feature = "std")]
+use std::io::Error;
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::{pedersen_hash as starknet_crypto_pedersen_hash, FieldElement};
 
 use crate::serde_utils::{bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, PrefixedBytesAsHex};
+use crate::stdlib::fmt::{Debug, Display};
+use crate::stdlib::string::ToString;
+use crate::stdlib::{fmt, format, mem};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
 /// Genesis state hash.
@@ -215,8 +208,7 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
 impl TryFrom<StarkFelt> for usize {
     type Error = StarknetApiError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_USIZE: usize =
-            core::mem::size_of::<StarkFelt>() - core::mem::size_of::<usize>();
+        const COMPLIMENT_OF_USIZE: usize = mem::size_of::<StarkFelt>() - mem::size_of::<usize>();
 
         let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
         if rest != [0u8; COMPLIMENT_OF_USIZE] {

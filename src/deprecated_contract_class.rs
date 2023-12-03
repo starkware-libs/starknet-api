@@ -1,18 +1,3 @@
-cfg_if::cfg_if! {
-    if #[cfg(feature = "std")] {
-        use std::collections::HashMap;
-        use std::num;
-    } else {
-        use alloc::format;
-        use alloc::vec::Vec;
-        use alloc::string::String;
-
-        use core::num;
-
-        use hashbrown::HashMap;
-    }
-}
-
 use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -20,6 +5,10 @@ use serde_json::Value;
 
 use crate::core::EntryPointSelector;
 use crate::serde_utils::deserialize_optional_contract_class_abi_entry_vector;
+use crate::stdlib::collections::HashMap;
+use crate::stdlib::string::String;
+use crate::stdlib::vec::Vec;
+use crate::stdlib::{format, num};
 use crate::StarknetApiError;
 
 /// A deprecated contract class.

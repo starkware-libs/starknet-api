@@ -2,15 +2,13 @@
 #[path = "block_test.rs"]
 mod block_test;
 
-#[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
-
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{ContractAddress, GlobalRoot};
 use crate::hash::StarkHash;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
+use crate::stdlib::vec::Vec;
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
 /// A block.

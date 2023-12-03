@@ -4,11 +4,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(features = "std"))]
-extern crate alloc;
+#[cfg(feature = "std")]
+include!("./with_std.rs");
 
-#[cfg(not(features = "std"))]
-extern crate thiserror_no_std as thiserror;
+#[cfg(not(feature = "std"))]
+include!("./without_std.rs");
 
 pub mod block;
 pub mod core;
@@ -20,21 +20,29 @@ pub mod state;
 pub mod transaction;
 pub mod type_utils;
 
-mod api_error {
-
-    cfg_if::cfg_if! {
-        if #[cfg(feature = "std")] {
-            use std::num;
-        } else {
-            use core::num;
-            use alloc::string::String;
-        }
+pub mod stdlib {
+    pub mod collections {
+        #[cfg(feature = "std")]
+        pub use crate::with_std::collections::*;
+        #[cfg(not(feature = "std"))]
+        pub use crate::without_std::collections::*;
     }
 
+    #[cfg(feature = "std")]
+    pub use crate::with_std::*;
+    #[cfg(not(feature = "std"))]
+    pub use crate::without_std::*;
+}
+
+mod api_error {
+    use thiserror_no_std::Error;
+
     use crate::serde_utils::InnerDeserializationError;
+    use crate::stdlib::num;
+    use crate::stdlib::string::String;
 
     /// The error type returned by StarknetApi.
-    #[derive(thiserror::Error, Clone, Debug)]
+    #[derive(Error, Clone, Debug)]
     pub enum StarknetApiError {
         /// Error in the inner deserialization of the node.
         #[error(transparent)]
