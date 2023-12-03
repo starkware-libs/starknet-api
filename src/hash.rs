@@ -249,7 +249,6 @@ impl Display for StarkFelt {
 }
 
 /// A utility macro to create a [`StarkFelt`] from a hex string representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! stark_felt {
     ($s:expr) => {

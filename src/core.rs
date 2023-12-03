@@ -216,7 +216,6 @@ impl Debug for PatriciaKey {
 }
 
 /// A utility macro to create a [`PatriciaKey`] from a hex string / unsigned integer representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! patricia_key {
     ($s:expr) => {
@@ -225,7 +224,6 @@ macro_rules! patricia_key {
 }
 
 /// A utility macro to create a [`ClassHash`] from a hex string / unsigned integer representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! class_hash {
     ($s:expr) => {
@@ -235,7 +233,6 @@ macro_rules! class_hash {
 
 /// A utility macro to create a [`ContractAddress`] from a hex string / unsigned integer
 /// representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! contract_address {
     ($s:expr) => {
