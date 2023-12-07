@@ -47,7 +47,7 @@ pub enum TransactionOutput {
 }
 
 impl TransactionOutput {
-    pub fn actual_fee(&self) -> Fee {
+    pub fn actual_fee(&self) -> FeePayment {
         match self {
             TransactionOutput::Declare(output) => output.actual_fee,
             TransactionOutput::Deploy(output) => output.actual_fee,
@@ -319,7 +319,7 @@ pub struct L1HandlerTransaction {
 /// A declare transaction output.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeclareTransactionOutput {
-    pub actual_fee: Fee,
+    pub actual_fee: FeePayment,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
@@ -329,7 +329,7 @@ pub struct DeclareTransactionOutput {
 /// A deploy-account transaction output.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeployAccountTransactionOutput {
-    pub actual_fee: Fee,
+    pub actual_fee: FeePayment,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
@@ -340,7 +340,7 @@ pub struct DeployAccountTransactionOutput {
 /// A deploy transaction output.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct DeployTransactionOutput {
-    pub actual_fee: Fee,
+    pub actual_fee: FeePayment,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
@@ -351,7 +351,7 @@ pub struct DeployTransactionOutput {
 /// An invoke transaction output.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct InvokeTransactionOutput {
-    pub actual_fee: Fee,
+    pub actual_fee: FeePayment,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
@@ -361,7 +361,7 @@ pub struct InvokeTransactionOutput {
 /// An L1 handler transaction output.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct L1HandlerTransactionOutput {
-    pub actual_fee: Fee,
+    pub actual_fee: FeePayment,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
@@ -396,6 +396,26 @@ pub enum TransactionExecutionStatus {
 )]
 #[serde(from = "PrefixedBytesAsHex<16_usize>", into = "PrefixedBytesAsHex<16_usize>")]
 pub struct Fee(pub u128);
+
+/// A price unit.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum PriceUnit {
+    #[default]
+    Wei,
+    Fri,
+}
+
+/// A fee payment.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct FeePayment {
+    pub amount: Fee,
+    pub unit: PriceUnit,
+}
 
 impl From<PrefixedBytesAsHex<16_usize>> for Fee {
     fn from(value: PrefixedBytesAsHex<16_usize>) -> Self {
