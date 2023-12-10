@@ -6,8 +6,13 @@ mod serde_utils_test;
 use serde::de::{Deserialize, Visitor};
 use serde::ser::{Serialize, SerializeTuple};
 use serde::Deserializer;
+use thiserror_no_std::Error;
 
 use crate::deprecated_contract_class::ContractClassAbiEntry;
+use crate::stdlib::borrow::ToOwned;
+use crate::stdlib::string::{String, ToString};
+use crate::stdlib::vec::Vec;
+use crate::stdlib::{fmt, format, vec};
 
 /// A [BytesAsHex](`crate::serde_utils::BytesAsHex`) prefixed with '0x'.
 pub type PrefixedBytesAsHex<const N: usize> = BytesAsHex<N, true>;
@@ -28,7 +33,7 @@ impl<'de, const N: usize, const PREFIXED: bool> Deserialize<'de> for BytesAsHex<
         impl<'de, const N: usize, const PREFIXED: bool> Visitor<'de> for ByteArrayVisitor<N, PREFIXED> {
             type Value = BytesAsHex<N, PREFIXED>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
                 formatter.write_str("a byte array")
             }
 
@@ -76,7 +81,7 @@ impl<const N: usize, const PREFIXED: bool> Serialize for BytesAsHex<N, PREFIXED>
 }
 
 /// The error type returned by the inner deserialization.
-#[derive(thiserror::Error, Clone, Debug)]
+#[derive(Error, Clone, Debug)]
 pub enum InnerDeserializationError {
     /// Error parsing the hex string.
     #[error(transparent)]

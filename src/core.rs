@@ -2,8 +2,6 @@
 #[path = "core_test.rs"]
 mod core_test;
 
-use std::fmt::Debug;
-
 use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
@@ -12,6 +10,9 @@ use starknet_crypto::FieldElement;
 
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
+use crate::stdlib::fmt::Debug;
+use crate::stdlib::string::{String, ToString};
+use crate::stdlib::{fmt, format, mem};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
@@ -209,13 +210,12 @@ impl TryFrom<StarkHash> for PatriciaKey {
 }
 
 impl Debug for PatriciaKey {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("PatriciaKey").field(&self.0).finish()
     }
 }
 
 /// A utility macro to create a [`PatriciaKey`] from a hex string / unsigned integer representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! patricia_key {
     ($s:expr) => {
@@ -224,7 +224,6 @@ macro_rules! patricia_key {
 }
 
 /// A utility macro to create a [`ClassHash`] from a hex string / unsigned integer representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! class_hash {
     ($s:expr) => {
@@ -234,7 +233,6 @@ macro_rules! class_hash {
 
 /// A utility macro to create a [`ContractAddress`] from a hex string / unsigned integer
 /// representation.
-#[cfg(any(feature = "testing", test))]
 #[macro_export]
 macro_rules! contract_address {
     ($s:expr) => {
@@ -242,7 +240,6 @@ macro_rules! contract_address {
     };
 }
 
-/// An Ethereum address.
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
@@ -252,7 +249,7 @@ pub struct EthAddress(pub H160);
 impl TryFrom<StarkFelt> for EthAddress {
     type Error = StarknetApiError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
+        const COMPLIMENT_OF_H160: usize = mem::size_of::<StarkFelt>() - H160::len_bytes();
 
         let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
         if rest != [0u8; COMPLIMENT_OF_H160] {

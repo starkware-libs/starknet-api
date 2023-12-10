@@ -1,7 +1,3 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::fmt::Display;
-use std::sync::Arc;
-
 use derive_more::From;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use strum::IntoEnumIterator;
@@ -14,6 +10,12 @@ use crate::core::{
 use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
+use crate::stdlib::collections::{BTreeMap, HashMap, HashSet};
+use crate::stdlib::fmt;
+use crate::stdlib::fmt::Display;
+use crate::stdlib::string::String;
+use crate::stdlib::sync::Arc;
+use crate::stdlib::vec::Vec;
 use crate::StarknetApiError;
 
 /// A transaction.
@@ -422,7 +424,7 @@ impl From<Fee> for StarkFelt {
 pub struct TransactionHash(pub StarkHash);
 
 impl Display for TransactionHash {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
