@@ -665,6 +665,6 @@ pub enum Builtin {
     Bitwise,
     #[serde(rename = "keccak_builtin_applications")]
     Keccak,
-    #[serde(rename = "segment_arena_builtin_applications")]
+    #[serde(rename = "segment_arena_builtin")]
     SegmentArena,
 }
