@@ -34,7 +34,7 @@ fn offset_storage_key_add_rhs_ok() {
 }
 
 #[test]
-#[should_panic(expected = "storage key out of range")]
+#[should_panic(expected = "attempt to add to storage key with overflow")]
 fn offset_storage_key_add_rhs_err() {
     let key = StorageKey::from(123u128);
     let offset = -124;
@@ -51,7 +51,7 @@ fn offset_storage_key_add_lhs_ok() {
 }
 
 #[test]
-#[should_panic(expected = "storage key out of range")]
+#[should_panic(expected = "attempt to add to storage key with overflow")]
 fn offset_storage_key_add_lhs_err() {
     let key = StorageKey::from(123u128);
     let offset = -124;

@@ -158,7 +158,8 @@ impl std::ops::Add<i128> for StorageKey {
         let base_address = Into::<FieldElement>::into(*self.0.key()) + rhs;
 
         StorageKey(
-            PatriciaKey::try_from(StarkFelt::from(base_address)).expect("storage key out of range"),
+            PatriciaKey::try_from(StarkFelt::from(base_address))
+                .expect("attempt to add to storage key with overflow"),
         )
     }
 }
@@ -173,7 +174,8 @@ impl std::ops::Add<StorageKey> for i128 {
         let base_address = lhs + Into::<FieldElement>::into(*rhs.0.key());
 
         StorageKey(
-            PatriciaKey::try_from(StarkFelt::from(base_address)).expect("storage key out of range"),
+            PatriciaKey::try_from(StarkFelt::from(base_address))
+                .expect("attempt to add to storage key with overflow"),
         )
     }
 }
