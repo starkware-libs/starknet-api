@@ -7,6 +7,7 @@ use std::fmt::Debug;
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use starknet_crypto::FieldElement;
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
@@ -146,6 +147,44 @@ impl From<u128> for StorageKey {
 }
 
 impl_from_through_intermediate!(u128, StorageKey, u8, u16, u32, u64);
+
+impl std::ops::Add<i128> for StorageKey {
+    type Output = Self;
+
+    fn add(self, rhs: i128) -> Self::Output {
+        let offset = FieldElement::from(rhs.unsigned_abs());
+        let rhs = if rhs > 0 { offset } else { -offset };
+
+        let base_address = Into::<FieldElement>::into(*self.0.key()) + rhs;
+
+        StorageKey(
+            PatriciaKey::try_from(StarkFelt::from(base_address)).expect("storage key out of range"),
+        )
+    }
+}
+
+impl std::ops::Add<StorageKey> for i128 {
+    type Output = StorageKey;
+
+    fn add(self, rhs: StorageKey) -> Self::Output {
+        let offset = FieldElement::from(self.unsigned_abs());
+        let lhs = if self > 0 { offset } else { -offset };
+
+        let base_address = lhs + Into::<FieldElement>::into(*rhs.0.key());
+
+        StorageKey(
+            PatriciaKey::try_from(StarkFelt::from(base_address)).expect("storage key out of range"),
+        )
+    }
+}
+
+impl std::ops::Sub<i128> for StorageKey {
+    type Output = Self;
+
+    fn sub(self, rhs: i128) -> Self::Output {
+        self + (-rhs)
+    }
+}
 
 /// A contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
