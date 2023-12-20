@@ -57,6 +57,10 @@ impl StarkFelt {
         Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
+    pub const fn new_unchecked(bytes: [u8; 32]) -> StarkFelt {
+        Self(bytes)
+    }
+
     /// [StarkFelt] constant that's equal to 0.
     pub const ZERO: Self = { Self::from_u128(0_u128) };
 
