@@ -15,6 +15,8 @@ pub mod type_utils;
 
 use std::num::ParseIntError;
 
+use block::BlockHash;
+use crypto::CryptoError;
 use serde_utils::InnerDeserializationError;
 
 /// The error type returned by StarknetApi.
@@ -32,4 +34,6 @@ pub enum StarknetApiError {
     /// Missing resource type / duplicated resource type.
     #[error("Missing resource type / duplicated resource type; got {0}.")]
     InvalidResourceMappingInitializer(String),
+    #[error("Failed to verify the signature of block {block_hash}. Error: {error}")]
+    BlockSignatureVerificationFailed { block_hash: BlockHash, error: CryptoError },
 }

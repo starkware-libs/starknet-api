@@ -10,6 +10,7 @@ use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 
+use crate::crypto::PublicKey;
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
@@ -275,3 +276,9 @@ impl From<EthAddress> for PrefixedBytesAsHex<20_usize> {
         BytesAsHex(felt.0.to_fixed_bytes())
     }
 }
+
+/// A public key of a sequencer.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct SequencerPublicKey(pub PublicKey);
