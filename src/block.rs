@@ -5,8 +5,9 @@ mod block_test;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::core::{ContractAddress, GlobalRoot};
-use crate::hash::StarkHash;
+use crate::core::{ContractAddress, GlobalRoot, SequencerPublicKey};
+use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
+use crate::hash::{poseidon_hash_array, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
@@ -135,3 +136,33 @@ impl From<GasPrice> for PrefixedBytesAsHex<16_usize> {
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct BlockTimestamp(pub u64);
+
+/// The signature of a [Block](`crate::block::Block`), signed by the sequencer. The signed message
+/// is defined as poseidon_hash(block_hash, state_diff_commitment).
+#[derive(
+    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct BlockSignature(pub Signature);
+
+/// The error type returned from the block verification functions.
+#[derive(thiserror::Error, Clone, Debug)]
+pub enum BlockVerificationError {
+    #[error("Failed to verify the signature of block {block_hash}. Error: {error}")]
+    BlockSignatureVerificationFailed { block_hash: BlockHash, error: CryptoError },
+}
+
+/// Verifies that the the block header was signed by the expected sequencer.
+pub fn verify_block_signature(
+    sequencer_pub_key: &SequencerPublicKey,
+    signature: &BlockSignature,
+    state_diff_commitment: &GlobalRoot,
+    block_hash: &BlockHash,
+) -> Result<bool, BlockVerificationError> {
+    let message_hash = poseidon_hash_array(&[block_hash.0, state_diff_commitment.0]);
+    verify_message_hash_signature(&message_hash.0, &signature.0, &sequencer_pub_key.0).map_err(
+        |err| BlockVerificationError::BlockSignatureVerificationFailed {
+            block_hash: *block_hash,
+            error: err,
+        },
+    )
+}
