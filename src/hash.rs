@@ -57,6 +57,22 @@ impl StarkFelt {
         Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
+    /// Returns a new *unchecked* [`StarkFelt`]
+    ///
+    /// # Safety
+    ///
+    /// The internal representation of the `StarkFelt` type is 256 bits.
+    /// The `StarkFelt` type max value is 2^251 + 17 ∗ 21^92 + 1, which is less than `U256::MAX`.
+    /// The `StarkFelt::new` method make sure that you can't initialize a `StarkFelt` greater than
+    /// it's specification maximum. This method does not not. It's your responsability make sure
+    /// it's okay to call this method.
+    ///
+    /// # Usage
+    ///
+    /// Most of the time you should use `new` instead, but it comes handy for a few case:
+    /// - creating instances of `StarkFelt` at compile time
+    /// - implementing `From<T> for StarkFelt` on types that have a smaller binary representation
+    ///   than `StarkFelt`
     pub const fn new_unchecked(bytes: [u8; 32]) -> StarkFelt {
         Self(bytes)
     }
