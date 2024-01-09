@@ -61,17 +61,15 @@ impl StarkFelt {
     ///
     /// # Safety
     ///
-    /// The internal representation of the `StarkFelt` type is 256 bits.
-    /// The `StarkFelt` type max value is 2^251 + 17 ∗ 21^92 + 1, which is less than `U256::MAX`.
-    /// The `StarkFelt::new` method make sure that you can't initialize a `StarkFelt` greater than
-    /// it's specification maximum. This method does not not. It's your responsability make sure
-    /// it's okay to call this method.
+    /// To avoid undefined behavior, refer to [`StarkFelt`] struct's docstring
+    /// for the required constraints on the `bytes` argument, or use [`StarkFelt::new`] instead of
+    /// this method.
     ///
     /// # Usage
     ///
-    /// Most of the time you should use `new` instead, but it comes handy for a few case:
+    /// Most of the time you should use `new` instead, but it comes in handy for a few cases:
     /// - creating instances of `StarkFelt` at compile time
-    /// - implementing `From<T> for StarkFelt` on types that have a smaller binary representation
+    /// - implementing `From<T> for StarkFelt` for types that have a smaller binary representation
     ///   than `StarkFelt`
     pub const fn new_unchecked(bytes: [u8; 32]) -> StarkFelt {
         Self(bytes)
