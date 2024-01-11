@@ -69,6 +69,24 @@ impl StarkFelt {
         Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
+    /// Returns a new *unchecked* [`StarkFelt`]
+    ///
+    /// # Safety
+    ///
+    /// To avoid undefined behavior, refer to [`StarkFelt`] struct's docstring
+    /// for the required constraints on the `bytes` argument, or use [`StarkFelt::new`] instead of
+    /// this method.
+    ///
+    /// # Usage
+    ///
+    /// Most of the time you should use `new` instead, but it comes in handy for a few cases:
+    /// - creating instances of `StarkFelt` at compile time
+    /// - implementing `From<T> for StarkFelt` for types that have a smaller binary representation
+    ///   than `StarkFelt`
+    pub const fn new_unchecked(bytes: [u8; 32]) -> StarkFelt {
+        Self(bytes)
+    }
+
     /// [StarkFelt] constant that's equal to 0.
     pub const ZERO: Self = { Self::from_u128(0_u128) };
 

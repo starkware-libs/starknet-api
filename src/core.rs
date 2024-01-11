@@ -264,6 +264,15 @@ impl TryFrom<StarkFelt> for EthAddress {
     }
 }
 
+impl From<EthAddress> for StarkFelt {
+    fn from(value: EthAddress) -> Self {
+        let mut bytes = [0u8; 32];
+        // Padding H160 with zeros to 32 bytes (big endian)
+        bytes[12..32].copy_from_slice(value.0.as_bytes());
+        StarkFelt::new_unchecked(bytes)
+    }
+}
+
 impl TryFrom<PrefixedBytesAsHex<20_usize>> for EthAddress {
     type Error = StarknetApiError;
     fn try_from(val: PrefixedBytesAsHex<20_usize>) -> Result<Self, Self::Error> {
