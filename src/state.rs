@@ -127,9 +127,26 @@ impl StateNumber {
 
 /// A storage key in a contract.
 #[derive(
-    Debug, Default, Clone, Copy, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    derive_more::Deref,
 )]
 pub struct StorageKey(pub PatriciaKey);
+
+impl From<StorageKey> for StarkFelt {
+    fn from(storage_key: StorageKey) -> StarkFelt {
+        **storage_key
+    }
+}
 
 impl TryFrom<StarkHash> for StorageKey {
     type Error = StarknetApiError;
