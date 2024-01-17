@@ -34,9 +34,26 @@ impl ChainId {
 // this is a special address that is not used for contracts.
 pub const BLOCK_HASH_TABLE_ADDRESS: ContractAddress = ContractAddress(PatriciaKey(StarkHash::ONE));
 #[derive(
-    Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+    Debug,
+    Default,
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    derive_more::Deref,
 )]
 pub struct ContractAddress(pub PatriciaKey);
+
+impl From<ContractAddress> for StarkFelt {
+    fn from(contract_address: ContractAddress) -> StarkFelt {
+        **contract_address
+    }
+}
 
 impl From<u128> for ContractAddress {
     fn from(val: u128) -> Self {
@@ -102,6 +119,7 @@ pub fn calculate_contract_address(
     PartialOrd,
     Ord,
     Display,
+    derive_more::Deref,
 )]
 pub struct ClassHash(pub StarkHash);
 
@@ -177,7 +195,19 @@ pub struct GlobalRoot(pub StarkHash);
 
 /// A key for nodes of a Patricia tree.
 // Invariant: key is in range.
-#[derive(Copy, Clone, Eq, PartialEq, Default, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Default,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    derive_more:: Deref,
+)]
 pub struct PatriciaKey(StarkHash);
 
 // 2**251
