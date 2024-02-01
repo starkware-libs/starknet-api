@@ -128,9 +128,7 @@ pub struct EntryPoint {
 impl From<CasmContractEntryPoint> for EntryPoint {
     fn from(value: CasmContractEntryPoint) -> Self {
         EntryPoint {
-            selector: EntryPointSelector(Felt::from_bytes_be_slice(
-                value.selector.to_bytes_be().as_slice(),
-            )),
+            selector: EntryPointSelector(Felt::from(&value.selector)),
             offset: EntryPointOffset(value.offset),
         }
     }

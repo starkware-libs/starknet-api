@@ -8,7 +8,7 @@ use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
-use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::{Felt, NonZeroFelt};
 use starknet_types_core::hash::{Pedersen, StarkHash as StarkHashTrait};
 
 use crate::crypto::PublicKey;
@@ -88,16 +88,14 @@ pub fn calculate_contract_address(
     deployer_address: ContractAddress,
 ) -> Result<ContractAddress, StarknetApiError> {
     let constructor_calldata_hash = Pedersen::hash_array(&constructor_calldata.0);
-    let address: Felt = (&(Pedersen::hash_array(&[
+    let address: Felt = Pedersen::hash_array(&[
         Felt::from_bytes_be_slice(CONTRACT_ADDRESS_PREFIX),
         deployer_address.to_felt(),
         salt.0,
         class_hash.0,
         constructor_calldata_hash,
-    ])
-    .to_biguint()
-        % L2_ADDRESS_UPPER_BOUND.to_biguint()))
-        .into();
+    ]) // L2_ADDRESS_UPPER_BOUND is not zero so it's safe to unwrap
+    .mod_floor(&TryInto::<NonZeroFelt>::try_into(*L2_ADDRESS_UPPER_BOUND).unwrap());
 
     ContractAddress::try_from(address)
 }
