@@ -6,8 +6,7 @@ mod crypto_test;
 
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
-
-use crate::hash::StarkFelt;
+use starknet_types_core::felt::Felt;
 
 /// An error that can occur during cryptographic operations.
 #[derive(thiserror::Error, Clone, Debug)]
@@ -15,39 +14,39 @@ pub enum CryptoError {
     #[error("Invalid public key {0:?}.")]
     InvalidPublicKey(PublicKey),
     #[error("Invalid message hash {0:?}.")]
-    InvalidMessageHash(StarkFelt),
+    InvalidMessageHash(Felt),
     #[error("Invalid r {0:?}.")]
-    InvalidR(StarkFelt),
+    InvalidR(Felt),
     #[error("Invalid s {0:?}.")]
-    InvalidS(StarkFelt),
+    InvalidS(Felt),
 }
 
 /// A public key.
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct PublicKey(pub StarkFelt);
+pub struct PublicKey(pub Felt);
 
 /// A signature.
 #[derive(
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct Signature {
-    pub r: StarkFelt,
-    pub s: StarkFelt,
+    pub r: Felt,
+    pub s: Felt,
 }
 
 /// Verifies the authenticity of a signed message hash given the public key of the signer.
 pub fn verify_message_hash_signature(
-    message_hash: &StarkFelt,
+    message_hash: &Felt,
     signature: &Signature,
     public_key: &PublicKey,
 ) -> Result<bool, CryptoError> {
     starknet_crypto::verify(
-        &public_key.0.into(),
-        &FieldElement::from(*message_hash),
-        &signature.r.into(),
-        &signature.s.into(),
+        &FieldElement::from_mont(public_key.0.to_raw_reversed()),
+        &FieldElement::from_mont(message_hash.to_raw_reversed()),
+        &FieldElement::from_mont(signature.r.to_raw_reversed()),
+        &FieldElement::from_mont(signature.s.to_raw_reversed()),
     )
     .map_err(|err| match err {
         starknet_crypto::VerifyError::InvalidPublicKey => {

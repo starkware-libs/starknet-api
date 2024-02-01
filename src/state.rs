@@ -2,6 +2,7 @@
 #[path = "state_test.rs"]
 mod state_test;
 
+use starknet_types_core::felt::Felt;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -14,7 +15,6 @@ use crate::core::{
     PatriciaKey,
 };
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
-use crate::hash::{StarkFelt, StarkHash};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
 pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
@@ -37,7 +37,7 @@ pub struct StateUpdate {
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StateDiff {
     pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
-    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, Felt>>,
     pub declared_classes: IndexMap<ClassHash, (CompiledClassHash, ContractClass)>,
     pub deprecated_declared_classes: IndexMap<ClassHash, DeprecatedContractClass>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
@@ -50,7 +50,7 @@ pub struct StateDiff {
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ThinStateDiff {
     pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
-    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, Felt>>,
     pub declared_classes: IndexMap<ClassHash, CompiledClassHash>,
     pub deprecated_declared_classes: Vec<ClassHash>,
     pub nonces: IndexMap<ContractAddress, Nonce>,
@@ -142,16 +142,16 @@ impl StateNumber {
 )]
 pub struct StorageKey(pub PatriciaKey);
 
-impl From<StorageKey> for StarkFelt {
-    fn from(storage_key: StorageKey) -> StarkFelt {
+impl From<StorageKey> for Felt {
+    fn from(storage_key: StorageKey) -> Felt {
         **storage_key
     }
 }
 
-impl TryFrom<StarkHash> for StorageKey {
+impl TryFrom<Felt> for StorageKey {
     type Error = StarknetApiError;
 
-    fn try_from(val: StarkHash) -> Result<Self, Self::Error> {
+    fn try_from(val: Felt) -> Result<Self, Self::Error> {
         Ok(Self(PatriciaKey::try_from(val)?))
     }
 }
@@ -167,7 +167,7 @@ impl_from_through_intermediate!(u128, StorageKey, u8, u16, u32, u64);
 /// A contract class.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ContractClass {
-    pub sierra_program: Vec<StarkFelt>,
+    pub sierra_program: Vec<Felt>,
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
     pub abi: String,
 }

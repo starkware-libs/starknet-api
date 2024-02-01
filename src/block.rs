@@ -4,10 +4,12 @@ mod block_test;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::Poseidon;
+use starknet_types_core::hash::StarkHash as StarkHashTrait;
 
 use crate::core::{ContractAddress, GlobalRoot, SequencerPublicKey};
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
-use crate::hash::{poseidon_hash_array, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
@@ -75,7 +77,7 @@ pub enum BlockStatus {
     Ord,
     Display,
 )]
-pub struct BlockHash(pub StarkHash);
+pub struct BlockHash(pub Felt);
 
 /// The number of a [Block](`crate::block::Block`).
 #[derive(
@@ -158,8 +160,8 @@ pub fn verify_block_signature(
     state_diff_commitment: &GlobalRoot,
     block_hash: &BlockHash,
 ) -> Result<bool, BlockVerificationError> {
-    let message_hash = poseidon_hash_array(&[block_hash.0, state_diff_commitment.0]);
-    verify_message_hash_signature(&message_hash.0, &signature.0, &sequencer_pub_key.0).map_err(
+    let message_hash = Poseidon::hash_array(&[block_hash.0, state_diff_commitment.0]);
+    verify_message_hash_signature(&message_hash, &signature.0, &sequencer_pub_key.0).map_err(
         |err| BlockVerificationError::BlockSignatureVerificationFailed {
             block_hash: *block_hash,
             error: err,

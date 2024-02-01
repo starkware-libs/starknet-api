@@ -4,6 +4,7 @@ use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
+use starknet_types_core::felt::Felt;
 
 use crate::core::EntryPointSelector;
 use crate::serde_utils::deserialize_optional_contract_class_abi_entry_vector;
@@ -124,14 +125,14 @@ pub struct EntryPoint {
     pub offset: EntryPointOffset,
 }
 
-impl TryFrom<CasmContractEntryPoint> for EntryPoint {
-    type Error = StarknetApiError;
-
-    fn try_from(value: CasmContractEntryPoint) -> Result<Self, Self::Error> {
-        Ok(EntryPoint {
-            selector: EntryPointSelector(value.selector.to_str_radix(16).as_str().try_into()?),
+impl From<CasmContractEntryPoint> for EntryPoint {
+    fn from(value: CasmContractEntryPoint) -> Self {
+        EntryPoint {
+            selector: EntryPointSelector(Felt::from_bytes_be_slice(
+                value.selector.to_bytes_be().as_slice(),
+            )),
             offset: EntryPointOffset(value.offset),
-        })
+        }
     }
 }
 
