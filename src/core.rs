@@ -68,13 +68,10 @@ pub const MAX_STORAGE_ITEM_SIZE: u16 = 256;
 /// The prefix used in the calculation of a contract address.
 pub const CONTRACT_ADDRESS_PREFIX: &[u8] = b"STARKNET_CONTRACT_ADDRESS";
 /// The size of the contract address domain.
-pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Lazy<Felt> = Lazy::new(|| {
-    Felt::from_hex(PATRICIA_KEY_UPPER_BOUND)
-        .unwrap_or_else(|_| panic!("Failed to convert {PATRICIA_KEY_UPPER_BOUND} to StarkFelt"))
-});
+pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Felt = Felt::from_raw_const(PATRICIA_KEY_UPPER_BOUND);
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
 pub static L2_ADDRESS_UPPER_BOUND: Lazy<Felt> =
-    Lazy::new(|| Felt::from(*CONTRACT_ADDRESS_DOMAIN_SIZE) - Felt::from(MAX_STORAGE_ITEM_SIZE));
+    Lazy::new(|| CONTRACT_ADDRESS_DOMAIN_SIZE - Felt::from(MAX_STORAGE_ITEM_SIZE));
 
 impl TryFrom<Felt> for ContractAddress {
     type Error = StarknetApiError;
@@ -210,9 +207,9 @@ pub struct GlobalRoot(pub Felt);
 )]
 pub struct PatriciaKey(Felt);
 
-// 2**251
-pub const PATRICIA_KEY_UPPER_BOUND: &str =
-    "0x800000000000000000000000000000000000000000000000000000000000000";
+/// 2**251 in the Mont representation of the felt type.
+pub const PATRICIA_KEY_UPPER_BOUND: [u64; 4] =
+    [0x7fffea55af00450, 0xfffffffffffb7c00, 0x9987fff, 0xffffffeb9bf00021];
 
 impl PatriciaKey {
     pub fn as_felt(&self) -> &Felt {
@@ -236,10 +233,12 @@ impl TryFrom<Felt> for PatriciaKey {
     type Error = StarknetApiError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        if value < *CONTRACT_ADDRESS_DOMAIN_SIZE {
+        if value < CONTRACT_ADDRESS_DOMAIN_SIZE {
             return Ok(PatriciaKey(value));
         }
-        Err(StarknetApiError::OutOfRange { string: PATRICIA_KEY_UPPER_BOUND.to_string() })
+        Err(StarknetApiError::OutOfRange {
+            string: Felt::from_raw_const(PATRICIA_KEY_UPPER_BOUND).to_string(),
+        })
     }
 }
 
