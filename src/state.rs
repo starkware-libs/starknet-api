@@ -2,12 +2,12 @@
 #[path = "state_test.rs"]
 mod state_test;
 
-use starknet_types_core::felt::Felt;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{

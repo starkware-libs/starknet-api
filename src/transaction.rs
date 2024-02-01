@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use derive_more::From;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use starknet_types_core::felt::Felt;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
@@ -14,7 +15,6 @@ use crate::core::{
 use crate::data_availability::DataAvailabilityMode;
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::StarknetApiError;
-use starknet_types_core::felt::Felt;
 
 /// A transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]

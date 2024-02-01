@@ -1,4 +1,5 @@
 use assert_matches::assert_matches;
+use starknet_types_core::felt::{Felt, NonZeroFelt};
 use starknet_types_core::hash::{Pedersen, StarkHash};
 
 use crate::core::{
@@ -7,7 +8,6 @@ use crate::core::{
 };
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{class_hash, patricia_key};
-use starknet_types_core::felt::{Felt, NonZeroFelt};
 
 #[test]
 fn patricia_key_valid() {

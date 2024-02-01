@@ -3,4 +3,4 @@
 mod hash_test;
 
 /// Genesis state hash.
-pub const GENESIS_HASH: &str = "0x0";
+pub const GENESIS_HASH: u64 = 0x0;

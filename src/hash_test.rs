@@ -1,4 +1,3 @@
-use num_traits::ToPrimitive;
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, StarkHash};
 

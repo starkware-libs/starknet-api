@@ -5,8 +5,7 @@ mod block_test;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::Poseidon;
-use starknet_types_core::hash::StarkHash as StarkHashTrait;
+use starknet_types_core::hash::{Poseidon, StarkHash as StarkHashTrait};
 
 use crate::core::{ContractAddress, GlobalRoot, SequencerPublicKey};
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};

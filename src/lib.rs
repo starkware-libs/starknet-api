@@ -32,4 +32,7 @@ pub enum StarknetApiError {
     /// Missing resource type / duplicated resource type.
     #[error("Missing resource type / duplicated resource type; got {0}.")]
     InvalidResourceMappingInitializer(String),
+    /// Failed to convert hex string to felt.
+    #[error("Failed to convert to Felt {value}")]
+    InvalidFeltValue { value: String },
 }

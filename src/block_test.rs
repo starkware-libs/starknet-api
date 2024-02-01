@@ -1,8 +1,9 @@
+use starknet_types_core::felt::Felt;
+
 use super::verify_block_signature;
 use crate::block::{BlockHash, BlockNumber, BlockSignature};
 use crate::core::{GlobalRoot, SequencerPublicKey};
 use crate::crypto::{PublicKey, Signature};
-use starknet_types_core::felt::Felt;
 
 #[test]
 fn test_block_number_iteration() {
@@ -47,6 +48,8 @@ fn block_signature_verification() {
             .unwrap(),
     ));
 
-    assert!(verify_block_signature(&sequencer_pub_key, &signature, &state_commitment, &block_hash)
-        .unwrap());
+    assert!(
+        verify_block_signature(&sequencer_pub_key, &signature, &state_commitment, &block_hash)
+            .unwrap()
+    );
 }
