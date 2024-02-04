@@ -15,7 +15,7 @@ use crate::core::{
 };
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
 use crate::hash::{StarkFelt, StarkHash};
-use crate::{impl_from_through_intermediate, StarknetApiError};
+use crate::{impl_from_through_intermediate, OutOfRangeError};
 
 pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
 pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;
@@ -149,7 +149,7 @@ impl From<StorageKey> for StarkFelt {
 }
 
 impl TryFrom<StarkHash> for StorageKey {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
 
     fn try_from(val: StarkHash) -> Result<Self, Self::Error> {
         Ok(Self(PatriciaKey::try_from(val)?))

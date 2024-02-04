@@ -11,7 +11,7 @@ use starknet_crypto::{
 };
 
 use crate::serde_utils::{bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, PrefixedBytesAsHex};
-use crate::{impl_from_through_intermediate, StarknetApiError};
+use crate::{impl_from_through_intermediate, OutOfRangeError, StarknetApiError};
 
 /// Genesis state hash.
 pub const GENESIS_HASH: &str = "0x0";
@@ -61,12 +61,12 @@ pub struct StarkFelt([u8; 32]);
 
 impl StarkFelt {
     /// Returns a new [`StarkFelt`].
-    pub fn new(bytes: [u8; 32]) -> Result<StarkFelt, StarknetApiError> {
+    pub fn new(bytes: [u8; 32]) -> Result<StarkFelt, OutOfRangeError> {
         // msb nibble must be 0. This is not a tight bound.
         if bytes[0] < 0x10 {
             return Ok(Self(bytes));
         }
-        Err(StarknetApiError::OutOfRange { string: hex_str_from_bytes::<32, true>(bytes) })
+        Err(OutOfRangeError { string: hex_str_from_bytes::<32, true>(bytes) })
     }
 
     /// Returns a new *unchecked* [`StarkFelt`]
@@ -183,7 +183,7 @@ impl StarkFelt {
 }
 
 impl TryFrom<PrefixedBytesAsHex<32_usize>> for StarkFelt {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
     fn try_from(val: PrefixedBytesAsHex<32_usize>) -> Result<Self, Self::Error> {
         StarkFelt::new(val.0)
     }
@@ -194,7 +194,7 @@ impl TryFrom<&str> for StarkFelt {
     fn try_from(val: &str) -> Result<Self, Self::Error> {
         let val = val.trim_start_matches("0x");
         let bytes = bytes_from_hex_str::<32, false>(val)?;
-        Self::new(bytes)
+        Ok(Self::new(bytes)?)
     }
 }
 
@@ -229,14 +229,14 @@ impl From<StarkFelt> for PrefixedBytesAsHex<32_usize> {
 // TODO(Arni, 25/6/2023): Remove impl TryFrom<StarkFelt> for usize. Leave only one conversion from
 //  StarkFelt to integer type.
 impl TryFrom<StarkFelt> for usize {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
         const COMPLIMENT_OF_USIZE: usize =
             std::mem::size_of::<StarkFelt>() - std::mem::size_of::<usize>();
 
         let (rest, usize_bytes) = felt.bytes().split_at(COMPLIMENT_OF_USIZE);
         if rest != [0u8; COMPLIMENT_OF_USIZE] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+            return Err(OutOfRangeError { string: felt.to_string() });
         }
 
         Ok(usize::from_be_bytes(
@@ -247,12 +247,12 @@ impl TryFrom<StarkFelt> for usize {
 
 // TODO(Arni, 1/1/2024): This is a Hack. Remove this and implement arethmetics for StarkFelt.
 impl TryFrom<StarkFelt> for u64 {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
         const COMPLIMENT_OF_U64: usize = 24; // 32 - 8
         let (rest, u64_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U64);
         if rest != [0u8; COMPLIMENT_OF_U64] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+            return Err(OutOfRangeError { string: felt.to_string() });
         }
 
         let bytes: [u8; 8] = u64_bytes.try_into().unwrap();

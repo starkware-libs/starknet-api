@@ -2,8 +2,8 @@ use assert_matches::assert_matches;
 use starknet_crypto::FieldElement;
 
 use crate::core::{
-    calculate_contract_address, ClassHash, ContractAddress, EthAddress, Nonce, PatriciaKey,
-    StarknetApiError, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
+    calculate_contract_address, ClassHash, ContractAddress, EthAddress, Nonce, OutOfRangeError,
+    PatriciaKey, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
 };
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::transaction::{Calldata, ContractAddressSalt};
@@ -21,7 +21,7 @@ fn patricia_key_out_of_range() {
     // 2**251
     let hash = stark_felt!("0x800000000000000000000000000000000000000000000000000000000000000");
     let err = PatriciaKey::try_from(hash);
-    assert_matches!(err, Err(StarknetApiError::OutOfRange { string: _err_str }));
+    assert_matches!(err, Err(OutOfRangeError { string: _err_str }));
 }
 
 #[test]
@@ -82,5 +82,5 @@ fn nonce_overflow() {
     let max_nonce = Nonce(StarkFelt::from(FieldElement::MAX));
 
     let overflowed_nonce = max_nonce.try_increment();
-    assert_matches!(overflowed_nonce, Err(StarknetApiError::OutOfRange { string: _err_str }));
+    assert_matches!(overflowed_nonce, Err(OutOfRangeError { string: _err_str }));
 }

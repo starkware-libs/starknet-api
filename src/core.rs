@@ -14,7 +14,7 @@ use crate::crypto::PublicKey;
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
-use crate::{impl_from_through_intermediate, StarknetApiError};
+use crate::{impl_from_through_intermediate, OutOfRangeError, StarknetApiError};
 
 /// A chain id.
 #[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -78,7 +78,7 @@ pub static L2_ADDRESS_UPPER_BOUND: Lazy<FieldElement> = Lazy::new(|| {
 });
 
 impl TryFrom<StarkHash> for ContractAddress {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
     fn try_from(hash: StarkHash) -> Result<Self, Self::Error> {
         Ok(Self(PatriciaKey::try_from(hash)?))
     }
@@ -102,7 +102,7 @@ pub fn calculate_contract_address(
     ]));
     address = address % *L2_ADDRESS_UPPER_BOUND;
 
-    ContractAddress::try_from(StarkFelt::from(address))
+    Ok(ContractAddress::try_from(StarkFelt::from(address))?)
 }
 
 /// The hash of a ContractClass.
@@ -158,12 +158,12 @@ pub struct CompiledClassHash(pub StarkHash);
 pub struct Nonce(pub StarkFelt);
 
 impl Nonce {
-    pub fn try_increment(&self) -> Result<Self, StarknetApiError> {
+    pub fn try_increment(&self) -> Result<Self, OutOfRangeError> {
         let current_nonce = FieldElement::from(self.0);
 
         // Check if an overflow occurred during increment.
         match StarkFelt::from(current_nonce + FieldElement::ONE) {
-            StarkFelt::ZERO => Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) }),
+            StarkFelt::ZERO => Err(OutOfRangeError { string: format!("{:?}", self) }),
             incremented_felt => Ok(Self(incremented_felt)),
         }
     }
@@ -229,13 +229,13 @@ impl From<u128> for PatriciaKey {
 impl_from_through_intermediate!(u128, PatriciaKey, u8, u16, u32, u64);
 
 impl TryFrom<StarkHash> for PatriciaKey {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
 
     fn try_from(value: StarkHash) -> Result<Self, Self::Error> {
         if value < *CONTRACT_ADDRESS_DOMAIN_SIZE {
             return Ok(PatriciaKey(value));
         }
-        Err(StarknetApiError::OutOfRange { string: format!("[0x0, {PATRICIA_KEY_UPPER_BOUND})") })
+        Err(OutOfRangeError { string: format!("[0x0, {PATRICIA_KEY_UPPER_BOUND})") })
     }
 }
 
@@ -281,13 +281,13 @@ macro_rules! contract_address {
 pub struct EthAddress(pub H160);
 
 impl TryFrom<StarkFelt> for EthAddress {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
     fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
         const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
 
         let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
         if rest != [0u8; COMPLIMENT_OF_H160] {
-            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+            return Err(OutOfRangeError { string: felt.to_string() });
         }
 
         Ok(EthAddress(H160::from_slice(h160_bytes)))
@@ -303,10 +303,9 @@ impl From<EthAddress> for StarkFelt {
     }
 }
 
-impl TryFrom<PrefixedBytesAsHex<20_usize>> for EthAddress {
-    type Error = StarknetApiError;
-    fn try_from(val: PrefixedBytesAsHex<20_usize>) -> Result<Self, Self::Error> {
-        Ok(EthAddress(H160::from_slice(&val.0)))
+impl From<PrefixedBytesAsHex<20_usize>> for EthAddress {
+    fn from(val: PrefixedBytesAsHex<20_usize>) -> Self {
+        EthAddress(H160::from_slice(&val.0))
     }
 }
 
