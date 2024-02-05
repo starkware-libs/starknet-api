@@ -2,6 +2,8 @@
 #[path = "block_test.rs"]
 mod block_test;
 
+use std::fmt::Display;
+
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +20,22 @@ pub struct Block {
     pub body: BlockBody,
 }
 
+/// A version of the Starknet protocol used when creating a block.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct StarknetVersion(pub String);
+
+impl Default for StarknetVersion {
+    fn default() -> Self {
+        Self("0.0.0".to_string())
+    }
+}
+
+impl Display for StarknetVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 /// The header of a [Block](`crate::block::Block`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct BlockHeader {
@@ -31,6 +49,7 @@ pub struct BlockHeader {
     pub state_root: GlobalRoot,
     pub sequencer: ContractAddress,
     pub timestamp: BlockTimestamp,
+    pub starknet_version: StarknetVersion,
     // TODO: add missing commitments.
 }
 
