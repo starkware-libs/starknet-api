@@ -193,6 +193,40 @@ pub struct EntryPointSelector(pub StarkHash);
 )]
 pub struct GlobalRoot(pub StarkHash);
 
+/// The commitment on the transactions in a [Block](`crate::block::Block`).
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
+)]
+pub struct TransactionCommitment(pub StarkHash);
+
+/// The commitment on the events in a [Block](`crate::block::Block`).
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
+)]
+pub struct EventCommitment(pub StarkHash);
+
 /// A key for nodes of a Patricia tree.
 // Invariant: key is in range.
 #[derive(
@@ -321,3 +355,8 @@ impl From<EthAddress> for PrefixedBytesAsHex<20_usize> {
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct SequencerPublicKey(pub PublicKey);
+
+#[derive(
+    Debug, Default, Clone, Copy, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct SequencerContractAddress(pub ContractAddress);
