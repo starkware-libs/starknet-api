@@ -2,6 +2,8 @@
 #[path = "block_test.rs"]
 mod block_test;
 
+use std::fmt::Display;
+
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +22,22 @@ use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 pub struct Block {
     pub header: BlockHeader,
     pub body: BlockBody,
+}
+
+/// A version of the Starknet protocol used when creating a block.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct StarknetVersion(pub String);
+
+impl Default for StarknetVersion {
+    fn default() -> Self {
+        Self("0.0.0".to_string())
+    }
+}
+
+impl Display for StarknetVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
 
 /// The header of a [Block](`crate::block::Block`).
@@ -41,7 +59,7 @@ pub struct BlockHeader {
     pub n_transactions: usize,
     pub n_events: usize,
     // TODO: add missing state diff commitment.
-    // TODO: add protocol version (starknet version).
+    pub starknet_version: StarknetVersion,
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their
