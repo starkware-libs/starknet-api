@@ -31,3 +31,13 @@ impl From<DataAvailabilityMode> for StarkFelt {
         }
     }
 }
+
+#[derive(
+    Clone, Default, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum L1DataAvailabilityMode {
+    #[default]
+    Calldata,
+    Blob,
+}

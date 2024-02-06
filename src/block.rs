@@ -5,8 +5,12 @@ mod block_test;
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-use crate::core::{ContractAddress, GlobalRoot, SequencerPublicKey};
+use crate::core::{
+    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey,
+    TransactionCommitment,
+};
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
+use crate::data_availability::L1DataAvailabilityMode;
 use crate::hash::{poseidon_hash_array, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
@@ -26,12 +30,18 @@ pub struct BlockHeader {
     pub block_hash: BlockHash,
     pub parent_hash: BlockHash,
     pub block_number: BlockNumber,
-    pub eth_l1_gas_price: GasPrice,
-    pub strk_l1_gas_price: GasPrice,
+    pub l1_gas_price: GasPricePerToken,
+    pub l1_data_gas_price: GasPricePerToken,
     pub state_root: GlobalRoot,
-    pub sequencer: ContractAddress,
+    pub sequencer: SequencerContractAddress,
     pub timestamp: BlockTimestamp,
-    // TODO: add missing commitments.
+    pub l1_da_mode: L1DataAvailabilityMode,
+    pub transaction_commitment: TransactionCommitment,
+    pub event_commitment: EventCommitment,
+    pub n_transactions: usize,
+    pub n_events: usize,
+    // TODO: add missing state diff commitment.
+    // TODO: add protocol version (starknet version).
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their
@@ -110,6 +120,16 @@ impl BlockNumber {
         let range = self.0..up_to.0;
         range.map(Self)
     }
+}
+
+// TODO(yair): Consider moving GasPricePerToken and GasPrice to core.
+/// The gas price per token.
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct GasPricePerToken {
+    pub price_in_fri: GasPrice,
+    pub price_in_wei: GasPrice,
 }
 
 /// The gas price at a [Block](`crate::block::Block`).
