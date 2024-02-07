@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cairo_lang_starknet::casm_contract_class::CasmContractEntryPoint;
+use cairo_lang_starknet_classes::casm_contract_class::CasmContractEntryPoint;
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
