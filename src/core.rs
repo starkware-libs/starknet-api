@@ -12,15 +12,29 @@ use starknet_crypto::FieldElement;
 
 use crate::crypto::PublicKey;
 use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
-use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
+use crate::serde_utils::{deserialize_ascii_string, BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
-/// A chain id.
+/// A chain id. Must contain only ASCII characters.
 #[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct ChainId(pub String);
+pub struct ChainId(#[serde(deserialize_with = "deserialize_ascii_string")] String);
 
 impl ChainId {
+    /// Returns a new [`ChainId`].
+    pub fn new(chain_id: String) -> Result<Self, StarknetApiError> {
+        match chain_id.chars().all(|c| c.is_ascii()) {
+            true => Ok(Self(chain_id)),
+            false => Err(StarknetApiError::OutOfRange { string: chain_id }),
+        }
+    }
+
+    /// Returns the chain id as a string.
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Returns the chain id as a hex string.
     pub fn as_hex(&self) -> String {
         format!("0x{}", hex::encode(&self.0))
     }
