@@ -58,11 +58,20 @@ pub struct BlockHeader {
     // It is an optional field, as it is not included in old blocks.
     #[serde(skip_serializing)]
     pub state_diff_hash: Option<StateDiffHash>,
+    // The extra data should not be included in serializations for users.
+    // It is an optional field, as it is not included in old blocks.
+    #[serde(skip_serializing)]
+    pub extra_data: Option<HeaderExtraData>,
+    pub starknet_version: StarknetVersion,
+}
+
+/// Extra data of a [BlockHeader](`crate::block::BlockHeader`) that is not hashed.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct HeaderExtraData {
     pub transaction_commitment: TransactionCommitment,
     pub event_commitment: EventCommitment,
     pub n_transactions: usize,
     pub n_events: usize,
-    pub starknet_version: StarknetVersion,
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their

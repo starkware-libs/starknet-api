@@ -44,7 +44,9 @@ pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
 }
 
 /// A Poseidon hash.
-#[derive(Copy, Clone, Eq, PartialEq, Default, Hash, Deserialize, Serialize, PartialOrd, Ord, Debug)]
+#[derive(
+    Copy, Clone, Eq, PartialEq, Default, Hash, Deserialize, Serialize, PartialOrd, Ord, Debug,
+)]
 pub struct PoseidonHash(pub StarkFelt);
 
 impl Display for PoseidonHash {
