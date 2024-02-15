@@ -8,7 +8,7 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey,
+    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey, StateDiffHash,
     TransactionCommitment,
 };
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
@@ -54,11 +54,14 @@ pub struct BlockHeader {
     pub sequencer: SequencerContractAddress,
     pub timestamp: BlockTimestamp,
     pub l1_da_mode: L1DataAvailabilityMode,
+    // The state diff hash should not be included in serializations for users.
+    // It is an optional field, as it is not included in old blocks.
+    #[serde(skip_serializing)]
+    pub state_diff_hash: Option<StateDiffHash>,
     pub transaction_commitment: TransactionCommitment,
     pub event_commitment: EventCommitment,
     pub n_transactions: usize,
     pub n_events: usize,
-    // TODO: add missing state diff commitment.
     pub starknet_version: StarknetVersion,
 }
 

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 
 use crate::crypto::PublicKey;
-use crate::hash::{pedersen_hash_array, StarkFelt, StarkHash};
+use crate::hash::{pedersen_hash_array, PoseidonHash, StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
@@ -226,6 +226,11 @@ pub struct TransactionCommitment(pub StarkHash);
     Display,
 )]
 pub struct EventCommitment(pub StarkHash);
+
+#[derive(
+    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
+)]
+pub struct StateDiffHash(pub PoseidonHash);
 
 /// A key for nodes of a Patricia tree.
 // Invariant: key is in range.
