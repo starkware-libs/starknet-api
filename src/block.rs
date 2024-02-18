@@ -8,7 +8,7 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey, StateDiffHash,
+    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey, StateDiffCommitment,
     TransactionCommitment,
 };
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
@@ -54,24 +54,21 @@ pub struct BlockHeader {
     pub sequencer: SequencerContractAddress,
     pub timestamp: BlockTimestamp,
     pub l1_da_mode: L1DataAvailabilityMode,
-    // The state diff hash should not be included in serializations for users.
-    // It is an optional field, as it is not included in old blocks.
+    // The optional fields below are not included in older versions of the block.
+    // Currently they are not included in any RPC spec, so we skip their serialization.
+    // TODO: Once all environments support these fields, remove the Option (make sure to
+    // update/resync any storage is missing the data).
     #[serde(skip_serializing)]
-    pub state_diff_hash: Option<StateDiffHash>,
-    // The extra data should not be included in serializations for users.
-    // It is an optional field, as it is not included in old blocks.
+    pub state_diff_commitment: Option<StateDiffCommitment>,
     #[serde(skip_serializing)]
-    pub extra_data: Option<HeaderExtraData>,
+    pub transaction_commitment: Option<TransactionCommitment>,
+    #[serde(skip_serializing)]
+    pub event_commitment: Option<EventCommitment>,
+    #[serde(skip_serializing)]
+    pub n_transactions: Option<usize>,
+    #[serde(skip_serializing)]
+    pub n_events: Option<usize>,
     pub starknet_version: StarknetVersion,
-}
-
-/// Extra data of a [BlockHeader](`crate::block::BlockHeader`) that is not hashed.
-#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct HeaderExtraData {
-    pub transaction_commitment: TransactionCommitment,
-    pub event_commitment: EventCommitment,
-    pub n_transactions: usize,
-    pub n_events: usize,
 }
 
 /// The [transactions](`crate::transaction::Transaction`) and their

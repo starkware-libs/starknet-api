@@ -230,7 +230,7 @@ pub struct EventCommitment(pub StarkHash);
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
-pub struct StateDiffHash(pub PoseidonHash);
+pub struct StateDiffCommitment(pub PoseidonHash);
 
 /// A key for nodes of a Patricia tree.
 // Invariant: key is in range.
