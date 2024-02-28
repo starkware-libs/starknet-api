@@ -691,6 +691,8 @@ pub struct ExecutionResources {
     pub steps: u64,
     pub builtin_instance_counter: HashMap<Builtin, u64>,
     pub memory_holes: u64,
+    pub da_l1_gas_consumed: StarkFelt,
+    pub da_l1_data_gas_consumed: StarkFelt,
 }
 
 #[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
