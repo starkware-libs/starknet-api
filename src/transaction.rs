@@ -388,7 +388,13 @@ pub enum TransactionExecutionStatus {
     // status and every transaction is considered succeeded
     Succeeded,
     #[serde(rename = "REVERTED")]
-    Reverted { revert_reason: String },
+    Reverted(RevertedTransactionExecutionStatus),
+}
+
+/// A reverted transaction execution status.
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct RevertedTransactionExecutionStatus {
+    pub revert_reason: String,
 }
 
 /// A fee.
