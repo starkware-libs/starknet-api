@@ -380,6 +380,7 @@ pub struct TransactionReceipt {
 
 /// Transaction execution status.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, Default)]
+#[serde(tag = "execution_status")]
 pub enum TransactionExecutionStatus {
     #[serde(rename = "SUCCEEDED")]
     #[default]
@@ -387,7 +388,7 @@ pub enum TransactionExecutionStatus {
     // status and every transaction is considered succeeded
     Succeeded,
     #[serde(rename = "REVERTED")]
-    Reverted,
+    Reverted { revert_reason: String },
 }
 
 /// A fee.
