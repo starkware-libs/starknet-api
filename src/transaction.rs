@@ -324,6 +324,8 @@ pub struct DeclareTransactionOutput {
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revert_reason: Option<String>,
 }
 
 /// A deploy-account transaction output.
@@ -335,6 +337,8 @@ pub struct DeployAccountTransactionOutput {
     pub contract_address: ContractAddress,
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revert_reason: Option<String>,
 }
 
 /// A deploy transaction output.
@@ -346,6 +350,8 @@ pub struct DeployTransactionOutput {
     pub contract_address: ContractAddress,
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revert_reason: Option<String>,
 }
 
 /// An invoke transaction output.
@@ -356,6 +362,8 @@ pub struct InvokeTransactionOutput {
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revert_reason: Option<String>,
 }
 
 /// An L1 handler transaction output.
@@ -366,6 +374,8 @@ pub struct L1HandlerTransactionOutput {
     pub events: Vec<Event>,
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revert_reason: Option<String>,
 }
 
 /// A transaction receipt.
