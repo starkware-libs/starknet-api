@@ -387,7 +387,7 @@ pub enum TransactionExecutionStatus {
     // status and every transaction is considered succeeded
     Succeeded,
     #[serde(rename = "REVERTED")]
-    Reverted,
+    Reverted{revert_reason: Option<String>},
 }
 
 /// A fee.
