@@ -322,6 +322,7 @@ pub struct DeclareTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
 }
@@ -333,6 +334,7 @@ pub struct DeployAccountTransactionOutput {
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
+    #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
 }
@@ -344,6 +346,7 @@ pub struct DeployTransactionOutput {
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
     pub contract_address: ContractAddress,
+    #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
 }
@@ -354,6 +357,7 @@ pub struct InvokeTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
 }
@@ -364,6 +368,7 @@ pub struct L1HandlerTransactionOutput {
     pub actual_fee: Fee,
     pub messages_sent: Vec<MessageToL1>,
     pub events: Vec<Event>,
+    #[serde(flatten)]
     pub execution_status: TransactionExecutionStatus,
     pub execution_resources: ExecutionResources,
 }
