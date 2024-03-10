@@ -47,7 +47,7 @@ pub struct StateDiff {
 // Invariant: Addresses are strictly increasing.
 // The invariant is enforced as [`ThinStateDiff`] is created only from [`starknet_api`][`StateDiff`]
 // where the addresses are strictly increasing.
-#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct ThinStateDiff {
     pub deployed_contracts: IndexMap<ContractAddress, ClassHash>,
     pub storage_diffs: IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
