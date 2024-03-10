@@ -108,8 +108,9 @@ impl StateNumber {
     }
 
     /// The state at the end of the block.
-    pub fn right_after_block(block_number: BlockNumber) -> StateNumber {
-        StateNumber(block_number.next())
+    /// Returns None if the block number is the maximum value.
+    pub fn right_after_block(block_number: BlockNumber) -> Option<StateNumber> {
+        Some(StateNumber(block_number.next()?))
     }
 
     pub fn is_before(&self, block_number: BlockNumber) -> bool {
