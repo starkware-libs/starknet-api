@@ -132,10 +132,17 @@ pub struct BlockHash(pub StarkHash);
 pub struct BlockNumber(pub u64);
 
 impl BlockNumber {
-    pub fn next(&self) -> BlockNumber {
+    /// Returns the next block number, without checking if it's in range.
+    pub fn unchecked_next(&self) -> BlockNumber {
         BlockNumber(self.0 + 1)
     }
 
+    /// Returns the next block number, or None if the next block number is out of range.
+    pub fn next(&self) -> Option<Self> {
+        Some(Self(self.0.checked_add(1)?))
+    }
+
+    /// Returns the previous block number, or None if the previous block number is out of range.
     pub fn prev(&self) -> Option<BlockNumber> {
         match self.0 {
             0 => None,
@@ -143,6 +150,7 @@ impl BlockNumber {
         }
     }
 
+    /// Returns an iterator over the block numbers from self to up_to (exclusive).
     pub fn iter_up_to(&self, up_to: Self) -> impl Iterator<Item = BlockNumber> {
         let range = self.0..up_to.0;
         range.map(Self)
