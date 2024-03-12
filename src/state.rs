@@ -113,6 +113,12 @@ impl StateNumber {
         Some(StateNumber(block_number.next()?))
     }
 
+    /// The state at the end of the block.
+    /// Panics if the block number is the maximum value.
+    pub fn unchecked_right_after_block(block_number: BlockNumber) -> StateNumber {
+        StateNumber(block_number.unchecked_next())
+    }
+
     pub fn is_before(&self, block_number: BlockNumber) -> bool {
         self.0 <= block_number
     }
