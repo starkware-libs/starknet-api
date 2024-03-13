@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 
+use indexmap::indexmap;
 use serde_json::json;
 
+use super::ThinStateDiff;
+use crate::core::{ClassHash, CompiledClassHash, Nonce};
 use crate::deprecated_contract_class::EntryPointOffset;
 
 #[test]
@@ -21,4 +24,40 @@ fn entry_point_offset_from_json_str() {
 fn entry_point_offset_into_json_str() {
     let offset = EntryPointOffset(123);
     assert_eq!(json!(offset), json!(format!("{:#x}", offset.0)));
+}
+
+#[test]
+fn thin_state_diff_len() {
+    let state_diff = ThinStateDiff {
+        deployed_contracts: indexmap! {
+            0u64.into() => ClassHash(4u64.into()),
+        },
+        storage_diffs: indexmap! {
+            0u64.into() => indexmap! {
+                0u64.into() => 0u64.into(),
+                1u64.into() => 1u64.into(),
+            },
+            1u64.into() => indexmap! {
+                0u64.into() => 0u64.into(),
+            },
+        },
+        declared_classes: indexmap! {
+            ClassHash(4u64.into()) => CompiledClassHash(9u64.into()),
+            ClassHash(5u64.into()) => CompiledClassHash(10u64.into()),
+        },
+        deprecated_declared_classes: vec![
+            ClassHash(6u64.into()),
+            ClassHash(7u64.into()),
+            ClassHash(8u64.into()),
+        ],
+        nonces: indexmap! {
+            0u64.into() => Nonce(1u64.into()),
+            1u64.into() => Nonce(1u64.into()),
+        },
+        replaced_classes: indexmap! {
+            2u64.into() => ClassHash(4u64.into()),
+            3u64.into() => ClassHash(5u64.into()),
+        },
+    };
+    assert_eq!(state_diff.len(), 13);
 }
