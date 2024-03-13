@@ -227,6 +227,23 @@ pub struct TransactionCommitment(pub StarkHash);
 )]
 pub struct EventCommitment(pub StarkHash);
 
+/// The commitment on the receipts in a [Block](`crate::block::Block`).
+#[derive(
+    Debug,
+    Copy,
+    Clone,
+    Default,
+    Eq,
+    PartialEq,
+    Hash,
+    Deserialize,
+    Serialize,
+    PartialOrd,
+    Ord,
+    Display,
+)]
+pub struct ReceiptCommitment(pub StarkHash);
+
 #[derive(
     Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]

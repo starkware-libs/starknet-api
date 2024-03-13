@@ -8,8 +8,8 @@ use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    EventCommitment, GlobalRoot, SequencerContractAddress, SequencerPublicKey, StateDiffCommitment,
-    TransactionCommitment,
+    EventCommitment, GlobalRoot, ReceiptCommitment, SequencerContractAddress, SequencerPublicKey,
+    StateDiffCommitment, TransactionCommitment,
 };
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
 use crate::data_availability::L1DataAvailabilityMode;
@@ -61,6 +61,8 @@ pub struct BlockHeader {
     #[serde(skip_serializing)]
     pub state_diff_commitment: Option<StateDiffCommitment>,
     #[serde(skip_serializing)]
+    pub state_diff_length: Option<usize>,
+    #[serde(skip_serializing)]
     pub transaction_commitment: Option<TransactionCommitment>,
     #[serde(skip_serializing)]
     pub event_commitment: Option<EventCommitment>,
@@ -68,6 +70,8 @@ pub struct BlockHeader {
     pub n_transactions: Option<usize>,
     #[serde(skip_serializing)]
     pub n_events: Option<usize>,
+    #[serde(skip_serializing)]
+    pub receipt_commitment: Option<ReceiptCommitment>,
     pub starknet_version: StarknetVersion,
 }
 
