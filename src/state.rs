@@ -84,6 +84,22 @@ impl ThinStateDiff {
             diff.deprecated_declared_classes,
         )
     }
+
+    #[allow(clippy::len_without_is_empty)]
+    /// This has the same value as `state_diff_length` in the corresponding `BlockHeader`.
+    pub fn len(&self) -> usize {
+        let mut result = 0usize;
+        result += self.deployed_contracts.len();
+        result += self.declared_classes.len();
+        result += self.deprecated_declared_classes.len();
+        result += self.nonces.len();
+        result += self.replaced_classes.len();
+
+        for (_contract_address, storage_diffs) in &self.storage_diffs {
+            result += storage_diffs.len();
+        }
+        result
+    }
 }
 
 impl From<StateDiff> for ThinStateDiff {
