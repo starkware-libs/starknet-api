@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use indexmap::indexmap;
+use indexmap::{indexmap, IndexMap};
 use serde_json::json;
 
 use super::ThinStateDiff;
@@ -60,4 +60,59 @@ fn thin_state_diff_len() {
         },
     };
     assert_eq!(state_diff.len(), 13);
+}
+
+#[test]
+fn thin_state_diff_is_empty() {
+    assert!(ThinStateDiff::default().is_empty());
+    assert!(
+        ThinStateDiff {
+            storage_diffs: indexmap! { Default::default() => IndexMap::new() },
+            ..Default::default()
+        }
+        .is_empty()
+    );
+
+    assert!(
+        !ThinStateDiff {
+            deployed_contracts: indexmap! { Default::default() => Default::default() },
+            ..Default::default()
+        }
+        .is_empty()
+    );
+    assert!(
+        !ThinStateDiff {
+            storage_diffs: indexmap! { Default::default() => indexmap! { Default::default() => Default::default() } },
+            ..Default::default()
+        }
+        .is_empty()
+    );
+    assert!(
+        !ThinStateDiff {
+            declared_classes: indexmap! { Default::default() => Default::default() },
+            ..Default::default()
+        }
+        .is_empty()
+    );
+    assert!(
+        !ThinStateDiff {
+            deprecated_declared_classes: vec![Default::default()],
+            ..Default::default()
+        }
+        .is_empty()
+    );
+    assert!(
+        !ThinStateDiff {
+            nonces: indexmap! { Default::default() => Default::default() },
+            ..Default::default()
+        }
+        .is_empty()
+    );
+    assert!(
+        !ThinStateDiff {
+            replaced_classes: indexmap! { Default::default() => Default::default() },
+            ..Default::default()
+        }
+        .is_empty()
+    );
 }

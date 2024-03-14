@@ -85,7 +85,6 @@ impl ThinStateDiff {
         )
     }
 
-    #[allow(clippy::len_without_is_empty)]
     /// This has the same value as `state_diff_length` in the corresponding `BlockHeader`.
     pub fn len(&self) -> usize {
         let mut result = 0usize;
@@ -99,6 +98,18 @@ impl ThinStateDiff {
             result += storage_diffs.len();
         }
         result
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.deployed_contracts.is_empty()
+            && self.declared_classes.is_empty()
+            && self.deprecated_declared_classes.is_empty()
+            && self.nonces.is_empty()
+            && self.replaced_classes.is_empty()
+            && self
+                .storage_diffs
+                .iter()
+                .all(|(_contract_address, storage_diffs)| storage_diffs.is_empty())
     }
 }
 
