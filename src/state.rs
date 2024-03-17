@@ -134,14 +134,12 @@ impl StateNumber {
         StateNumber(block_number)
     }
 
-    /// The state at the end of the block.
-    /// Returns None if the block number is the maximum value.
+    /// The state at the end of the block, or None if it's is out of range.
     pub fn right_after_block(block_number: BlockNumber) -> Option<StateNumber> {
         Some(StateNumber(block_number.next()?))
     }
 
-    /// The state at the end of the block.
-    /// Panics if the block number is the maximum value.
+    /// The state at the end of the block, without checking if it's in range.
     pub fn unchecked_right_after_block(block_number: BlockNumber) -> StateNumber {
         StateNumber(block_number.unchecked_next())
     }
