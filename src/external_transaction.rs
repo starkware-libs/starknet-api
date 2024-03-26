@@ -11,9 +11,10 @@ use crate::transaction::{
 
 /// An external transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum ExternalTransaction {
     /// A declare transaction.
-    Declare(ExternalDeclareTransaction),
+    Declare(ExternalDeclareTransaction), 
     /// A deploy account transaction.
     DeployAccount(ExternalDeployAccountTransaction),
     /// An invoke transaction.
