@@ -268,6 +268,7 @@ pub struct ContractClassV1 {
     pub abi: String,
 }
 
+
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum ContractClass {
     V0(ContractClassV0),
