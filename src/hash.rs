@@ -219,6 +219,12 @@ impl From<Felt> for StarkFelt {
     }
 }
 
+impl From<usize> for StarkFelt {
+    fn from(val: usize) -> Self {
+        Felt::from(val).into()
+    }
+}
+
 impl From<&StarkFelt> for Felt {
     fn from(felt: &StarkFelt) -> Self {
         Self::from_bytes_be(&felt.0)
