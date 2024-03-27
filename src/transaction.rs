@@ -31,6 +31,18 @@ pub enum Transaction {
     L1Handler(L1HandlerTransaction),
 }
 
+impl Transaction {
+    pub fn version(&self) -> TransactionVersion {
+        match self {
+            Transaction::Declare(tx) => tx.version(),
+            Transaction::Deploy(tx) => tx.version,
+            Transaction::DeployAccount(tx) => tx.version(),
+            Transaction::Invoke(tx) => tx.version(),
+            Transaction::L1Handler(tx) => tx.version,
+        }
+    }
+}
+
 /// A transaction output.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub enum TransactionOutput {
