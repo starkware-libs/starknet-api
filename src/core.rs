@@ -10,7 +10,7 @@ use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
 
-use crate::crypto::PublicKey;
+use crate::crypto::utils::PublicKey;
 use crate::hash::{pedersen_hash_array, PoseidonHash, StarkFelt, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};

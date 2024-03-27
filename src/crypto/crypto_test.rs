@@ -1,6 +1,6 @@
 // Unittest for verify_message_signature
 
-use crate::crypto::{verify_message_hash_signature, PublicKey, Signature};
+use crate::crypto::utils::{verify_message_hash_signature, PublicKey, Signature};
 use crate::hash::{poseidon_hash_array, StarkFelt};
 use crate::stark_felt;
 

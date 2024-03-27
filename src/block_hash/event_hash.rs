@@ -1,5 +1,5 @@
 use crate::core::EventCommitment;
-use crate::crypto::HashChain;
+use crate::crypto::utils::HashChain;
 use crate::hash::StarkFelt;
 use crate::transaction::{Event, TransactionHash};
 

@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 
 use crate::block::BlockNumber;
 use crate::core::{calculate_contract_address, ChainId, ContractAddress};
-use crate::crypto::HashChain;
+use crate::crypto::utils::HashChain;
 use crate::data_availability::DataAvailabilityMode;
 use crate::hash::StarkFelt;
 use crate::transaction::{
