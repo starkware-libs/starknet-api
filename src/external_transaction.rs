@@ -270,6 +270,7 @@ pub struct ContractClassV1 {
 
 
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(untagged)]
 pub enum ContractClass {
     V0(ContractClassV0),
     V1(ContractClassV1),
