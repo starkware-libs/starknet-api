@@ -181,7 +181,7 @@ impl StarkFelt {
         Some(Self(res))
     }
 
-    pub fn bytes(&self) -> &[u8] {
+    pub fn bytes(&self) -> &[u8; 32] {
         &self.0
     }
 

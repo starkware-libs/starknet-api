@@ -3,6 +3,7 @@
 //! [`Starknet`]: https://starknet.io/
 
 pub mod block;
+pub mod block_hash;
 pub mod core;
 pub mod crypto;
 pub mod data_availability;

@@ -20,6 +20,7 @@ primitive-types = { version = "0.12.1", features = ["serde"] }
 serde = { version = "1.0.130", features = ["derive", "rc"] }
 serde_json = "1.0.81"
 starknet-crypto = "0.5.1"
+starknet-types-core = { version = "0.0.10", features = ["hash"] }
 strum = "0.24.1"
 strum_macros = "0.24.3"
 thiserror = "1.0.31"
