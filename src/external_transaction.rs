@@ -1,9 +1,13 @@
+use serde_repr::{Deserialize_repr, Serialize_repr};
+
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 // use serde_repr::{Deserialize_repr, Serialize_repr};
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
-use crate::data_availability::DataAvailabilityMode;
-use crate::internal_transaction::ContractClass;
+use crate::state::{EntryPoint, EntryPointType};
+// use crate::internal_transaction::ContractClass;
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, Fee, PaymasterData,
     ResourceBoundsMapping, Tip, TransactionSignature, TransactionVersion,
@@ -14,7 +18,7 @@ use crate::transaction::{
 #[serde(untagged)]
 pub enum ExternalTransaction {
     /// A declare transaction.
-    Declare(ExternalDeclareTransaction), 
+    Declare(ExternalDeclareTransaction),
     /// A deploy account transaction.
     DeployAccount(ExternalDeployAccountTransaction),
     /// An invoke transaction.
@@ -85,8 +89,8 @@ pub struct ExternalDeployAccountTransactionV3 {
     pub constructor_calldata: Calldata,
     pub nonce: Nonce,
     pub signature: TransactionSignature,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub nonce_data_availability_mode: ReservedDataAvailabilityMode,
+    pub fee_data_availability_mode: ReservedDataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub version: TransactionVersion,
     pub r#type: DeployAccountType,
@@ -135,6 +139,12 @@ pub struct ExternalInvokeTransactionV1 {
     pub r#type: InvokeType,
 }
 
+#[derive(Debug, Deserialize_repr, Serialize_repr, Clone, Eq, PartialEq)]
+#[repr(u8)]
+pub enum ReservedDataAvailabilityMode {
+    Reserved = 0,
+}
+
 /// An invoke account transaction that can be added to Starknet through the Starknet gateway.
 /// The invoke is a V3 transaction.
 /// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
@@ -149,8 +159,8 @@ pub struct ExternalInvokeTransactionV3 {
     pub sender_address: ContractAddress,
     pub nonce: Nonce,
     pub signature: TransactionSignature,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub nonce_data_availability_mode: ReservedDataAvailabilityMode,
+    pub fee_data_availability_mode: ReservedDataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
     pub version: TransactionVersion,
@@ -215,8 +225,8 @@ pub struct ExternalDeclareTransactionV3 {
     pub nonce: Nonce,
     pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub nonce_data_availability_mode: ReservedDataAvailabilityMode,
+    pub fee_data_availability_mode: ReservedDataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
     pub version: TransactionVersion,
@@ -232,4 +242,14 @@ pub enum ExternalDeclareTransaction {
     V1(ExternalDeclareTransactionV1),
     V2(ExternalDeclareTransactionV2),
     V3(ExternalDeclareTransactionV3),
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ContractClass {
+    // TODO(shahak): Create a struct for a compressed base64 value.
+    #[serde(rename = "sierra_program")]
+    pub compressed_sierra_program: String,
+    pub contract_class_version: String,
+    pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
+    pub abi: String,
 }
