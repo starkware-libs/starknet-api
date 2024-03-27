@@ -52,11 +52,38 @@ impl Display for PoseidonHash {
     }
 }
 
-/// Computes Poseidon hash.
+/// Computes the Poseidon hash of two Felts, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#poseidon_hash.>
+pub fn poseidon_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> PoseidonHash {
+    PoseidonHash(Poseidon::hash(&Felt::from(felt0), &Felt::from(felt1)).into())
+}
+
+/// Computes the Poseidon hash of an array of Felts, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/hash-functions/#poseidon_array_hash.>
 pub fn poseidon_hash_array(stark_felts: &[StarkFelt]) -> PoseidonHash {
     // TODO(yair): Avoid allocating the vector of Felts.
     let as_felts = stark_felts.iter().map(Felt::from).collect::<Vec<_>>();
     PoseidonHash(Poseidon::hash_array(as_felts.as_slice()).into())
+}
+
+/// An interface for hash function calculations.
+pub trait HashFunction {
+    /// Computes hash of two Felts.
+    fn hash_pair(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash;
+    /// Computes hash of array of Felts.
+    fn hash_array(stark_felts: &[StarkFelt]) -> StarkHash;
+}
+
+pub struct PoseidonHashCalculator;
+
+impl HashFunction for PoseidonHashCalculator {
+    fn hash_pair(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
+        poseidon_hash(felt0, felt1).0
+    }
+
+    fn hash_array(stark_felts: &[StarkFelt]) -> StarkHash {
+        poseidon_hash_array(stark_felts).0
+    }
 }
 
 // TODO: Move to a different crate.
