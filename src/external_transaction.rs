@@ -1,18 +1,20 @@
-use serde_repr::{Deserialize_repr, Serialize_repr};
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 // use serde_repr::{Deserialize_repr, Serialize_repr};
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, Nonce};
+use crate::deprecated_contract_class::{
+    ContractClassAbiEntry as DeprecatedContractClassAbiEntry, EntryPoint as DeprecatedEntryPoint,
+    EntryPointType as DeprecatedEntryPointType,
+};
 use crate::state::{EntryPoint, EntryPointType};
 // use crate::internal_transaction::ContractClass;
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, Fee, PaymasterData,
     ResourceBoundsMapping, Tip, TransactionSignature, TransactionVersion,
 };
-
 /// An external transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
@@ -78,7 +80,6 @@ pub struct ExternalDeployAccountTransactionV1 {
 /// A deploy account transaction that can be added to Starknet through the Starknet gateway.
 /// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
 /// HTTP method.
-// TODO(Shahak): Add tests for deploy account v3.
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ExternalDeployAccountTransactionV3 {
@@ -244,12 +245,31 @@ pub enum ExternalDeclareTransaction {
     V3(ExternalDeclareTransactionV3),
 }
 
+// The structs that are implemented here are the structs that have deviations from starknet_api.
+
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
-pub struct ContractClass {
+pub struct ContractClassV0 {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
+    pub abi: Option<Vec<DeprecatedContractClassAbiEntry>>,
+    #[serde(rename = "program")]
+    // TODO(shahak): Create a struct for a compressed base64 value.
+    pub compressed_program: String,
+    pub entry_points_by_type: HashMap<DeprecatedEntryPointType, Vec<DeprecatedEntryPoint>>,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct ContractClassV1 {
     // TODO(shahak): Create a struct for a compressed base64 value.
     #[serde(rename = "sierra_program")]
     pub compressed_sierra_program: String,
     pub contract_class_version: String,
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
     pub abi: String,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub enum ContractClass {
+    V0(ContractClassV0),
+    V1(ContractClassV1),
 }
