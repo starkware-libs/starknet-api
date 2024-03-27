@@ -11,6 +11,7 @@ description = "Starknet Rust types related to computation and execution."
 testing = []
 
 [dependencies]
+bitvec = "1.0.1"
 cairo-lang-starknet-classes = "2.6.0"
 derive_more = "0.99.17"
 hex = "0.4.3"
