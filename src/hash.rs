@@ -52,7 +52,14 @@ impl Display for PoseidonHash {
     }
 }
 
-/// Computes Poseidon hash.
+/// Computes the Poseidon hash of two Felts, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#poseidon_hash.>
+pub fn poseidon_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> PoseidonHash {
+    PoseidonHash(Poseidon::hash(&Felt::from(felt0), &Felt::from(felt1)).into())
+}
+
+/// Computes the Poseidon hash of an array of Felts, as defined
+/// in <https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/hash-functions/#poseidon_array_hash.>
 pub fn poseidon_hash_array(stark_felts: &[StarkFelt]) -> PoseidonHash {
     // TODO(yair): Avoid allocating the vector of Felts.
     let as_felts = stark_felts.iter().map(Felt::from).collect::<Vec<_>>();
