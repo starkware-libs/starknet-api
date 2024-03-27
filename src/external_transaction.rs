@@ -185,7 +185,7 @@ pub enum ExternalInvokeTransaction {
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ExternalDeclareTransactionV1 {
-    pub contract_class: ContractClassV0,
+    pub contract_class: ContractClass,
     pub sender_address: ContractAddress,
     pub nonce: Nonce,
     pub max_fee: Fee,
@@ -201,7 +201,7 @@ pub struct ExternalDeclareTransactionV1 {
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ExternalDeclareTransactionV2 {
-    pub contract_class: ContractClassV1,
+    pub contract_class: ContractClass,
     pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
     pub nonce: Nonce,
@@ -219,7 +219,7 @@ pub struct ExternalDeclareTransactionV2 {
 #[derive(Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ExternalDeclareTransactionV3 {
-    pub contract_class: ContractClassV1,
+    pub contract_class: ContractClass,
     pub resource_bounds: ResourceBoundsMapping,
     pub tip: Tip,
     pub signature: TransactionSignature,
@@ -266,4 +266,11 @@ pub struct ContractClassV1 {
     pub contract_class_version: String,
     pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
     pub abi: String,
+}
+
+
+#[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
+pub enum ContractClass {
+    V0(ContractClassV0),
+    V1(ContractClassV1),
 }
