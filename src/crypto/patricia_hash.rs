@@ -17,17 +17,17 @@
 //!
 //! Hash of a node depends on the number of edges coming out of it:
 //! - A leaf: The hash is the input value of its key.
-//! - A single edge: pedersen_hash(child_hash, edge_mark) + edge_length.
-//! - '0' and '1' edges: pedersen_hash(zero_child_hash, one_child_hash).
+//! - A single edge: hash(child_hash, edge_mark) + edge_length.
+//! - '0' and '1' edges: hash(zero_child_hash, one_child_hash).
 
 #[cfg(test)]
 #[path = "patricia_hash_test.rs"]
 mod patricia_hash_test;
 
 use bitvec::prelude::{BitArray, Msb0};
-use starknet_crypto::FieldElement;
+use starknet_types_core::felt::Felt;
 
-use crate::hash::{pedersen_hash, StarkFelt};
+use crate::hash::{HashFunction, StarkFelt};
 
 const TREE_HEIGHT: u8 = 64;
 type BitPath = BitArray<[u8; 8], Msb0>;
@@ -57,7 +57,7 @@ enum SubTreeSplitting {
 
 /// Calculates Patricia hash root on the given values.
 /// The values are keyed by consecutive numbers, starting from 0.
-pub fn calculate_root(values: Vec<StarkFelt>) -> StarkFelt {
+pub fn calculate_root<H: HashFunction>(values: Vec<StarkFelt>) -> StarkFelt {
     if values.is_empty() {
         return StarkFelt::ZERO;
     }
@@ -66,7 +66,7 @@ pub fn calculate_root(values: Vec<StarkFelt>) -> StarkFelt {
         .zip(0u64..)
         .map(|(felt, idx)| Entry { key: idx.to_be_bytes().into(), value: felt })
         .collect();
-    get_hash(SubTree { leaves: &leaves[..], height: 0_u8 })
+    get_hash::<H>(SubTree { leaves: &leaves[..], height: 0_u8 })
 }
 
 // Recursive hash calculation. There are 3 cases:
@@ -74,38 +74,38 @@ pub fn calculate_root(values: Vec<StarkFelt>) -> StarkFelt {
 // - Edge: All the keys start with a longest common ('0's) prefix. NOTE: We assume that the keys are
 // a continuous range, and hence the case of '1's in the longest common prefix is impossible.
 // - Binary: Some keys start with '0' bit and some start with '1' bit.
-fn get_hash(sub_tree: SubTree<'_>) -> StarkFelt {
+fn get_hash<H: HashFunction>(sub_tree: SubTree<'_>) -> StarkFelt {
     if sub_tree.height == TREE_HEIGHT {
         return sub_tree.leaves.first().expect("a leaf should not be empty").value;
     }
     match get_splitting(&sub_tree) {
-        SubTreeSplitting::CommonZerosPrefix(n_zeros) => get_edge_hash(sub_tree, n_zeros),
+        SubTreeSplitting::CommonZerosPrefix(n_zeros) => get_edge_hash::<H>(sub_tree, n_zeros),
         SubTreeSplitting::PartitionPoint(partition_point) => {
-            get_binary_hash(sub_tree, partition_point)
+            get_binary_hash::<H>(sub_tree, partition_point)
         }
     }
 }
 
 // Hash on a '0's sequence with the bottom sub tree.
-fn get_edge_hash(sub_tree: SubTree<'_>, n_zeros: u8) -> StarkFelt {
+fn get_edge_hash<H: HashFunction>(sub_tree: SubTree<'_>, n_zeros: u8) -> StarkFelt {
     let child_hash =
-        get_hash(SubTree { leaves: sub_tree.leaves, height: sub_tree.height + n_zeros });
-    let child_and_path_hash = pedersen_hash(&child_hash, &StarkFelt::ZERO);
-    StarkFelt::from(FieldElement::from(child_and_path_hash) + FieldElement::from(n_zeros))
+        get_hash::<H>(SubTree { leaves: sub_tree.leaves, height: sub_tree.height + n_zeros });
+    let child_and_path_hash = H::hash_pair(&child_hash, &StarkFelt::ZERO);
+    StarkFelt::from(Felt::from(&child_and_path_hash) + Felt::from(n_zeros))
 }
 
 // Hash on both sides: starts with '0' bit and starts with '1' bit.
 // Assumes: 0 < partition point < sub_tree.len().
-fn get_binary_hash(sub_tree: SubTree<'_>, partition_point: usize) -> StarkFelt {
-    let zero_hash = get_hash(SubTree {
+fn get_binary_hash<H: HashFunction>(sub_tree: SubTree<'_>, partition_point: usize) -> StarkFelt {
+    let zero_hash = get_hash::<H>(SubTree {
         leaves: &sub_tree.leaves[..partition_point],
         height: sub_tree.height + 1,
     });
-    let one_hash = get_hash(SubTree {
+    let one_hash = get_hash::<H>(SubTree {
         leaves: &sub_tree.leaves[partition_point..],
         height: sub_tree.height + 1,
     });
-    pedersen_hash(&zero_hash, &one_hash)
+    H::hash_pair(&zero_hash, &one_hash)
 }
 
 // Returns the manner the keys of a subtree are splitting: some keys start with '1' or all keys
