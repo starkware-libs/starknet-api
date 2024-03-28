@@ -9,12 +9,27 @@ use strum_macros::EnumIter;
 
 use crate::block::{BlockHash, BlockNumber};
 use crate::core::{
-    ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
+    ChainId, ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
 };
 use crate::data_availability::DataAvailabilityMode;
 use crate::hash::{StarkFelt, StarkHash};
 use crate::serde_utils::PrefixedBytesAsHex;
+use crate::transaction_hash::{
+    get_declare_transaction_v0_hash, get_declare_transaction_v1_hash,
+    get_declare_transaction_v2_hash, get_declare_transaction_v3_hash,
+    get_deploy_account_transaction_v1_hash, get_deploy_account_transaction_v3_hash,
+    get_deploy_transaction_hash, get_invoke_transaction_v0_hash, get_invoke_transaction_v1_hash,
+    get_invoke_transaction_v3_hash, get_l1_handler_transaction_hash,
+};
 use crate::StarknetApiError;
+
+trait TransactionHasher {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError>;
+}
 
 /// A transaction.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -39,6 +54,28 @@ impl Transaction {
             Transaction::DeployAccount(tx) => tx.version(),
             Transaction::Invoke(tx) => tx.version(),
             Transaction::L1Handler(tx) => tx.version,
+        }
+    }
+}
+
+impl TransactionHasher for Transaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        match self {
+            Transaction::Declare(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            Transaction::Deploy(tx) => tx.calculate_transaction_hash(chain_id, transaction_version),
+            Transaction::DeployAccount(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            Transaction::Invoke(tx) => tx.calculate_transaction_hash(chain_id, transaction_version),
+            Transaction::L1Handler(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
         }
     }
 }
@@ -100,6 +137,24 @@ pub struct DeclareTransactionV0V1 {
     pub sender_address: ContractAddress,
 }
 
+impl TransactionHasher for DeclareTransactionV0V1 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        match *transaction_version {
+            TransactionVersion::ZERO => {
+                get_declare_transaction_v0_hash(self, chain_id, transaction_version)
+            }
+            TransactionVersion::ONE => {
+                get_declare_transaction_v1_hash(self, chain_id, transaction_version)
+            }
+            _ => panic!("Illegal transaction version."),
+        }
+    }
+}
+
 /// A declare V2 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV2 {
@@ -109,6 +164,16 @@ pub struct DeclareTransactionV2 {
     pub class_hash: ClassHash,
     pub compiled_class_hash: CompiledClassHash,
     pub sender_address: ContractAddress,
+}
+
+impl TransactionHasher for DeclareTransactionV2 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_declare_transaction_v2_hash(self, chain_id, transaction_version)
+    }
 }
 
 /// A declare V3 transaction.
@@ -125,6 +190,16 @@ pub struct DeclareTransactionV3 {
     pub fee_data_availability_mode: DataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
+}
+
+impl TransactionHasher for DeclareTransactionV3 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_declare_transaction_v3_hash(self, chain_id, transaction_version)
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
@@ -166,6 +241,29 @@ impl DeclareTransaction {
     }
 }
 
+impl TransactionHasher for DeclareTransaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        match self {
+            DeclareTransaction::V0(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            DeclareTransaction::V1(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            DeclareTransaction::V2(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            DeclareTransaction::V3(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+        }
+    }
+}
+
 /// A deploy account V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployAccountTransactionV1 {
@@ -175,6 +273,16 @@ pub struct DeployAccountTransactionV1 {
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
+}
+
+impl TransactionHasher for DeployAccountTransactionV1 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_deploy_account_transaction_v1_hash(self, chain_id, transaction_version)
+    }
 }
 
 /// A deploy account V3 transaction.
@@ -190,6 +298,16 @@ pub struct DeployAccountTransactionV3 {
     pub nonce_data_availability_mode: DataAvailabilityMode,
     pub fee_data_availability_mode: DataAvailabilityMode,
     pub paymaster_data: PaymasterData,
+}
+
+impl TransactionHasher for DeployAccountTransactionV3 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_deploy_account_transaction_v3_hash(self, chain_id, transaction_version)
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
@@ -227,6 +345,24 @@ impl DeployAccountTransaction {
         }
     }
 }
+
+impl TransactionHasher for DeployAccountTransaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        match self {
+            DeployAccountTransaction::V1(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            DeployAccountTransaction::V3(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+        }
+    }
+}
+
 /// A deploy transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeployTransaction {
@@ -234,6 +370,16 @@ pub struct DeployTransaction {
     pub class_hash: ClassHash,
     pub contract_address_salt: ContractAddressSalt,
     pub constructor_calldata: Calldata,
+}
+
+impl TransactionHasher for DeployTransaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_deploy_transaction_hash(self, chain_id, transaction_version)
+    }
 }
 
 /// An invoke V0 transaction.
@@ -246,6 +392,16 @@ pub struct InvokeTransactionV0 {
     pub calldata: Calldata,
 }
 
+impl TransactionHasher for InvokeTransactionV0 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_invoke_transaction_v0_hash(self, chain_id, transaction_version)
+    }
+}
+
 /// An invoke V1 transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct InvokeTransactionV1 {
@@ -254,6 +410,16 @@ pub struct InvokeTransactionV1 {
     pub nonce: Nonce,
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
+}
+
+impl TransactionHasher for InvokeTransactionV1 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_invoke_transaction_v1_hash(self, chain_id, transaction_version)
+    }
 }
 
 /// An invoke V3 transaction.
@@ -269,6 +435,16 @@ pub struct InvokeTransactionV3 {
     pub fee_data_availability_mode: DataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
+}
+
+impl TransactionHasher for InvokeTransactionV3 {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_invoke_transaction_v3_hash(self, chain_id, transaction_version)
+    }
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord, From)]
@@ -318,6 +494,26 @@ impl InvokeTransaction {
     }
 }
 
+impl TransactionHasher for InvokeTransaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        match self {
+            InvokeTransaction::V0(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            InvokeTransaction::V1(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+            InvokeTransaction::V3(tx) => {
+                tx.calculate_transaction_hash(chain_id, transaction_version)
+            }
+        }
+    }
+}
+
 /// An L1 handler transaction.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct L1HandlerTransaction {
@@ -326,6 +522,16 @@ pub struct L1HandlerTransaction {
     pub contract_address: ContractAddress,
     pub entry_point_selector: EntryPointSelector,
     pub calldata: Calldata,
+}
+
+impl TransactionHasher for L1HandlerTransaction {
+    fn calculate_transaction_hash(
+        &self,
+        chain_id: &ChainId,
+        transaction_version: &TransactionVersion,
+    ) -> Result<TransactionHash, StarknetApiError> {
+        get_l1_handler_transaction_hash(self, chain_id, transaction_version)
+    }
 }
 
 /// A declare transaction output.
