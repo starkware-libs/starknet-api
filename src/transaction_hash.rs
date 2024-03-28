@@ -1,4 +1,4 @@
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 
 use crate::block::BlockNumber;
 use crate::core::{calculate_contract_address, ChainId, ContractAddress};
@@ -20,29 +20,21 @@ const DATA_AVAILABILITY_MODE_BITS: usize = 32;
 const L1_GAS: &ResourceName = b"\0L1_GAS";
 const L2_GAS: &ResourceName = b"\0L2_GAS";
 
-lazy_static! {
-    static ref DECLARE: StarkFelt =
-        #[allow(clippy::unwrap_used)] ascii_as_felt("declare").unwrap();
-    static ref DEPLOY: StarkFelt =
-        #[allow(clippy::unwrap_used)] ascii_as_felt("deploy").unwrap();
-    static ref DEPLOY_ACCOUNT: StarkFelt =
-        #[allow(clippy::unwrap_used)] ascii_as_felt("deploy_account").unwrap();
-    static ref INVOKE: StarkFelt =
-        #[allow(clippy::unwrap_used)] ascii_as_felt("invoke").unwrap();
-    static ref L1_HANDLER: StarkFelt =
-        #[allow(clippy::unwrap_used)] ascii_as_felt("l1_handler").unwrap();
-    // The first 250 bits of the Keccak256 hash on "constructor".
-    // The correctness of this constant is enforced by a test.
-    static ref CONSTRUCTOR_ENTRY_POINT_SELECTOR: StarkFelt =
-        #[allow(clippy::unwrap_used)]
-        StarkFelt::try_from("0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")
-        .unwrap();
-
-    pub(crate) static ref ZERO: StarkFelt = StarkFelt::from(0_u8);
-    static ref ONE: StarkFelt = StarkFelt::from(1_u8);
-    static ref TWO: StarkFelt = StarkFelt::from(2_u8);
-    static ref THREE: StarkFelt = StarkFelt::from(3_u8);
-}
+static DECLARE: Lazy<StarkFelt> =
+    Lazy::new(|| ascii_as_felt("declare").expect("ascii_as_felt failed for 'declare'"));
+static DEPLOY: Lazy<StarkFelt> =
+    Lazy::new(|| ascii_as_felt("deploy").expect("ascii_as_felt failed for 'deploy'"));
+static DEPLOY_ACCOUNT: Lazy<StarkFelt> = Lazy::new(|| {
+    ascii_as_felt("deploy_account").expect("ascii_as_felt failed for 'deploy_account'")
+});
+static INVOKE: Lazy<StarkFelt> =
+    Lazy::new(|| ascii_as_felt("invoke").expect("ascii_as_felt failed for 'invoke'"));
+static L1_HANDLER: Lazy<StarkFelt> =
+    Lazy::new(|| ascii_as_felt("l1_handler").expect("ascii_as_felt failed for 'l1_handler'"));
+static CONSTRUCTOR_ENTRY_POINT_SELECTOR: Lazy<StarkFelt> = Lazy::new(|| {
+    StarkFelt::try_from("0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")
+        .expect("Failed to create StarkFelt from value")
+});
 
 /// Calculates hash of a Starknet transaction.
 pub fn get_transaction_hash(
@@ -228,7 +220,7 @@ fn data_availability_mode_index(mode: &DataAvailabilityMode) -> u64 {
     }
 }
 
-fn get_deploy_transaction_hash(
+pub(crate) fn get_deploy_transaction_hash(
     transaction: &DeployTransaction,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -277,7 +269,7 @@ fn get_common_deploy_transaction_hash(
          // No fee in deploy transaction.
         .chain_if_fn(|| {
             if !is_deprecated {
-                Some(*ZERO)
+                Some(StarkFelt::ZERO)
             } else {
                 None
             }
@@ -287,7 +279,7 @@ fn get_common_deploy_transaction_hash(
     ))
 }
 
-fn get_invoke_transaction_v0_hash(
+pub(crate) fn get_invoke_transaction_v0_hash(
     transaction: &InvokeTransactionV0,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -322,7 +314,7 @@ fn get_common_invoke_transaction_v0_hash(
     ))
 }
 
-fn get_invoke_transaction_v1_hash(
+pub(crate) fn get_invoke_transaction_v1_hash(
     transaction: &InvokeTransactionV1,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -332,7 +324,7 @@ fn get_invoke_transaction_v1_hash(
         .chain(&INVOKE)
         .chain(&transaction_version.0)
         .chain(transaction.sender_address.0.key())
-        .chain(&ZERO) // No entry point selector in invoke transaction.
+        .chain(&StarkFelt::ZERO) // No entry point selector in invoke transaction.
         .chain(&HashChain::new().chain_iter(transaction.calldata.0.iter()).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
         .chain(&ascii_as_felt(chain_id.0.as_str())?)
@@ -341,7 +333,7 @@ fn get_invoke_transaction_v1_hash(
     ))
 }
 
-fn get_invoke_transaction_v3_hash(
+pub(crate) fn get_invoke_transaction_v3_hash(
     transaction: &InvokeTransactionV3,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -383,7 +375,7 @@ enum L1HandlerVersions {
     V0,
 }
 
-fn get_l1_handler_transaction_hash(
+pub(crate) fn get_l1_handler_transaction_hash(
     transaction: &L1HandlerTransaction,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -445,7 +437,7 @@ fn get_common_l1_handler_transaction_hash(
         // No fee in l1 handler transaction.
         .chain_if_fn(|| {
             if version > L1HandlerVersions::V0Deprecated {
-                Some(*ZERO)
+                Some(StarkFelt::ZERO)
             } else {
                 None
             }
@@ -462,7 +454,7 @@ fn get_common_l1_handler_transaction_hash(
     ))
 }
 
-fn get_declare_transaction_v0_hash(
+pub(crate) fn get_declare_transaction_v0_hash(
     transaction: &DeclareTransactionV0V1,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -472,7 +464,7 @@ fn get_declare_transaction_v0_hash(
         .chain(&DECLARE)
         .chain(&transaction_version.0)
         .chain(transaction.sender_address.0.key())
-        .chain(&ZERO ) // No entry point selector in declare transaction.
+        .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
         .chain(&ascii_as_felt(chain_id.0.as_str())?)
@@ -481,7 +473,7 @@ fn get_declare_transaction_v0_hash(
     ))
 }
 
-fn get_declare_transaction_v1_hash(
+pub(crate) fn get_declare_transaction_v1_hash(
     transaction: &DeclareTransactionV0V1,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -491,7 +483,7 @@ fn get_declare_transaction_v1_hash(
         .chain(&DECLARE)
         .chain(&transaction_version.0)
         .chain(transaction.sender_address.0.key())
-        .chain(&ZERO) // No entry point selector in declare transaction.
+        .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
         .chain(&ascii_as_felt(chain_id.0.as_str())?)
@@ -500,7 +492,7 @@ fn get_declare_transaction_v1_hash(
     ))
 }
 
-fn get_declare_transaction_v2_hash(
+pub(crate) fn get_declare_transaction_v2_hash(
     transaction: &DeclareTransactionV2,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -510,7 +502,7 @@ fn get_declare_transaction_v2_hash(
         .chain(&DECLARE)
         .chain(&transaction_version.0)
         .chain(transaction.sender_address.0.key())
-        .chain(&ZERO) // No entry point selector in declare transaction.
+        .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
         .chain(&ascii_as_felt(chain_id.0.as_str())?)
@@ -520,7 +512,7 @@ fn get_declare_transaction_v2_hash(
     ))
 }
 
-fn get_declare_transaction_v3_hash(
+pub(crate) fn get_declare_transaction_v3_hash(
     transaction: &DeclareTransactionV3,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -554,7 +546,7 @@ fn get_declare_transaction_v3_hash(
     ))
 }
 
-fn get_deploy_account_transaction_v1_hash(
+pub(crate) fn get_deploy_account_transaction_v1_hash(
     transaction: &DeployAccountTransactionV1,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
@@ -577,7 +569,7 @@ fn get_deploy_account_transaction_v1_hash(
         .chain(&DEPLOY_ACCOUNT)
         .chain(&transaction_version.0)
         .chain(contract_address.0.key())
-        .chain(&ZERO) // No entry point selector in deploy account transaction.
+        .chain(&StarkFelt::ZERO) // No entry point selector in deploy account transaction.
         .chain(&calldata_hash)
         .chain(&transaction.max_fee.0.into())
         .chain(&ascii_as_felt(chain_id.0.as_str())?)
@@ -586,7 +578,7 @@ fn get_deploy_account_transaction_v1_hash(
     ))
 }
 
-fn get_deploy_account_transaction_v3_hash(
+pub(crate) fn get_deploy_account_transaction_v3_hash(
     transaction: &DeployAccountTransactionV3,
     chain_id: &ChainId,
     transaction_version: &TransactionVersion,
