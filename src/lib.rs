@@ -8,6 +8,7 @@ pub mod crypto;
 pub mod data_availability;
 pub mod deprecated_contract_class;
 pub mod hash;
+pub mod patricia_hash;
 pub mod serde_utils;
 pub mod state;
 pub mod transaction;
