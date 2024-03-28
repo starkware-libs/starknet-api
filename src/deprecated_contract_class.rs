@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::num::ParseIntError;
 
 use cairo_lang_starknet_classes::casm_contract_class::CasmContractEntryPoint;
+use itertools::Itertools;
 use serde::de::Error as DeserializationError;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
@@ -23,38 +25,66 @@ pub struct ContractClass {
 }
 
 /// A [ContractClass](`crate::deprecated_contract_class::ContractClass`) abi entry.
+// Using untagged so the serialization will be sorted by the keys (the default behavior of Serde for
+// untagged enums). We care about the order of the fields in the serialization because it affects
+// the class hash calculation.
 #[derive(Debug, Clone, Eq, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-#[serde(tag = "type")]
+#[serde(deny_unknown_fields, untagged)]
 pub enum ContractClassAbiEntry {
-    #[serde(rename = "event")]
+    Constructor(FunctionAbiEntry<ConstructorType>),
     Event(EventAbiEntry),
-    #[serde(rename = "function")]
-    Function(FunctionAbiEntry),
-    #[serde(rename = "constructor")]
-    Constructor(FunctionAbiEntry),
-    #[serde(rename = "l1_handler")]
-    L1Handler(FunctionAbiEntry),
-    #[serde(rename = "struct")]
+    Function(FunctionAbiEntry<FunctionType>),
+    L1Handler(FunctionAbiEntry<L1HandlerType>),
     Struct(StructAbiEntry),
 }
 
 /// An event abi entry.
+// The members of the struct are sorted lexicographically for correct hash computation.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct EventAbiEntry {
-    pub name: String,
-    pub keys: Vec<TypedParameter>,
     pub data: Vec<TypedParameter>,
+    pub keys: Vec<TypedParameter>,
+    pub name: String,
+    pub r#type: EventType,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum EventType {
+    #[default]
+    Event,
 }
 
 /// A function abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
-pub struct FunctionAbiEntry {
-    pub name: String,
+pub struct FunctionAbiEntry<TYPE> {
     pub inputs: Vec<TypedParameter>,
+    pub name: String,
     pub outputs: Vec<TypedParameter>,
     #[serde(rename = "stateMutability", default, skip_serializing_if = "Option::is_none")]
     pub state_mutability: Option<FunctionStateMutability>,
+    pub r#type: TYPE,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FunctionType {
+    #[default]
+    Function,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ConstructorType {
+    #[default]
+    Constructor,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum L1HandlerType {
+    #[default]
+    L1Handler,
 }
 
 /// A function state mutability.
@@ -68,17 +98,26 @@ pub enum FunctionStateMutability {
 /// A struct abi entry.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StructAbiEntry {
+    pub members: Vec<StructMember>,
     pub name: String,
     pub size: usize,
-    pub members: Vec<StructMember>,
+    pub r#type: StructType,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StructType {
+    #[default]
+    Struct,
 }
 
 /// A struct member for [StructAbiEntry](`crate::deprecated_contract_class::StructAbiEntry`).
+// The members of the struct are sorted lexicographically for correct hash computation.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct StructMember {
-    #[serde(flatten)]
-    pub param: TypedParameter,
+    pub name: String,
     pub offset: usize,
+    pub r#type: String,
 }
 
 /// A program corresponding to a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
@@ -92,11 +131,36 @@ pub struct Program {
     pub data: serde_json::Value,
     #[serde(default)]
     pub debug_info: serde_json::Value,
+    #[serde(serialize_with = "serialize_hints_sorted")]
     pub hints: serde_json::Value,
     pub identifiers: serde_json::Value,
     pub main_scope: serde_json::Value,
     pub prime: serde_json::Value,
     pub reference_manager: serde_json::Value,
+}
+
+// Serialize hints as a sorted mapping for correct hash computation.
+fn serialize_hints_sorted<S>(hints: &serde_json::Value, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    if hints.is_null() {
+        return serializer.serialize_none();
+    }
+    let hints_map =
+        hints.as_object().ok_or(serde::ser::Error::custom("Hints are not a mapping."))?;
+    serializer.collect_map(
+        hints_map
+            .iter()
+            // Parse the keys as integers and sort them.
+            .map(|(k, v)| Ok((k.parse::<u32>()?, v)))
+            .collect::<Result<Vec<_>, ParseIntError>>()
+            .map_err(serde::ser::Error::custom)?
+            .iter()
+            .sorted_by_key(|(k, _v)| *k)
+            // Convert the keys back to strings.
+            .map(|(k, v)| (k.to_string(), v)),
+    )
 }
 
 /// An entry point type of a [ContractClass](`crate::deprecated_contract_class::ContractClass`).
