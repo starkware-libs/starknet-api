@@ -1,7 +1,9 @@
 use assert_matches::assert_matches;
 use serde::Deserialize;
 
-use crate::deprecated_contract_class::{ContractClassAbiEntry, FunctionAbiEntry, TypedParameter};
+use crate::deprecated_contract_class::{
+    ConstructorType, ContractClassAbiEntry, FunctionAbiEntry, TypedParameter,
+};
 use crate::serde_utils::{
     bytes_from_hex_str, deserialize_optional_contract_class_abi_entry_vector, hex_str_from_bytes,
     BytesAsHex, InnerDeserializationError,
@@ -142,7 +144,9 @@ fn deserialize_valid_optional_contract_class_abi_entry_vector() {
     assert_eq!(
         res,
         DummyContractClass {
-            abi: Some(vec![ContractClassAbiEntry::Constructor(FunctionAbiEntry {
+            abi: Some(vec![ContractClassAbiEntry::Constructor(FunctionAbiEntry::<
+                ConstructorType,
+            > {
                 name: "constructor".to_string(),
                 inputs: vec![TypedParameter {
                     name: "implementation".to_string(),
@@ -150,6 +154,7 @@ fn deserialize_valid_optional_contract_class_abi_entry_vector() {
                 }],
                 outputs: vec![],
                 state_mutability: None,
+                r#type: ConstructorType::Constructor,
             },)])
         }
     );
