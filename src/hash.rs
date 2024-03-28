@@ -6,9 +6,9 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
-use starknet_crypto::{
-    pedersen_hash as starknet_crypto_pedersen_hash, poseidon_hash_many, FieldElement,
-};
+use starknet_crypto::{poseidon_hash_many, FieldElement};
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::{Pedersen, StarkHash as StarknetTypesStarkHash};
 
 use crate::serde_utils::{bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, PrefixedBytesAsHex};
 use crate::{impl_from_through_intermediate, StarknetApiError};
@@ -27,20 +27,17 @@ pub type StarkHash = StarkFelt;
 /// Computes Pedersen hash using STARK curve on two elements, as defined
 /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#pedersen_hash.>
 pub fn pedersen_hash(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash {
-    StarkFelt::from(starknet_crypto_pedersen_hash(
-        &FieldElement::from(*felt0),
-        &FieldElement::from(*felt1),
-    ))
+    Pedersen::hash(&Felt::from(felt0), &Felt::from(felt1)).into()
 }
 
 /// Computes Pedersen hash using STARK curve on an array of elements, as defined
 /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
 pub fn pedersen_hash_array(felts: &[StarkFelt]) -> StarkHash {
-    let current_hash = felts
-        .iter()
-        .fold(StarkFelt::from(0_u8), |current_hash, felt| pedersen_hash(&current_hash, felt));
-    let data_len = StarkFelt::from(u128::try_from(felts.len()).expect("Got 2^128 felts or more."));
-    pedersen_hash(&current_hash, &data_len)
+    let current_hash = felts.iter().fold(Felt::from(0_u8), |current_hash, stark_felt| {
+        Pedersen::hash(&current_hash, &Felt::from(stark_felt))
+    });
+    let data_len = Felt::from(u128::try_from(felts.len()).expect("Got 2^128 felts or more."));
+    Pedersen::hash(&current_hash, &data_len).into()
 }
 
 /// A Poseidon hash.
@@ -181,7 +178,7 @@ impl StarkFelt {
         Some(Self(res))
     }
 
-    pub fn bytes(&self) -> &[u8] {
+    pub fn bytes(&self) -> &[u8; 32] {
         &self.0
     }
 
@@ -214,6 +211,19 @@ impl From<u128> for StarkFelt {
 }
 
 impl_from_through_intermediate!(u128, StarkFelt, u8, u16, u32, u64);
+
+impl From<Felt> for StarkFelt {
+    fn from(felt: Felt) -> Self {
+        // Should not fail.
+        Self::new(felt.to_bytes_be()).expect("Convert Felt to StarkFelt.")
+    }
+}
+
+impl From<&StarkFelt> for Felt {
+    fn from(felt: &StarkFelt) -> Self {
+        Self::from_bytes_be(&felt.0)
+    }
+}
 
 impl From<FieldElement> for StarkFelt {
     fn from(fe: FieldElement) -> Self {
