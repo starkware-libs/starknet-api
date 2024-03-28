@@ -6,9 +6,9 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
-use starknet_crypto::{poseidon_hash_many, FieldElement};
+use starknet_crypto::FieldElement;
 use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::{Pedersen, StarkHash as StarknetTypesStarkHash};
+use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as StarknetTypesStarkHash};
 
 use crate::serde_utils::{bytes_from_hex_str, hex_str_from_bytes, BytesAsHex, PrefixedBytesAsHex};
 use crate::{impl_from_through_intermediate, StarknetApiError};
@@ -53,10 +53,10 @@ impl Display for PoseidonHash {
 }
 
 /// Computes Poseidon hash.
-pub fn poseidon_hash_array(felts: &[StarkFelt]) -> PoseidonHash {
-    // TODO(yair): Avoid allocating the vector of FieldElements.
-    let as_field_elements = felts.iter().map(|felt| FieldElement::from(*felt)).collect::<Vec<_>>();
-    PoseidonHash(poseidon_hash_many(as_field_elements.as_slice()).into())
+pub fn poseidon_hash_array(stark_felts: &[StarkFelt]) -> PoseidonHash {
+    // TODO(yair): Avoid allocating the vector of Felts.
+    let as_felts = stark_felts.iter().map(Felt::from).collect::<Vec<_>>();
+    PoseidonHash(Poseidon::hash_array(as_felts.as_slice()).into())
 }
 
 // TODO: Move to a different crate.
