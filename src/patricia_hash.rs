@@ -17,17 +17,17 @@
 //!
 //! Hash of a node depends on the number of edges coming out of it:
 //! - A leaf: The hash is the input value of its key.
-//! - A single edge: pedersen_hash(child_hash, edge_mark) + edge_length.
-//! - '0' and '1' edges: pedersen_hash(zero_child_hash, one_child_hash).
+//! - A single edge: poseidon_hash(child_hash, edge_mark) + edge_length.
+//! - '0' and '1' edges: poseidon_hash(zero_child_hash, one_child_hash).
 
 #[cfg(test)]
 #[path = "patricia_hash_test.rs"]
 mod patricia_hash_test;
 
 use bitvec::prelude::{BitArray, Msb0};
-use starknet_crypto::FieldElement;
+use starknet_types_core::felt::Felt;
 
-use crate::hash::{pedersen_hash, StarkFelt};
+use crate::hash::{poseidon_hash, StarkFelt};
 
 const TREE_HEIGHT: u8 = 64;
 type BitPath = BitArray<[u8; 8], Msb0>;
@@ -90,8 +90,8 @@ fn get_hash(sub_tree: SubTree<'_>) -> StarkFelt {
 fn get_edge_hash(sub_tree: SubTree<'_>, n_zeros: u8) -> StarkFelt {
     let child_hash =
         get_hash(SubTree { leaves: sub_tree.leaves, height: sub_tree.height + n_zeros });
-    let child_and_path_hash = pedersen_hash(&child_hash, &StarkFelt::ZERO);
-    StarkFelt::from(FieldElement::from(child_and_path_hash) + FieldElement::from(n_zeros))
+    let child_and_path_hash = poseidon_hash(&child_hash, &StarkFelt::ZERO);
+    StarkFelt::from(Felt::from(&child_and_path_hash.0) + Felt::from(n_zeros))
 }
 
 // Hash on both sides: starts with '0' bit and starts with '1' bit.
@@ -105,7 +105,7 @@ fn get_binary_hash(sub_tree: SubTree<'_>, partition_point: usize) -> StarkFelt {
         leaves: &sub_tree.leaves[partition_point..],
         height: sub_tree.height + 1,
     });
-    pedersen_hash(&zero_hash, &one_hash)
+    poseidon_hash(&zero_hash, &one_hash).0
 }
 
 // Returns the manner the keys of a subtree are splitting: some keys start with '1' or all keys
