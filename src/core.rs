@@ -9,6 +9,7 @@ use once_cell::sync::Lazy;
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 use starknet_crypto::FieldElement;
+use starknet_types_core::felt::Felt;
 
 use crate::crypto::PublicKey;
 use crate::hash::{pedersen_hash_array, PoseidonHash, StarkFelt, StarkHash};
@@ -18,11 +19,11 @@ use crate::{impl_from_through_intermediate, StarknetApiError};
 
 /// A chain id.
 #[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct ChainId(pub String);
+pub struct ChainId(pub Felt);
 
 impl ChainId {
     pub fn as_hex(&self) -> String {
-        format!("0x{}", hex::encode(&self.0))
+        format!("0x{}", hex::encode(self.0.to_string()))
     }
 }
 
