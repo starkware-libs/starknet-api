@@ -4,9 +4,35 @@ use crate::hash::StarkFelt;
 use crate::StarknetApiError;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(try_from = "Deserializer")]
 pub enum DataAvailabilityMode {
     L1 = 0,
     L2 = 1,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum Deserializer {
+    Num(u8),
+    Text(String),
+}
+
+impl TryFrom<Deserializer> for DataAvailabilityMode {
+    type Error = StarknetApiError;
+
+    fn try_from(value: Deserializer) -> Result<Self, Self::Error> {
+        match value {
+            Deserializer::Num(0_u8) => Ok(DataAvailabilityMode::L1),
+            Deserializer::Num(1_u8) => Ok(DataAvailabilityMode::L2),
+            Deserializer::Text(text) if &text == "L1" => Ok(DataAvailabilityMode::L1),
+            Deserializer::Text(text) if &text == "L2" => Ok(DataAvailabilityMode::L2),
+            _ => Err(StarknetApiError::OutOfRange {
+                string: "Data availability must be either 'L1' or '0' for L1, or 'L2' or '1' for \
+                         L2."
+                .to_string(),
+            }),
+        }
+    }
 }
 
 impl TryFrom<StarkFelt> for DataAvailabilityMode {
