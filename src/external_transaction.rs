@@ -158,3 +158,12 @@ pub enum DataAvailabilityMode {
     L1 = 0,
     L2 = 1,
 }
+
+impl Into<crate::data_availability::DataAvailabilityMode> for DataAvailabilityMode {
+    fn into(self) -> crate::data_availability::DataAvailabilityMode {
+        match self {
+            DataAvailabilityMode::L1 => crate::data_availability::DataAvailabilityMode::L1,
+            DataAvailabilityMode::L2 => crate::data_availability::DataAvailabilityMode::L2,
+        }
+    }
+}
