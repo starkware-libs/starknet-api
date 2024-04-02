@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
+use crate::data_availability::DataAvailabilityMode as InternalDataAvailabilityMode;
 use crate::state::{EntryPoint, EntryPointType};
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBoundsMapping,
@@ -156,4 +157,13 @@ pub struct ContractClass {
 pub enum DataAvailabilityMode {
     L1 = 0,
     L2 = 1,
+}
+
+impl From<DataAvailabilityMode> for InternalDataAvailabilityMode {
+    fn from(val: DataAvailabilityMode) -> Self {
+        match val {
+            DataAvailabilityMode::L1 => InternalDataAvailabilityMode::L1,
+            DataAvailabilityMode::L2 => InternalDataAvailabilityMode::L2,
+        }
+    }
 }
