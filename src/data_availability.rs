@@ -10,6 +10,10 @@ pub enum DataAvailabilityMode {
     L2 = 1,
 }
 
+/// Deserialize a `DataAvailabilityMode` from a given `Deserializer`.
+///
+/// This implementation supports deserializing the `DataAvailabilityMode` enum from both numerical
+/// and textual representations.
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum Deserializer {
