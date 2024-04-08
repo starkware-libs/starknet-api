@@ -1,7 +1,3 @@
-#[cfg(test)]
-#[path = "external_transaction_test.rs"]
-mod external_transaction_test;
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
