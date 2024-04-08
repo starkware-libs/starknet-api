@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::core::{
-    calculate_contract_address, ClassHash, CompiledClassHash, ContractAddress, Nonce,
+    calculate_contract_address, ChainId, ClassHash, CompiledClassHash, ContractAddress, Nonce,
 };
 use crate::data_availability::DataAvailabilityMode;
 use crate::internal_transaction::{
@@ -13,7 +13,7 @@ use crate::internal_transaction::{
 use crate::state::{ContractClass as InternalContractClass, EntryPoint, EntryPointType};
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBoundsMapping,
-    Tip, TransactionHash, TransactionSignature,
+    Tip, TransactionHasher, TransactionSignature, TransactionVersion,
 };
 
 /// An external transaction.
@@ -128,43 +128,47 @@ pub struct ContractClass {
 }
 
 impl ExternalTransaction {
-    pub fn into_internal(self) -> InternalTransaction {
+    pub fn into_internal(self, chain_id: &ChainId) -> InternalTransaction {
         match self {
-            ExternalTransaction::Declare(tx) => InternalTransaction::Declare(tx.into_internal()),
-            ExternalTransaction::DeployAccount(tx) => {
-                InternalTransaction::DeployAccount(tx.into_internal())
+            ExternalTransaction::Declare(tx) => {
+                InternalTransaction::Declare(tx.into_internal(chain_id))
             }
-            ExternalTransaction::Invoke(tx) => InternalTransaction::Invoke(tx.into_internal()),
+            ExternalTransaction::DeployAccount(tx) => {
+                InternalTransaction::DeployAccount(tx.into_internal(chain_id))
+            }
+            ExternalTransaction::Invoke(tx) => {
+                InternalTransaction::Invoke(tx.into_internal(chain_id))
+            }
         }
     }
 }
 
 impl ExternalDeclareTransaction {
-    pub fn into_internal(self) -> InternalDeclareTransaction {
+    pub fn into_internal(self, chain_id: &ChainId) -> InternalDeclareTransaction {
         match self {
-            ExternalDeclareTransaction::V3(tx) => tx.into_internal(),
+            ExternalDeclareTransaction::V3(tx) => tx.into_internal(chain_id),
         }
     }
 }
 
 impl ExternalDeployAccountTransaction {
-    pub fn into_internal(self) -> InternalDeployAccountTransaction {
+    pub fn into_internal(self, chain_id: &ChainId) -> InternalDeployAccountTransaction {
         match self {
-            ExternalDeployAccountTransaction::V3(tx) => tx.into_internal(),
+            ExternalDeployAccountTransaction::V3(tx) => tx.into_internal(chain_id),
         }
     }
 }
 
 impl ExternalInvokeTransaction {
-    fn into_internal(self) -> InternalInvokeTransaction {
+    fn into_internal(self, chain_id: &ChainId) -> InternalInvokeTransaction {
         match self {
-            ExternalInvokeTransaction::V3(tx) => tx.into_internal(),
+            ExternalInvokeTransaction::V3(tx) => tx.into_internal(chain_id),
         }
     }
 }
 
 impl ExternalDeclareTransactionV3 {
-    fn into_internal(self) -> InternalDeclareTransaction {
+    fn into_internal(self, chain_id: &ChainId) -> InternalDeclareTransaction {
         let class_hash = calculate_class_hash();
 
         let tx =
@@ -182,8 +186,7 @@ impl ExternalDeclareTransactionV3 {
                 account_deployment_data: self.account_deployment_data,
             });
 
-        let tx_hash = calculate_transction_hash();
-
+        let tx_hash = tx.calculate_transaction_hash(chain_id, &TransactionVersion::THREE).unwrap();
         InternalDeclareTransaction {
             tx,
             tx_hash,
@@ -200,7 +203,7 @@ impl ExternalDeclareTransactionV3 {
 }
 
 impl ExternalDeployAccountTransactionV3 {
-    fn into_internal(self) -> InternalDeployAccountTransaction {
+    fn into_internal(self, chain_id: &ChainId) -> InternalDeployAccountTransaction {
         let tx = crate::transaction::DeployAccountTransaction::V3(
             crate::transaction::DeployAccountTransactionV3 {
                 resource_bounds: self.resource_bounds,
@@ -216,7 +219,7 @@ impl ExternalDeployAccountTransactionV3 {
             },
         );
 
-        let tx_hash = calculate_transction_hash();
+        let tx_hash = tx.calculate_transaction_hash(chain_id, &TransactionVersion::THREE).unwrap();
         let contract_address = calculate_contract_address(
             self.contract_address_salt,
             self.class_hash,
@@ -230,7 +233,7 @@ impl ExternalDeployAccountTransactionV3 {
 }
 
 impl ExternalInvokeTransactionV3 {
-    fn into_internal(self) -> InternalInvokeTransaction {
+    fn into_internal(self, chain_id: &ChainId) -> InternalInvokeTransaction {
         let tx =
             crate::transaction::InvokeTransaction::V3(crate::transaction::InvokeTransactionV3 {
                 resource_bounds: self.resource_bounds,
@@ -244,8 +247,8 @@ impl ExternalInvokeTransactionV3 {
                 paymaster_data: self.paymaster_data,
                 account_deployment_data: self.account_deployment_data,
             });
-        let tx_hash = calculate_transction_hash();
 
+        let tx_hash = tx.calculate_transaction_hash(chain_id, &TransactionVersion::THREE).unwrap();
         InternalInvokeTransaction { tx, tx_hash, only_query: false }
     }
 }
@@ -253,9 +256,4 @@ impl ExternalInvokeTransactionV3 {
 fn calculate_class_hash() -> ClassHash {
     // TODO: add class hash calculation.
     ClassHash::default()
-}
-
-fn calculate_transction_hash() -> TransactionHash {
-    // TODO: add transaction hash calculation.
-    TransactionHash::default()
 }
