@@ -29,22 +29,14 @@ pub enum ExternalTransaction {
     Invoke(ExternalInvokeTransaction),
 }
 
-/// A deploy account transaction that can be added to Starknet through the Starknet gateway.
+/// A declare transaction that can be added to Starknet through the Starknet gateway.
 /// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
 /// HTTP method.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ExternalDeployAccountTransactionV3 {
-    pub resource_bounds: ResourceBoundsMapping,
-    pub tip: Tip,
-    pub contract_address_salt: ContractAddressSalt,
-    pub class_hash: ClassHash,
-    pub constructor_calldata: Calldata,
-    pub nonce: Nonce,
-    pub signature: TransactionSignature,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
-    pub paymaster_data: PaymasterData,
+#[serde(tag = "version")]
+pub enum ExternalDeclareTransaction {
+    #[serde(rename = "0x3")]
+    V3(ExternalDeclareTransactionV3),
 }
 
 /// A deploy account transaction that can be added to Starknet through the Starknet gateway.
@@ -55,25 +47,6 @@ pub struct ExternalDeployAccountTransactionV3 {
 pub enum ExternalDeployAccountTransaction {
     #[serde(rename = "0x3")]
     V3(ExternalDeployAccountTransactionV3),
-}
-
-/// An invoke account transaction that can be added to Starknet through the Starknet gateway.
-/// The invoke is a V3 transaction.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct ExternalInvokeTransactionV3 {
-    pub resource_bounds: ResourceBoundsMapping,
-    pub tip: Tip,
-    pub calldata: Calldata,
-    pub sender_address: ContractAddress,
-    pub nonce: Nonce,
-    pub signature: TransactionSignature,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
-    pub paymaster_data: PaymasterData,
-    pub account_deployment_data: AccountDeploymentData,
 }
 
 /// An invoke transaction that can be added to Starknet through the Starknet gateway.
@@ -106,14 +79,41 @@ pub struct ExternalDeclareTransactionV3 {
     pub account_deployment_data: AccountDeploymentData,
 }
 
-/// A declare transaction that can be added to Starknet through the Starknet gateway.
+/// A deploy account transaction that can be added to Starknet through the Starknet gateway.
 /// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
 /// HTTP method.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(tag = "version")]
-pub enum ExternalDeclareTransaction {
-    #[serde(rename = "0x3")]
-    V3(ExternalDeclareTransactionV3),
+#[serde(deny_unknown_fields)]
+pub struct ExternalDeployAccountTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub contract_address_salt: ContractAddressSalt,
+    pub class_hash: ClassHash,
+    pub constructor_calldata: Calldata,
+    pub nonce: Nonce,
+    pub signature: TransactionSignature,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+}
+
+/// An invoke account transaction that can be added to Starknet through the Starknet gateway.
+/// The invoke is a V3 transaction.
+/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
+/// HTTP method.
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExternalInvokeTransactionV3 {
+    pub resource_bounds: ResourceBoundsMapping,
+    pub tip: Tip,
+    pub calldata: Calldata,
+    pub sender_address: ContractAddress,
+    pub nonce: Nonce,
+    pub signature: TransactionSignature,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
+    pub paymaster_data: PaymasterData,
+    pub account_deployment_data: AccountDeploymentData,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
