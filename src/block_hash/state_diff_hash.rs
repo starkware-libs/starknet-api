@@ -1,9 +1,10 @@
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
+use starknet_types_core::felt::Felt;
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
-use crate::hash::{PoseidonHash, StarkFelt};
+use crate::hash::PoseidonHash;
 use crate::state::{StorageKey, ThinStateDiff};
 use crate::transaction_hash::ascii_as_felt;
 
@@ -11,7 +12,7 @@ use crate::transaction_hash::ascii_as_felt;
 #[path = "state_diff_hash_test.rs"]
 mod state_diff_hash_test;
 
-static STARKNET_STATE_DIFF0: Lazy<StarkFelt> = Lazy::new(|| {
+static STARKNET_STATE_DIFF0: Lazy<Felt> = Lazy::new(|| {
     ascii_as_felt("STARKNET_STATE_DIFF0").expect("ascii_as_felt failed for 'STARKNET_STATE_DIFF0'")
 });
 
@@ -30,8 +31,8 @@ pub fn calculate_state_diff_hash(state_diff: &ThinStateDiff) -> StateDiffCommitm
     hash_chain = chain_declared_classes(&state_diff.declared_classes, hash_chain);
     hash_chain =
         chain_deprecated_declared_classes(&state_diff.deprecated_declared_classes, hash_chain);
-    hash_chain = hash_chain.chain(&StarkFelt::ONE) // placeholder.
-        .chain(&StarkFelt::ZERO); // placeholder.
+    hash_chain = hash_chain.chain(&Felt::ONE) // placeholder.
+        .chain(&Felt::ZERO); // placeholder.
     hash_chain = chain_storage_diffs(&state_diff.storage_diffs, hash_chain);
     hash_chain = chain_nonces(&state_diff.nonces, hash_chain);
     StateDiffCommitment(PoseidonHash(hash_chain.get_poseidon_hash()))
@@ -82,7 +83,7 @@ fn chain_deprecated_declared_classes(
 //      contract_address_1, number_of_updates_in_contract_1, key_0, value0, key1, value1, ...,
 // ]
 fn chain_storage_diffs(
-    storage_diffs: &IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
+    storage_diffs: &IndexMap<ContractAddress, IndexMap<StorageKey, Felt>>,
     hash_chain: HashChain,
 ) -> HashChain {
     let mut n_updated_contracts = 0_u64;

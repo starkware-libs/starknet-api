@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use indexmap::indexmap;
 use primitive_types::H160;
+use starknet_types_core::felt::Felt;
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EthAddress, Nonce};
-use crate::hash::StarkFelt;
 use crate::state::ThinStateDiff;
 use crate::transaction::{
     Builtin, ExecutionResources, Fee, L2ToL1Payload, MessageToL1,
@@ -36,7 +36,7 @@ pub(crate) fn generate_message_to_l1(seed: u64) -> MessageToL1 {
     MessageToL1 {
         from_address: ContractAddress::from(seed),
         to_address: EthAddress(H160::from_low_u64_be(seed + 1)),
-        payload: L2ToL1Payload(vec![StarkFelt::from(seed + 2), StarkFelt::from(seed + 3)]),
+        payload: L2ToL1Payload(vec![Felt::from(seed + 2), Felt::from(seed + 3)]),
     }
 }
 

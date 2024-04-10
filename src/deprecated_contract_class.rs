@@ -8,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::core::EntryPointSelector;
+use crate::hash::StarkHash;
 use crate::serde_utils::deserialize_optional_contract_class_abi_entry_vector;
 use crate::StarknetApiError;
 
@@ -193,7 +194,7 @@ impl TryFrom<CasmContractEntryPoint> for EntryPoint {
 
     fn try_from(value: CasmContractEntryPoint) -> Result<Self, Self::Error> {
         Ok(EntryPoint {
-            selector: EntryPointSelector(value.selector.to_str_radix(16).as_str().try_into()?),
+            selector: EntryPointSelector(StarkHash::from(value.selector)),
             offset: EntryPointOffset(value.offset),
         })
     }

@@ -1,4 +1,6 @@
 use once_cell::sync::Lazy;
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::Poseidon;
 
 use super::event_commitment::{calculate_events_commitment, EventLeafElement};
 use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
@@ -8,7 +10,6 @@ use crate::block::{BlockHash, BlockHeaderWithoutHash, GasPricePerToken};
 use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
 use crate::crypto::utils::HashChain;
 use crate::data_availability::L1DataAvailabilityMode;
-use crate::hash::{PoseidonHashCalculator, StarkFelt};
 use crate::state::ThinStateDiff;
 use crate::transaction::{
     TransactionHash, TransactionOutputCommon, TransactionSignature, TransactionVersion,
@@ -19,7 +20,7 @@ use crate::transaction_hash::ascii_as_felt;
 #[path = "block_hash_calculator_test.rs"]
 mod block_hash_calculator_test;
 
-static STARKNET_BLOCK_HASH0: Lazy<StarkFelt> = Lazy::new(|| {
+static STARKNET_BLOCK_HASH0: Lazy<Felt> = Lazy::new(|| {
     ascii_as_felt("STARKNET_BLOCK_HASH0").expect("ascii_as_felt failed for 'STARKNET_BLOCK_HASH0'")
 });
 
@@ -36,7 +37,7 @@ pub struct BlockHeaderCommitments {
     pub events_commitment: EventCommitment,
     pub receipts_commitment: ReceiptCommitment,
     pub state_diff_commitment: StateDiffCommitment,
-    pub concatenated_counts: StarkFelt,
+    pub concatenated_counts: Felt,
 }
 
 /// Poseidon (
@@ -66,7 +67,7 @@ pub fn calculate_block_hash(
             .chain(&header.l1_data_gas_price.price_in_wei.0.into())
             .chain(&header.l1_data_gas_price.price_in_fri.0.into())
             .chain(&ascii_as_felt(&header.starknet_version.0).expect("Expect ASCII version"))
-            .chain(&StarkFelt::ZERO)
+            .chain(&Felt::ZERO)
             .chain(&header.parent_hash.0)
             .get_poseidon_hash(),
     )
@@ -83,7 +84,7 @@ pub fn calculate_block_commitments(
     let transaction_leaf_elements: Vec<TransactionLeafElement> =
         transactions_data.iter().map(TransactionLeafElement::from).collect();
     let transactions_commitment =
-        calculate_transactions_commitment::<PoseidonHashCalculator>(&transaction_leaf_elements);
+        calculate_transactions_commitment::<Poseidon>(&transaction_leaf_elements);
 
     let event_leaf_elements: Vec<EventLeafElement> = transactions_data
         .iter()
@@ -94,12 +95,11 @@ pub fn calculate_block_commitments(
             })
         })
         .collect();
-    let events_commitment =
-        calculate_events_commitment::<PoseidonHashCalculator>(&event_leaf_elements);
+    let events_commitment = calculate_events_commitment::<Poseidon>(&event_leaf_elements);
 
     let receipt_elements: Vec<ReceiptElement> =
         transactions_data.iter().map(ReceiptElement::from).collect();
-    let receipts_commitment = calculate_receipt_commitment::<PoseidonHashCalculator>(
+    let receipts_commitment = calculate_receipt_commitment::<Poseidon>(
         &receipt_elements,
         l1_data_gas_price_per_token,
         l1_gas_price_per_token,
@@ -129,7 +129,7 @@ fn concat_counts(
     event_count: usize,
     state_diff_length: usize,
     l1_data_availability_mode: L1DataAvailabilityMode,
-) -> StarkFelt {
+) -> Felt {
     let l1_data_availability_byte: u8 = match l1_data_availability_mode {
         L1DataAvailabilityMode::Calldata => 0,
         L1DataAvailabilityMode::Blob => 0b10000000,
@@ -142,7 +142,7 @@ fn concat_counts(
         &[0_u8; 7], // zero padding
     ]
     .concat();
-    StarkFelt::new_unchecked(concat_bytes.try_into().expect("Expect 32 bytes"))
+    Felt::from_bytes_be_slice(concat_bytes.as_slice())
 }
 
 fn to_64_bits(num: usize) -> [u8; 8] {
