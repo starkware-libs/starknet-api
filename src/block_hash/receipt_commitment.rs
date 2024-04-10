@@ -1,8 +1,11 @@
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::StarkHash;
+
 use crate::block::{GasPrice, GasPricePerToken};
 use crate::core::ReceiptCommitment;
 use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
-use crate::hash::{starknet_keccak_hash, HashFunction, StarkFelt};
+use crate::hash::{starknet_keccak_hash};
 use crate::transaction::{
     ExecutionResources, Fee, MessageToL1, TransactionExecutionStatus, TransactionReceipt,
     TransactionVersion,
@@ -13,7 +16,7 @@ use crate::transaction::{
 mod receipt_commitment_test;
 
 /// Returns the root of a Patricia tree where each leaf is a receipt hash.
-pub fn calculate_receipt_commitment<H: HashFunction>(
+pub fn calculate_receipt_commitment<H: StarkHash>(
     transactions_receipt: &[TransactionReceipt],
     transaction_version: &TransactionVersion,
     l1_data_gas_price_per_token: GasPricePerToken,
@@ -43,7 +46,7 @@ fn calculate_receipt_hash(
     transaction_version: &TransactionVersion,
     l1_data_gas_price_per_token: GasPricePerToken,
     l1_gas_price_per_token: GasPricePerToken,
-) -> StarkFelt {
+) -> Felt {
     let l1_gas_price = get_price_by_version(l1_gas_price_per_token, transaction_version);
     let l1_data_gas_price = get_price_by_version(l1_data_gas_price_per_token, transaction_version);
     let hash_chain = HashChain::new()
@@ -66,7 +69,7 @@ fn calculate_receipt_hash(
 //      from_address_0, to_address_0, payload_length_0, payload_0,
 //      from_address_1, to_address_1, payload_length_1, payload_1, ...
 // ).
-fn calculate_messages_sent_hash(messages_sent: &Vec<MessageToL1>) -> StarkFelt {
+fn calculate_messages_sent_hash(messages_sent: &Vec<MessageToL1>) -> Felt {
     let mut messages_hash_chain = HashChain::new().chain(&messages_sent.len().into());
     for message_sent in messages_sent {
         messages_hash_chain = messages_hash_chain
@@ -78,9 +81,9 @@ fn calculate_messages_sent_hash(messages_sent: &Vec<MessageToL1>) -> StarkFelt {
 }
 
 // Returns starknet-keccak of the revert reason ASCII string, or 0 if the transaction succeeded.
-fn get_revert_reason_hash(execution_status: &TransactionExecutionStatus) -> StarkFelt {
+fn get_revert_reason_hash(execution_status: &TransactionExecutionStatus) -> Felt {
     match execution_status {
-        TransactionExecutionStatus::Succeeded => StarkFelt::ZERO,
+        TransactionExecutionStatus::Succeeded => Felt::ZERO,
         TransactionExecutionStatus::Reverted(reason) => {
             starknet_keccak_hash(reason.revert_reason.as_bytes())
         }
@@ -104,7 +107,7 @@ fn chain_execution_resources(
         - (l1_data_gas_price.0) * u128::from(execution_resources.da_l1_data_gas_consumed))
         / l1_gas_price.0;
     hash_chain
-        .chain(&StarkFelt::ZERO) // L2 gas consumed
+        .chain(&Felt::ZERO) // L2 gas consumed
         .chain(&l1_gas_consumed.into())
         .chain(&execution_resources.da_l1_data_gas_consumed.into())
 }

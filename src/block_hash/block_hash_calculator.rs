@@ -1,5 +1,5 @@
+use starknet_types_core::felt::Felt;
 use crate::data_availability::L1DataAvailabilityMode;
-use crate::hash::StarkFelt;
 
 #[cfg(test)]
 #[path = "block_hash_calculator_test.rs"]
@@ -15,7 +15,7 @@ fn concat_counts(
     event_count: usize,
     state_diff_length: usize,
     l1_data_availability_mode: L1DataAvailabilityMode,
-) -> StarkFelt {
+) -> Felt {
     let l1_data_availability_byte: u8 = match l1_data_availability_mode {
         L1DataAvailabilityMode::Calldata => 0,
         L1DataAvailabilityMode::Blob => 0b10000000,
@@ -28,7 +28,7 @@ fn concat_counts(
         &[0_u8; 7], // zero padding
     ]
     .concat();
-    StarkFelt::new_unchecked(concat_bytes.try_into().expect("Expect 32 bytes"))
+    Felt::from_bytes_be_slice(concat_bytes.as_slice())
 }
 
 fn to_64_bits(num: usize) -> [u8; 8] {

@@ -8,11 +8,12 @@ use std::fmt::Debug;
 use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
+use starknet_types_core::felt::{Felt, NonZeroFelt};
+use starknet_types_core::hash::{Pedersen, StarkHash as CoreStarkHash};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use starknet_crypto::FieldElement;
 
 use crate::crypto::utils::PublicKey;
-use crate::hash::{pedersen_hash_array, PoseidonHash, StarkFelt, StarkHash};
+use crate::hash::{PoseidonHash, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
@@ -94,8 +95,8 @@ pub const BLOCK_HASH_TABLE_ADDRESS: ContractAddress = ContractAddress(PatriciaKe
 )]
 pub struct ContractAddress(pub PatriciaKey);
 
-impl From<ContractAddress> for StarkFelt {
-    fn from(contract_address: ContractAddress) -> StarkFelt {
+impl From<ContractAddress> for Felt {
+    fn from(contract_address: ContractAddress) -> Felt {
         **contract_address
     }
 }
@@ -113,13 +114,12 @@ pub const MAX_STORAGE_ITEM_SIZE: u16 = 256;
 /// The prefix used in the calculation of a contract address.
 pub const CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
 /// The size of the contract address domain.
-pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Lazy<StarkFelt> = Lazy::new(|| {
-    StarkFelt::try_from(PATRICIA_KEY_UPPER_BOUND)
-        .unwrap_or_else(|_| panic!("Failed to convert {PATRICIA_KEY_UPPER_BOUND} to StarkFelt"))
-});
+pub const CONTRACT_ADDRESS_DOMAIN_SIZE: Felt = Felt::from_hex_unchecked(PATRICIA_KEY_UPPER_BOUND);
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
-pub static L2_ADDRESS_UPPER_BOUND: Lazy<FieldElement> = Lazy::new(|| {
-    FieldElement::from(*CONTRACT_ADDRESS_DOMAIN_SIZE) - FieldElement::from(MAX_STORAGE_ITEM_SIZE)
+pub static L2_ADDRESS_UPPER_BOUND: Lazy<NonZeroFelt> = Lazy::new(|| {
+    NonZeroFelt::from_felt_unchecked(
+        CONTRACT_ADDRESS_DOMAIN_SIZE - Felt::from(MAX_STORAGE_ITEM_SIZE),
+    )
 });
 
 impl TryFrom<StarkHash> for ContractAddress {
@@ -136,18 +136,20 @@ pub fn calculate_contract_address(
     constructor_calldata: &Calldata,
     deployer_address: ContractAddress,
 ) -> Result<ContractAddress, StarknetApiError> {
-    let constructor_calldata_hash = pedersen_hash_array(&constructor_calldata.0);
+    let constructor_calldata_hash = Pedersen::hash_array(&constructor_calldata.0);
     let contract_address_prefix = format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX));
-    let mut address = FieldElement::from(pedersen_hash_array(&[
-        StarkFelt::try_from(contract_address_prefix.as_str())?,
+    let address = Pedersen::hash_array(&[
+        Felt::from_hex(contract_address_prefix.as_str()).map_err(|_| {
+            StarknetApiError::OutOfRange { string: contract_address_prefix.clone() }
+        })?,
         *deployer_address.0.key(),
         salt.0,
         class_hash.0,
         constructor_calldata_hash,
-    ]));
-    address = address % *L2_ADDRESS_UPPER_BOUND;
+    ]);
+    let (_, address) = address.div_rem(&L2_ADDRESS_UPPER_BOUND);
 
-    ContractAddress::try_from(StarkFelt::from(address))
+    ContractAddress::try_from(address)
 }
 
 /// The hash of a ContractClass.
@@ -200,17 +202,16 @@ pub struct CompiledClassHash(pub StarkHash);
     Ord,
     derive_more::Deref,
 )]
-pub struct Nonce(pub StarkFelt);
+pub struct Nonce(pub Felt);
 
 impl Nonce {
     pub fn try_increment(&self) -> Result<Self, StarknetApiError> {
-        let current_nonce = FieldElement::from(self.0);
-
         // Check if an overflow occurred during increment.
-        match StarkFelt::from(current_nonce + FieldElement::ONE) {
-            StarkFelt::ZERO => Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) }),
-            incremented_felt => Ok(Self(incremented_felt)),
+        let incremented = self.0 + Felt::ONE;
+        if incremented == Felt::ZERO {
+            return Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) });
         }
+        Ok(Self(incremented))
     }
 }
 
@@ -289,9 +290,7 @@ pub struct EventCommitment(pub StarkHash);
 )]
 pub struct ReceiptCommitment(pub StarkHash);
 
-#[derive(
-    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
-)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct StateDiffCommitment(pub PoseidonHash);
 
 /// A key for nodes of a Patricia tree.
@@ -323,7 +322,7 @@ impl PatriciaKey {
 
 impl From<u128> for PatriciaKey {
     fn from(val: u128) -> Self {
-        PatriciaKey::try_from(StarkFelt::from(val)).expect("Failed to convert u128 to PatriciaKey.")
+        PatriciaKey::try_from(Felt::from(val)).expect("Failed to convert u128 to PatriciaKey.")
     }
 }
 
@@ -333,7 +332,7 @@ impl TryFrom<StarkHash> for PatriciaKey {
     type Error = StarknetApiError;
 
     fn try_from(value: StarkHash) -> Result<Self, Self::Error> {
-        if value < *CONTRACT_ADDRESS_DOMAIN_SIZE {
+        if value < CONTRACT_ADDRESS_DOMAIN_SIZE {
             return Ok(PatriciaKey(value));
         }
         Err(StarknetApiError::OutOfRange { string: format!("[0x0, {PATRICIA_KEY_UPPER_BOUND})") })
@@ -351,7 +350,7 @@ impl Debug for PatriciaKey {
 #[macro_export]
 macro_rules! patricia_key {
     ($s:expr) => {
-        PatriciaKey::try_from(StarkHash::try_from($s).unwrap()).unwrap()
+        PatriciaKey::try_from(StarkHash::from_hex($s).unwrap()).unwrap()
     };
 }
 
@@ -360,7 +359,7 @@ macro_rules! patricia_key {
 #[macro_export]
 macro_rules! class_hash {
     ($s:expr) => {
-        ClassHash(StarkHash::try_from($s).unwrap())
+        ClassHash(StarkHash::from_hex($s).unwrap())
     };
 }
 
@@ -381,12 +380,13 @@ macro_rules! contract_address {
 #[serde(try_from = "PrefixedBytesAsHex<20_usize>", into = "PrefixedBytesAsHex<20_usize>")]
 pub struct EthAddress(pub H160);
 
-impl TryFrom<StarkFelt> for EthAddress {
+impl TryFrom<Felt> for EthAddress {
     type Error = StarknetApiError;
-    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
-        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<StarkFelt>() - H160::len_bytes();
+    fn try_from(felt: Felt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_H160: usize = std::mem::size_of::<Felt>() - H160::len_bytes();
 
-        let (rest, h160_bytes) = felt.bytes().split_at(COMPLIMENT_OF_H160);
+        let bytes = felt.to_bytes_be();
+        let (rest, h160_bytes) = bytes.split_at(COMPLIMENT_OF_H160);
         if rest != [0u8; COMPLIMENT_OF_H160] {
             return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
         }
@@ -395,12 +395,9 @@ impl TryFrom<StarkFelt> for EthAddress {
     }
 }
 
-impl From<EthAddress> for StarkFelt {
+impl From<EthAddress> for Felt {
     fn from(value: EthAddress) -> Self {
-        let mut bytes = [0u8; 32];
-        // Padding H160 with zeros to 32 bytes (big endian)
-        bytes[12..32].copy_from_slice(value.0.as_bytes());
-        StarkFelt::new_unchecked(bytes)
+        Felt::from_bytes_be_slice(value.0.as_bytes())
     }
 }
 

@@ -1,13 +1,15 @@
 // Unittest for verify_message_signature
 
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::{Poseidon, StarkHash};
+
 use crate::crypto::utils::{verify_message_hash_signature, PublicKey, Signature};
-use crate::hash::{poseidon_hash_array, StarkFelt};
 use crate::stark_felt;
 
 #[test]
 fn signature_verification() {
     // The signed message of block 4256.
-    let message_hash = poseidon_hash_array(&[
+    let message_hash = Poseidon::hash_array(&[
         stark_felt!("0x7d5db04c5ca2aea828180dc441afb1580e3cee7547a3567ced3aa5bb8b273c0"),
         stark_felt!("0x64689c12248e1110af4b3af0e2b43cd51ad13e8855f10e37669e2a4baf919c6"),
     ]);
@@ -20,6 +22,6 @@ fn signature_verification() {
     let public_key =
         PublicKey(stark_felt!("0x48253ff2c3bed7af18bde0b611b083b39445959102d4947c51c4db6aa4f4e58"));
 
-    let result = verify_message_hash_signature(&message_hash.0, &signature, &public_key).unwrap();
+    let result = verify_message_hash_signature(&message_hash, &signature, &public_key).unwrap();
     assert!(result);
 }

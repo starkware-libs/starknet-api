@@ -1,8 +1,9 @@
+use starknet_types_core::felt::Felt;
+
 use super::verify_block_signature;
 use crate::block::{BlockHash, BlockNumber, BlockSignature};
 use crate::core::{GlobalRoot, SequencerPublicKey};
 use crate::crypto::utils::{PublicKey, Signature};
-use crate::hash::StarkFelt;
 use crate::stark_felt;
 
 #[test]
