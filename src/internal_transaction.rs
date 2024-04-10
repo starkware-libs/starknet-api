@@ -5,7 +5,7 @@ use crate::transaction::{
 };
 
 /// Represents a paid Starknet transaction.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum InternalTransaction {
     Declare(InternalDeclareTransaction),
     DeployAccount(InternalDeployAccountTransaction),
@@ -13,7 +13,7 @@ pub enum InternalTransaction {
 }
 
 // TODO(Mohammad): Add constructor for all the transaction's structs.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct InternalDeclareTransaction {
     pub tx: DeclareTransaction,
     pub tx_hash: TransactionHash,
