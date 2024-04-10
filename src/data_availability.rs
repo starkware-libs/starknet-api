@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
 
-use crate::hash::StarkFelt;
 use crate::StarknetApiError;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
@@ -39,13 +39,13 @@ impl TryFrom<Deserializer> for DataAvailabilityMode {
     }
 }
 
-impl TryFrom<StarkFelt> for DataAvailabilityMode {
+impl TryFrom<Felt> for DataAvailabilityMode {
     type Error = StarknetApiError;
 
-    fn try_from(felt: StarkFelt) -> Result<Self, StarknetApiError> {
+    fn try_from(felt: Felt) -> Result<Self, StarknetApiError> {
         match felt {
-            StarkFelt::ZERO => Ok(DataAvailabilityMode::L1),
-            StarkFelt::ONE => Ok(DataAvailabilityMode::L2),
+            Felt::ZERO => Ok(DataAvailabilityMode::L1),
+            Felt::ONE => Ok(DataAvailabilityMode::L2),
             _ => Err(StarknetApiError::OutOfRange {
                 string: format!("Invalid data availability mode: {felt}."),
             }),
@@ -53,11 +53,11 @@ impl TryFrom<StarkFelt> for DataAvailabilityMode {
     }
 }
 
-impl From<DataAvailabilityMode> for StarkFelt {
-    fn from(data_availability_mode: DataAvailabilityMode) -> StarkFelt {
+impl From<DataAvailabilityMode> for Felt {
+    fn from(data_availability_mode: DataAvailabilityMode) -> Felt {
         match data_availability_mode {
-            DataAvailabilityMode::L1 => StarkFelt::ZERO,
-            DataAvailabilityMode::L2 => StarkFelt::ONE,
+            DataAvailabilityMode::L1 => Felt::ZERO,
+            DataAvailabilityMode::L2 => Felt::ONE,
         }
     }
 }

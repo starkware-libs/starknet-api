@@ -6,6 +6,7 @@ use std::fmt::Display;
 
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
+use starknet_types_core::hash::{Poseidon, StarkHash as CoreStarkHash};
 
 use crate::core::{
     EventCommitment, GlobalRoot, ReceiptCommitment, SequencerContractAddress, SequencerPublicKey,
@@ -13,8 +14,8 @@ use crate::core::{
 };
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
 use crate::data_availability::L1DataAvailabilityMode;
-use crate::hash::{poseidon_hash_array, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
+use crate::StarkHash;
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 
 /// A block.
@@ -217,8 +218,8 @@ pub fn verify_block_signature(
     state_diff_commitment: &GlobalRoot,
     block_hash: &BlockHash,
 ) -> Result<bool, BlockVerificationError> {
-    let message_hash = poseidon_hash_array(&[block_hash.0, state_diff_commitment.0]);
-    verify_message_hash_signature(&message_hash.0, &signature.0, &sequencer_pub_key.0).map_err(
+    let message_hash = Poseidon::hash_array(&[block_hash.0, state_diff_commitment.0]);
+    verify_message_hash_signature(&message_hash, &signature.0, &sequencer_pub_key.0).map_err(
         |err| BlockVerificationError::BlockSignatureVerificationFailed {
             block_hash: *block_hash,
             error: err,

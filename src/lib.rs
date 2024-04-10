@@ -8,7 +8,7 @@ pub mod crypto;
 pub mod data_availability;
 pub mod deprecated_contract_class;
 pub mod external_transaction;
-pub mod hash;
+// pub mod hash;
 pub mod internal_transaction;
 pub mod serde_utils;
 pub mod state;
@@ -17,6 +17,7 @@ pub mod transaction_hash;
 pub mod type_utils;
 
 use std::num::ParseIntError;
+use starknet_types_core::felt::Felt;
 
 use serde_utils::InnerDeserializationError;
 
@@ -36,3 +37,7 @@ pub enum StarknetApiError {
     #[error("Missing resource type / duplicated resource type; got {0}.")]
     InvalidResourceMappingInitializer(String),
 }
+
+// TODO: solve name conflict with StarkHash from types-rs
+pub type StarkHash = Felt;
+pub struct PoseidonHash(pub Felt);
