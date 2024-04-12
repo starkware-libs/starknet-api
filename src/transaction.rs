@@ -164,15 +164,13 @@ impl TransactionHasher for DeclareTransactionV0V1 {
         chain_id: &ChainId,
         transaction_version: &TransactionVersion,
     ) -> Result<TransactionHash, StarknetApiError> {
-        match *transaction_version {
-            TransactionVersion::ZERO => {
-                get_declare_transaction_v0_hash(self, chain_id, transaction_version)
-            }
-            TransactionVersion::ONE => {
-                get_declare_transaction_v1_hash(self, chain_id, transaction_version)
-            }
-            _ => panic!("Illegal transaction version."),
+        if *transaction_version == TransactionVersion::ZERO {
+            return get_declare_transaction_v0_hash(self, chain_id, transaction_version);
         }
+        if *transaction_version == TransactionVersion::ONE {
+            return get_declare_transaction_v1_hash(self, chain_id, transaction_version);
+        }
+        panic!("Illegal transaction version.");
     }
 }
 

@@ -8,7 +8,7 @@ use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
-use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::{Felt, NonZeroFelt};
 use starknet_types_core::hash::{Pedersen, StarkHash as CoreStarkHash};
 
 use crate::crypto::utils::PublicKey;
@@ -73,8 +73,10 @@ pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Lazy<Felt> = Lazy::new(|| {
         .unwrap_or_else(|_| panic!("Failed to convert {PATRICIA_KEY_UPPER_BOUND} to Felt"))
 });
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
-pub static L2_ADDRESS_UPPER_BOUND: Lazy<Felt> = Lazy::new(|| {
-    Felt::from(*CONTRACT_ADDRESS_DOMAIN_SIZE) - Felt::from(MAX_STORAGE_ITEM_SIZE)
+pub static L2_ADDRESS_UPPER_BOUND: Lazy<NonZeroFelt> = Lazy::new(|| {
+    NonZeroFelt::from_felt_unchecked(
+        *CONTRACT_ADDRESS_DOMAIN_SIZE - Felt::from(MAX_STORAGE_ITEM_SIZE),
+    )
 });
 
 impl TryFrom<StarkHash> for ContractAddress {
@@ -93,16 +95,18 @@ pub fn calculate_contract_address(
 ) -> Result<ContractAddress, StarknetApiError> {
     let constructor_calldata_hash = Pedersen::hash_array(&constructor_calldata.0);
     let contract_address_prefix = format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX));
-    let mut address = Pedersen::hash_array(&[
-        Felt::from_hex(contract_address_prefix.as_str())?,
+    let address = Pedersen::hash_array(&[
+        Felt::from_hex(contract_address_prefix.as_str()).map_err(|_| {
+            StarknetApiError::OutOfRange { string: contract_address_prefix.clone() }
+        })?,
         *deployer_address.0.key(),
         salt.0,
         class_hash.0,
         constructor_calldata_hash,
     ]);
-    address = address % *L2_ADDRESS_UPPER_BOUND;
+    let (_, address) = address.div_rem(&*L2_ADDRESS_UPPER_BOUND);
 
-    ContractAddress::try_from(Felt::from(address))
+    ContractAddress::try_from(address)
 }
 
 /// The hash of a ContractClass.
@@ -160,10 +164,11 @@ pub struct Nonce(pub Felt);
 impl Nonce {
     pub fn try_increment(&self) -> Result<Self, StarknetApiError> {
         // Check if an overflow occurred during increment.
-        match (self.0 + Felt::ONE) {
-            Felt::ZERO => Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) }),
-            incremented_felt => Ok(Self(incremented_felt)),
+        let incremented = self.0 + Felt::ONE;
+        if incremented == Felt::ZERO {
+            return Err(StarknetApiError::OutOfRange { string: format!("{:?}", self) });
         }
+        Ok(Self(incremented))
     }
 }
 
@@ -242,9 +247,7 @@ pub struct EventCommitment(pub StarkHash);
 )]
 pub struct ReceiptCommitment(pub StarkHash);
 
-#[derive(
-    Debug, Copy, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
-)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct StateDiffCommitment(pub PoseidonHash);
 
 /// A key for nodes of a Patricia tree.
@@ -304,7 +307,7 @@ impl Debug for PatriciaKey {
 #[macro_export]
 macro_rules! patricia_key {
     ($s:expr) => {
-        PatriciaKey::try_from(StarkHash::try_from($s).unwrap()).unwrap()
+        PatriciaKey::try_from(StarkHash::from_hex($s).unwrap()).unwrap()
     };
 }
 
@@ -313,7 +316,7 @@ macro_rules! patricia_key {
 #[macro_export]
 macro_rules! class_hash {
     ($s:expr) => {
-        ClassHash(StarkHash::try_from($s).unwrap())
+        ClassHash(StarkHash::from_hex($s).unwrap())
     };
 }
 
@@ -339,7 +342,8 @@ impl TryFrom<Felt> for EthAddress {
     fn try_from(felt: Felt) -> Result<Self, Self::Error> {
         const COMPLIMENT_OF_H160: usize = std::mem::size_of::<Felt>() - H160::len_bytes();
 
-        let (rest, h160_bytes) = felt.to_bytes_be().split_at(COMPLIMENT_OF_H160);
+        let bytes = felt.to_bytes_be();
+        let (rest, h160_bytes) = bytes.split_at(COMPLIMENT_OF_H160);
         if rest != [0u8; COMPLIMENT_OF_H160] {
             return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
         }
@@ -353,7 +357,7 @@ impl From<EthAddress> for Felt {
         let mut bytes = [0u8; 32];
         // Padding H160 with zeros to 32 bytes (big endian)
         bytes[12..32].copy_from_slice(value.0.as_bytes());
-        Felt:: new_unchecked(bytes)
+        Felt::from_bytes_be(&bytes)
     }
 }
 
