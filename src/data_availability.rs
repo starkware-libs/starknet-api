@@ -43,13 +43,15 @@ impl TryFrom<Felt> for DataAvailabilityMode {
     type Error = StarknetApiError;
 
     fn try_from(felt: Felt) -> Result<Self, StarknetApiError> {
-        match felt {
-            Felt::ZERO => Ok(DataAvailabilityMode::L1),
-            Felt::ONE => Ok(DataAvailabilityMode::L2),
-            _ => Err(StarknetApiError::OutOfRange {
-                string: format!("Invalid data availability mode: {felt}."),
-            }),
+        if felt == Felt::ZERO {
+            return Ok(DataAvailabilityMode::L1);
         }
+        if felt == Felt::ONE {
+            return Ok(DataAvailabilityMode::L2);
+        }
+        Err(StarknetApiError::OutOfRange {
+            string: format!("Invalid data availability mode: {felt}."),
+        })
     }
 }
 

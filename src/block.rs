@@ -15,8 +15,8 @@ use crate::core::{
 use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
-use crate::StarkHash;
 use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
+use crate::StarkHash;
 
 /// A block.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]

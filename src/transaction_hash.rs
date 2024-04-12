@@ -20,25 +20,19 @@ const DATA_AVAILABILITY_MODE_BITS: usize = 32;
 const L1_GAS: &ResourceName = b"\0L1_GAS";
 const L2_GAS: &ResourceName = b"\0L2_GAS";
 
-
-// TODO: move it somewhere else
-fn from_short_string(ascii_str: &str) -> Result<Felt, StarknetApiError> {
-    Felt::from_hex(hex::encode(ascii_str).as_str())
-}
-
 static DECLARE: Lazy<Felt> =
-    Lazy::new(|| from_short_string("declare").expect("from_short_string failed for 'declare'"));
+    Lazy::new(|| ascii_as_felt("declare").expect("ascii_as_felt failed for 'declare'"));
 static DEPLOY: Lazy<Felt> =
-    Lazy::new(|| from_short_string("deploy").expect("from_short_string failed for 'deploy'"));
+    Lazy::new(|| ascii_as_felt("deploy").expect("ascii_as_felt failed for 'deploy'"));
 static DEPLOY_ACCOUNT: Lazy<Felt> = Lazy::new(|| {
-    from_short_string("deploy_account").expect("from_short_string failed for 'deploy_account'")
+    ascii_as_felt("deploy_account").expect("ascii_as_felt failed for 'deploy_account'")
 });
 static INVOKE: Lazy<Felt> =
-    Lazy::new(|| from_short_string("invoke").expect("from_short_string failed for 'invoke'"));
+    Lazy::new(|| ascii_as_felt("invoke").expect("ascii_as_felt failed for 'invoke'"));
 static L1_HANDLER: Lazy<Felt> =
-    Lazy::new(|| from_short_string("l1_handler").expect("from_short_string failed for 'l1_handler'"));
+    Lazy::new(|| ascii_as_felt("l1_handler").expect("ascii_as_felt failed for 'l1_handler'"));
 static CONSTRUCTOR_ENTRY_POINT_SELECTOR: Lazy<Felt> = Lazy::new(|| {
-    Felt::try_from("0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")
+    Felt::from_hex("0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194")
         .expect("Failed to create StarkFelt from value")
 });
 
@@ -168,6 +162,12 @@ pub fn validate_transaction_hash(
     Ok(possible_hashes.contains(&expected_hash))
 }
 
+// TODO: should be part of core::Felt
+fn ascii_as_felt(ascii_str: &str) -> Result<Felt, StarknetApiError> {
+    Felt::from_hex(hex::encode(ascii_str).as_str())
+        .map_err(|_| StarknetApiError::OutOfRange { string: ascii_str.to_string() })
+}
+
 // An implementation of the SNIP: https://github.com/EvyatarO/SNIPs/blob/snip-8/SNIPS/snip-8.md
 fn get_tip_resource_bounds_hash(
     resource_bounds_mapping: &ResourceBoundsMapping,
@@ -200,7 +200,7 @@ fn get_concat_resource(
     let concat_bytes =
         [[0_u8].as_slice(), resource_name.as_slice(), max_amount.as_slice(), max_price.as_slice()]
             .concat();
-    Felt::new(concat_bytes.try_into().expect("Expect 32 bytes"))
+    Ok(Felt::from_bytes_be(&concat_bytes.try_into().expect("Expect 32 bytes")))
 }
 
 // Receives nonce_mode and fee_mode and returns:
@@ -276,7 +276,7 @@ fn get_common_deploy_transaction_hash(
                 None
             }
         })
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .get_pedersen_hash(),
     ))
 }
@@ -311,7 +311,7 @@ fn get_common_invoke_transaction_v0_hash(
             .chain(&transaction.entry_point_selector.0)
             .chain(&HashChain::new().chain_iter(transaction.calldata.0.iter()).get_pedersen_hash())
             .chain_if_fn(|| if !is_deprecated { Some(transaction.max_fee.0.into()) } else { None })
-            .chain(&from_short_string(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.0.as_str())?)
             .get_pedersen_hash(),
     ))
 }
@@ -329,7 +329,7 @@ pub(crate) fn get_invoke_transaction_v1_hash(
         .chain(&Felt::ZERO) // No entry point selector in invoke transaction.
         .chain(&HashChain::new().chain_iter(transaction.calldata.0.iter()).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -361,7 +361,7 @@ pub(crate) fn get_invoke_transaction_v3_hash(
             .chain(transaction.sender_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&from_short_string(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.0.as_str())?)
             .chain(&transaction.nonce.0)
             .chain(&data_availability_mode)
             .chain(&account_deployment_data_hash)
@@ -444,7 +444,7 @@ fn get_common_l1_handler_transaction_hash(
                 None
             }
         })
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain_if_fn(|| {
             if version > L1HandlerVersions::AsInvoke {
                 Some(transaction.nonce.0)
@@ -469,7 +469,7 @@ pub(crate) fn get_declare_transaction_v0_hash(
         .chain(&Felt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain(&transaction.class_hash.0)
         .get_pedersen_hash(),
     ))
@@ -488,7 +488,7 @@ pub(crate) fn get_declare_transaction_v1_hash(
         .chain(&Felt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -507,7 +507,7 @@ pub(crate) fn get_declare_transaction_v2_hash(
         .chain(&Felt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain(&transaction.nonce.0)
         .chain(&transaction.compiled_class_hash.0)
         .get_pedersen_hash(),
@@ -538,7 +538,7 @@ pub(crate) fn get_declare_transaction_v3_hash(
             .chain(transaction.sender_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&from_short_string(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.0.as_str())?)
             .chain(&transaction.nonce.0)
             .chain(&data_availability_mode)
             .chain(&account_deployment_data_hash)
@@ -574,7 +574,7 @@ pub(crate) fn get_deploy_account_transaction_v1_hash(
         .chain(&Felt::ZERO) // No entry point selector in deploy account transaction.
         .chain(&calldata_hash)
         .chain(&transaction.max_fee.0.into())
-        .chain(&from_short_string(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.0.as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -609,7 +609,7 @@ pub(crate) fn get_deploy_account_transaction_v3_hash(
             .chain(contract_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&from_short_string(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.0.as_str())?)
             .chain(&data_availability_mode)
             .chain(&transaction.nonce.0)
             .chain(&constructor_calldata_hash)
