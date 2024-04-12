@@ -22,7 +22,8 @@ use crate::transaction_hash::{
     get_deploy_transaction_hash, get_invoke_transaction_v0_hash, get_invoke_transaction_v1_hash,
     get_invoke_transaction_v3_hash, get_l1_handler_transaction_hash,
 };
-use crate::{StarkHash, StarknetApiError};
+use crate::StarknetApiError;
+use crate::hash::StarkHash;
 
 trait TransactionHasher {
     fn calculate_transaction_hash(
