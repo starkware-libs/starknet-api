@@ -1,6 +1,7 @@
+use std::fmt::Debug;
+
 use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
-use std::fmt::Debug;
 
 pub type StarkHash = Felt;
 
