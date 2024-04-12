@@ -14,6 +14,7 @@ use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
     ResourceBoundsMapping, Tip, TransactionSignature,
 };
+use crate::StarkHash;
 use crate::{contract_address, patricia_key};
 
 fn create_resource_bounds() -> ResourceBoundsMapping {
@@ -58,7 +59,10 @@ fn create_invoke_v3() -> ExternalInvokeTransaction {
     ExternalInvokeTransaction::V3(ExternalInvokeTransactionV3 {
         resource_bounds: create_resource_bounds(),
         tip: Tip(50),
-        calldata: Calldata(Arc::new(vec![Felt::from_hex_unchecked("0x2000"), Felt::from_hex_unchecked("0x1000")])),
+        calldata: Calldata(Arc::new(vec![
+            Felt::from_hex_unchecked("0x2000"),
+            Felt::from_hex_unchecked("0x1000"),
+        ])),
         sender_address: contract_address!("0x53"),
         nonce: Nonce(Felt::from_hex_unchecked("0x32")),
         signature: TransactionSignature::default(),

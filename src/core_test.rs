@@ -20,7 +20,9 @@ fn patricia_key_valid() {
 #[test]
 fn patricia_key_out_of_range() {
     // 2**251
-    let hash = Felt::from_hex_unchecked("0x800000000000000000000000000000000000000000000000000000000000000");
+    let hash = Felt::from_hex_unchecked(
+        "0x800000000000000000000000000000000000000000000000000000000000000",
+    );
     let err = PatriciaKey::try_from(hash);
     assert_matches!(err, Err(StarknetApiError::OutOfRange { string: _err_str }));
 }
@@ -29,13 +31,10 @@ fn patricia_key_out_of_range() {
 fn patricia_key_macro() {
     assert_eq!(
         patricia_key!("0x123"),
-        PatriciaKey::try_from(
-            StarkHash::new([
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0x1, 0x23
-            ])
-            .unwrap()
-        )
+        PatriciaKey::try_from(StarkHash::from_bytes_be(&[
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0x1, 0x23
+        ]))
         .unwrap()
     );
 }
@@ -54,14 +53,13 @@ fn test_calculate_contract_address() {
 
     let constructor_calldata_hash = Pedersen::hash_array(&constructor_calldata.0);
     let address = Pedersen::hash_array(&[
-        Felt::from_hex(format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX)).as_str())
-            .unwrap(),
+        Felt::from_hex(format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX)).as_str()).unwrap(),
         *deployer_address.0.key(),
         salt.0,
         class_hash.0,
         constructor_calldata_hash,
     ]);
-    let mod_address = address % *L2_ADDRESS_UPPER_BOUND;
+    let (_, mod_address) = address.div_rem(&*L2_ADDRESS_UPPER_BOUND);
     let expected_address = ContractAddress::try_from(Felt::from(mod_address)).unwrap();
 
     assert_eq!(actual_address, expected_address);

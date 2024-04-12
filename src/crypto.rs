@@ -4,11 +4,10 @@
 #[path = "crypto_test.rs"]
 mod crypto_test;
 
-use serde::{Deserialize, Serialize};
-use starknet_crypto::FieldElement;
-use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash};
 use crate::StarkHash;
+use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as CoreStarkHash};
 
 /// An error that can occur during cryptographic operations.
 #[derive(thiserror::Error, Clone, Debug)]
@@ -39,7 +38,8 @@ pub struct Signature {
 }
 
 fn to_field_element(felt: &Felt) -> starknet_crypto::FieldElement {
-    starknet_crypto::FieldElement::from_bytes_be(&felt.to_bytes_be()).expect("Convert StarkFelf to FieldElement.")
+    starknet_crypto::FieldElement::from_bytes_be(&felt.to_bytes_be())
+        .expect("Convert StarkFelf to FieldElement.")
 }
 
 /// Verifies the authenticity of a signed message hash given the public key of the signer.
@@ -77,8 +77,8 @@ impl HashChain {
     }
 
     // Chains a felt to the hash chain.
-    pub fn chain<'a>(mut self, felt: &'a Felt) -> Self {
-        self.elements.push(felt);
+    pub fn chain(mut self, felt: &Felt) -> Self {
+        self.elements.push(*felt);
         self
     }
 
