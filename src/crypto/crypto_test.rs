@@ -1,7 +1,9 @@
 // Unittest for verify_message_signature
-use crate::crypto::utils::{verify_message_hash_signature, PublicKey, Signature};
+
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Poseidon, StarkHash};
+
+use crate::crypto::utils::{verify_message_hash_signature, PublicKey, Signature};
 
 #[test]
 fn signature_verification() {

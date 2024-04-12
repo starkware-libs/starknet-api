@@ -13,7 +13,6 @@ use crate::core::{
     ChainId, ClassHash, CompiledClassHash, ContractAddress, EntryPointSelector, EthAddress, Nonce,
 };
 use crate::data_availability::DataAvailabilityMode;
-
 use crate::hash::StarkHash;
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::transaction_hash::{
