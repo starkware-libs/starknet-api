@@ -14,7 +14,7 @@ use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
     ResourceBoundsMapping, Tip, TransactionSignature,
 };
-use crate::StarkHash;
+use crate::hash::StarkHash;
 use crate::{contract_address, patricia_key};
 
 fn create_resource_bounds() -> ResourceBoundsMapping {

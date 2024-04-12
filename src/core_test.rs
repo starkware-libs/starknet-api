@@ -3,12 +3,13 @@ use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, StarkHash as CoreStarkHash};
 
 use crate::core::{
-    calculate_contract_address, ClassHash, ContractAddress, EthAddress, Nonce, PatriciaKey,
-    StarknetApiError, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
+    calculate_contract_address, ClassHash, CONTRACT_ADDRESS_PREFIX, ContractAddress, EthAddress, L2_ADDRESS_UPPER_BOUND,
+    Nonce, PatriciaKey, StarknetApiError,
 };
 
 use crate::transaction::{Calldata, ContractAddressSalt};
-use crate::{class_hash, patricia_key, StarkHash};
+use crate::{class_hash, patricia_key};
+use crate::hash::StarkHash;
 
 #[test]
 fn patricia_key_valid() {
