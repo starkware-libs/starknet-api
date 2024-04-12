@@ -15,8 +15,8 @@ use crate::core::{
     PatriciaKey,
 };
 use crate::deprecated_contract_class::ContractClass as DeprecatedContractClass;
-use crate::{impl_from_through_intermediate, StarknetApiError};
 use crate::hash::StarkHash;
+use crate::{impl_from_through_intermediate, StarknetApiError};
 
 pub type DeclaredClasses = IndexMap<ClassHash, ContractClass>;
 pub type DeprecatedDeclaredClasses = IndexMap<ClassHash, DeprecatedContractClass>;

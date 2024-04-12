@@ -14,6 +14,7 @@ use crate::core::{
 };
 use crate::data_availability::DataAvailabilityMode;
 
+use crate::hash::StarkHash;
 use crate::serde_utils::PrefixedBytesAsHex;
 use crate::transaction_hash::{
     get_declare_transaction_v0_hash, get_declare_transaction_v1_hash,
@@ -23,7 +24,6 @@ use crate::transaction_hash::{
     get_invoke_transaction_v3_hash, get_l1_handler_transaction_hash,
 };
 use crate::StarknetApiError;
-use crate::hash::StarkHash;
 
 trait TransactionHasher {
     fn calculate_transaction_hash(
