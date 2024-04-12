@@ -4,7 +4,7 @@
 #[path = "crypto_test.rs"]
 mod crypto_test;
 
-use crate::StarkHash;
+use crate::hash::StarkHash;
 use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as CoreStarkHash};

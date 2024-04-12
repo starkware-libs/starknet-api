@@ -14,7 +14,8 @@ use starknet_types_core::hash::{Pedersen, StarkHash as CoreStarkHash};
 use crate::crypto::PublicKey;
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
 use crate::transaction::{Calldata, ContractAddressSalt};
-use crate::{impl_from_through_intermediate, PoseidonHash, StarkHash, StarknetApiError};
+use crate::{impl_from_through_intermediate, StarknetApiError};
+use crate::hash::{PoseidonHash, StarkHash};
 
 /// A chain id.
 #[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
