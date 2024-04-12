@@ -105,7 +105,7 @@ pub fn calculate_contract_address(
         class_hash.0,
         constructor_calldata_hash,
     ]);
-    let (_, address) = address.div_rem(&*L2_ADDRESS_UPPER_BOUND);
+    let (_, address) = address.div_rem(&L2_ADDRESS_UPPER_BOUND);
 
     ContractAddress::try_from(address)
 }

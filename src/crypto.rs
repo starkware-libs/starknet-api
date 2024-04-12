@@ -97,11 +97,11 @@ impl HashChain {
 
     // Returns the pedersen hash of the chained felts, hashed with the length of the chain.
     pub fn get_pedersen_hash(&self) -> StarkHash {
-        Pedersen::hash_array(self.elements.as_slice()).into()
+        Pedersen::hash_array(self.elements.as_slice())
     }
 
     // Returns the poseidon hash of the chained felts.
     pub fn get_poseidon_hash(&self) -> StarkHash {
-        Poseidon::hash_array(self.elements.as_slice()).into()
+        Poseidon::hash_array(self.elements.as_slice())
     }
 }

@@ -46,7 +46,7 @@ fn test_calculate_contract_address() {
     let class_hash = class_hash!("0x110");
     let deployer_address = ContractAddress::default();
     let constructor_calldata =
-        Calldata(vec![Felt::from(60_u16), Felt::from(70_u16), Felt::MAX.into()].into());
+        Calldata(vec![Felt::from(60_u16), Felt::from(70_u16), Felt::MAX].into());
 
     let actual_address =
         calculate_contract_address(salt, class_hash, &constructor_calldata, deployer_address)
@@ -60,8 +60,8 @@ fn test_calculate_contract_address() {
         class_hash.0,
         constructor_calldata_hash,
     ]);
-    let (_, mod_address) = address.div_rem(&*L2_ADDRESS_UPPER_BOUND);
-    let expected_address = ContractAddress::try_from(Felt::from(mod_address)).unwrap();
+    let (_, mod_address) = address.div_rem(&L2_ADDRESS_UPPER_BOUND);
+    let expected_address = ContractAddress::try_from(mod_address).unwrap();
 
     assert_eq!(actual_address, expected_address);
 }
@@ -79,7 +79,7 @@ fn eth_address_serde() {
 #[test]
 fn nonce_overflow() {
     // Increment on this value should overflow back to 0.
-    let max_nonce = Nonce(Felt::from(Felt::MAX));
+    let max_nonce = Nonce(Felt::MAX);
 
     let overflowed_nonce = max_nonce.try_increment();
     assert_matches!(overflowed_nonce, Err(StarknetApiError::OutOfRange { string: _err_str }));
