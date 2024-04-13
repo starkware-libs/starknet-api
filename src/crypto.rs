@@ -39,8 +39,7 @@ pub struct Signature {
 }
 
 fn to_field_element(felt: &Felt) -> starknet_crypto::FieldElement {
-    starknet_crypto::FieldElement::from_bytes_be(&felt.to_bytes_be())
-        .expect("Convert StarkFelf to FieldElement.")
+    starknet_crypto::FieldElement::from_mont(felt.to_raw_reversed())
 }
 
 /// Verifies the authenticity of a signed message hash given the public key of the signer.
