@@ -5,7 +5,7 @@ use crate::transaction::{
 };
 
 /// Represents a paid Starknet transaction.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum InternalTransaction {
     Declare(InternalDeclareTransaction),
     DeployAccount(InternalDeployAccountTransaction),
@@ -31,7 +31,7 @@ impl InternalTransaction {
 }
 
 // TODO(Mohammad): Add constructor for all the transaction's structs.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InternalDeclareTransaction {
     pub tx: DeclareTransaction,
     pub tx_hash: TransactionHash,
@@ -40,7 +40,7 @@ pub struct InternalDeclareTransaction {
     pub class_info: ClassInfo,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InternalDeployAccountTransaction {
     pub tx: DeployAccountTransaction,
     pub tx_hash: TransactionHash,
@@ -49,7 +49,7 @@ pub struct InternalDeployAccountTransaction {
     pub only_query: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct InternalInvokeTransaction {
     pub tx: InvokeTransaction,
     pub tx_hash: TransactionHash,
@@ -57,7 +57,7 @@ pub struct InternalInvokeTransaction {
     pub only_query: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ClassInfo {
     pub contract_class: ContractClass,
     pub sierra_program_length: usize,
