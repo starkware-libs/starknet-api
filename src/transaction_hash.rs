@@ -31,7 +31,7 @@ static INVOKE: Lazy<Felt> =
     Lazy::new(|| ascii_as_felt("invoke").expect("ascii_as_felt failed for 'invoke'"));
 static L1_HANDLER: Lazy<Felt> =
     Lazy::new(|| ascii_as_felt("l1_handler").expect("ascii_as_felt failed for 'l1_handler'"));
-static CONSTRUCTOR_ENTRY_POINT_SELECTOR: Felt =
+const CONSTRUCTOR_ENTRY_POINT_SELECTOR: Felt =
     Felt::from_hex_unchecked("0x28ffe4ff0f226a9107253e17a904099aa4f63a02a5621de0576e5aa71bc5194");
 
 /// Calculates hash of a Starknet transaction.
