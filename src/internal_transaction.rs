@@ -1,4 +1,4 @@
-use crate::core::ContractAddress;
+use crate::core::{ContractAddress, Nonce};
 use crate::state::ContractClass;
 use crate::transaction::{
     DeclareTransaction, DeployAccountTransaction, InvokeTransaction, TransactionHash,
@@ -10,6 +10,24 @@ pub enum InternalTransaction {
     Declare(InternalDeclareTransaction),
     DeployAccount(InternalDeployAccountTransaction),
     Invoke(InternalInvokeTransaction),
+}
+
+impl InternalTransaction {
+    pub fn contract_address(&self) -> ContractAddress {
+        match &self {
+            InternalTransaction::Declare(tx_data) => tx_data.tx.sender_address(),
+            InternalTransaction::DeployAccount(tx_data) => tx_data.contract_address,
+            InternalTransaction::Invoke(tx_data) => tx_data.tx.sender_address(),
+        }
+    }
+
+    pub fn nonce(&self) -> Nonce {
+        match &self {
+            InternalTransaction::Declare(tx_data) => tx_data.tx.nonce(),
+            InternalTransaction::DeployAccount(tx_data) => tx_data.tx.nonce(),
+            InternalTransaction::Invoke(tx_data) => tx_data.tx.nonce(),
+        }
+    }
 }
 
 // TODO(Mohammad): Add constructor for all the transaction's structs.
