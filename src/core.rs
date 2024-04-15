@@ -69,7 +69,7 @@ pub const MAX_STORAGE_ITEM_SIZE: u16 = 256;
 /// The prefix used in the calculation of a contract address.
 pub const CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
 /// The size of the contract address domain.
-pub static CONTRACT_ADDRESS_DOMAIN_SIZE: Felt = Felt::from_hex_unchecked(PATRICIA_KEY_UPPER_BOUND);
+pub const CONTRACT_ADDRESS_DOMAIN_SIZE: Felt = Felt::from_hex_unchecked(PATRICIA_KEY_UPPER_BOUND);
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
 pub static L2_ADDRESS_UPPER_BOUND: Lazy<NonZeroFelt> = Lazy::new(|| {
     NonZeroFelt::from_felt_unchecked(
@@ -352,10 +352,7 @@ impl TryFrom<Felt> for EthAddress {
 
 impl From<EthAddress> for Felt {
     fn from(value: EthAddress) -> Self {
-        let mut bytes = [0u8; 32];
-        // Padding H160 with zeros to 32 bytes (big endian)
-        bytes[12..32].copy_from_slice(value.0.as_bytes());
-        Felt::from_bytes_be(&bytes)
+        Felt::from_bytes_be_slice(value.0.as_bytes())
     }
 }
 
