@@ -29,6 +29,31 @@ pub enum ExternalTransaction {
     Invoke(ExternalInvokeTransaction),
 }
 
+macro_rules! implement_ref_getters {
+    ($(($member_name:ident, $member_type:ty));* $(;)?) => {
+        $(pub fn $member_name(&self) -> &$member_type {
+            match self {
+                ExternalTransaction::Declare(
+                    ExternalDeclareTransaction::V3(tx)
+                ) => &tx.$member_name,
+                ExternalTransaction::DeployAccount(
+                    ExternalDeployAccountTransaction::V3(tx)
+                ) => &tx.$member_name,
+                ExternalTransaction::Invoke(
+                    ExternalInvokeTransaction::V3(tx)
+                ) => &tx.$member_name
+            }
+        })*
+    };
+}
+
+impl ExternalTransaction {
+    implement_ref_getters!(
+        (resource_bounds, ResourceBoundsMapping);
+        (signature, TransactionSignature);
+    );
+}
+
 /// A declare transaction that can be added to Starknet through the Starknet gateway.
 /// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
 /// HTTP method.
