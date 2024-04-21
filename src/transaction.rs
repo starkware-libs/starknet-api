@@ -23,7 +23,7 @@ use crate::transaction_hash::{
 };
 use crate::StarknetApiError;
 
-trait TransactionHasher {
+pub trait TransactionHasher {
     fn calculate_transaction_hash(
         &self,
         chain_id: &ChainId,
