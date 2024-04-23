@@ -13,7 +13,7 @@ use crate::hash::StarkHash;
 /// An error that can occur during cryptographic operations.
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum CryptoError {
-    #[error("Invalid public key {0}.")]
+    #[error("Invalid public key {:#x}.", (*.0).0)]
     InvalidPublicKey(PublicKey),
     #[error("Invalid message hash {0:#x}.")]
     InvalidMessageHash(Felt),
