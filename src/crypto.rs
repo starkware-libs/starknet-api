@@ -7,6 +7,7 @@ mod crypto_test;
 
 use std::fmt;
 use std::fmt::LowerHex;
+
 use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as CoreStarkHash};
@@ -35,10 +36,9 @@ pub enum CryptoError {
 pub struct PublicKey(pub Felt);
 
 impl LowerHex for PublicKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) ->
-          fmt::Result {
-            fmt::Display::fmt(&self.0, f)
-        }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
 }
 
 /// A signature.
