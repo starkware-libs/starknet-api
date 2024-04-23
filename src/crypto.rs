@@ -2,8 +2,11 @@
 //! This module provides cryptographic utilities.
 #[cfg(test)]
 #[path = "crypto_test.rs"]
+#[allow(clippy::explicit_auto_deref)]
 mod crypto_test;
 
+use std::fmt;
+use std::fmt::LowerHex;
 use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as CoreStarkHash};
@@ -11,9 +14,11 @@ use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as CoreStarkHash};
 use crate::hash::StarkHash;
 
 /// An error that can occur during cryptographic operations.
+
 #[derive(thiserror::Error, Clone, Debug)]
+#[allow(clippy::explicit_auto_deref)]
 pub enum CryptoError {
-    #[error("Invalid public key {:#x}.", (*.0).0)]
+    #[error("Invalid public key {0:#x}.")]
     InvalidPublicKey(PublicKey),
     #[error("Invalid message hash {0:#x}.")]
     InvalidMessageHash(Felt),
@@ -28,6 +33,13 @@ pub enum CryptoError {
     Debug, Default, Copy, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord,
 )]
 pub struct PublicKey(pub Felt);
+
+impl LowerHex for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) ->
+          fmt::Result {
+            fmt::Display::fmt(&self.0, f)
+        }
+}
 
 /// A signature.
 #[derive(
