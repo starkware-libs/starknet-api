@@ -7,6 +7,7 @@ pub mod core;
 pub mod crypto;
 pub mod data_availability;
 pub mod deprecated_contract_class;
+pub mod executable_transaction;
 pub mod external_transaction;
 pub mod hash;
 pub mod internal_transaction;
