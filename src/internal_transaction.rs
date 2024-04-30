@@ -28,6 +28,14 @@ impl InternalTransaction {
             InternalTransaction::Invoke(tx_data) => tx_data.tx.nonce(),
         }
     }
+
+    pub fn tx_hash(&self) -> TransactionHash {
+        match self {
+            InternalTransaction::Declare(tx_data) => tx_data.tx_hash,
+            InternalTransaction::DeployAccount(tx_data) => tx_data.tx_hash,
+            InternalTransaction::Invoke(tx_data) => tx_data.tx_hash,
+        }
+    }
 }
 
 // TODO(Mohammad): Add constructor for all the transaction's structs.
