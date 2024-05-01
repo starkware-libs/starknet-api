@@ -1,7 +1,7 @@
 use crate::core::{ContractAddress, Nonce};
 use crate::state::ContractClass;
 use crate::transaction::{
-    DeclareTransaction, DeployAccountTransaction, InvokeTransaction, TransactionHash,
+    DeclareTransaction, DeployAccountTransaction, InvokeTransaction, Tip, TransactionHash,
 };
 
 /// Represents a paid Starknet transaction.
@@ -34,6 +34,23 @@ impl InternalTransaction {
             InternalTransaction::Declare(tx_data) => tx_data.tx_hash,
             InternalTransaction::DeployAccount(tx_data) => tx_data.tx_hash,
             InternalTransaction::Invoke(tx_data) => tx_data.tx_hash,
+        }
+    }
+
+    pub fn tip(&self) -> Option<Tip> {
+        match self {
+            InternalTransaction::Declare(declare_tx) => match &declare_tx.tx {
+                DeclareTransaction::V3(tx_v3) => Some(tx_v3.tip),
+                _ => None,
+            },
+            InternalTransaction::DeployAccount(deploy_account_tx) => match &deploy_account_tx.tx {
+                DeployAccountTransaction::V3(tx_v3) => Some(tx_v3.tip),
+                _ => None,
+            },
+            InternalTransaction::Invoke(invoke_tx) => match &invoke_tx.tx {
+                InvokeTransaction::V3(tx_v3) => Some(tx_v3.tip),
+                _ => None,
+            },
         }
     }
 }
