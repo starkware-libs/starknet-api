@@ -2,12 +2,13 @@
 #[path = "core_test.rs"]
 mod core_test;
 
+use core::fmt::Display;
 use std::fmt::Debug;
 
 use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use starknet_crypto::FieldElement;
 
 use crate::crypto::utils::PublicKey;
@@ -17,12 +18,56 @@ use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{impl_from_through_intermediate, StarknetApiError};
 
 /// A chain id.
-#[derive(Clone, Debug, Display, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
-pub struct ChainId(pub String);
+#[derive(Clone, Debug, Eq, PartialEq, Hash, PartialOrd, Ord)]
+pub enum ChainId {
+    Mainnet,
+    Sepolia,
+    IntegrationSepolia,
+    Other(String),
+}
+
+impl Serialize for ChainId {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for ChainId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(ChainId::from(s))
+    }
+}
+impl From<String> for ChainId {
+    fn from(s: String) -> Self {
+        match s.as_ref() {
+            "SN_MAIN" => ChainId::Mainnet,
+            "SN_SEPOLIA" => ChainId::Sepolia,
+            "SN_INTEGRATION_SEPOLIA" => ChainId::IntegrationSepolia,
+            other => ChainId::Other(other.to_owned()),
+        }
+    }
+}
+impl Display for ChainId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ChainId::Mainnet => write!(f, "SN_MAIN"),
+            ChainId::Sepolia => write!(f, "SN_SEPOLIA"),
+            ChainId::IntegrationSepolia => write!(f, "SN_INTEGRATION_SEPOLIA"),
+            ChainId::Other(ref s) => write!(f, "{}", s),
+        }
+    }
+}
 
 impl ChainId {
     pub fn as_hex(&self) -> String {
-        format!("0x{}", hex::encode(&self.0))
+        format!("0x{}", hex::encode(self.to_string()))
     }
 }
 
