@@ -116,6 +116,16 @@ impl TransactionOutput {
         }
     }
 
+    pub fn execution_status(&self) -> &TransactionExecutionStatus {
+        match self {
+            TransactionOutput::Declare(output) => &output.execution_status,
+            TransactionOutput::Deploy(output) => &output.execution_status,
+            TransactionOutput::DeployAccount(output) => &output.execution_status,
+            TransactionOutput::Invoke(output) => &output.execution_status,
+            TransactionOutput::L1Handler(output) => &output.execution_status,
+        }
+    }
+
     pub fn execution_resources(&self) -> &ExecutionResources {
         match self {
             TransactionOutput::Declare(output) => &output.execution_resources,
@@ -123,6 +133,16 @@ impl TransactionOutput {
             TransactionOutput::DeployAccount(output) => &output.execution_resources,
             TransactionOutput::Invoke(output) => &output.execution_resources,
             TransactionOutput::L1Handler(output) => &output.execution_resources,
+        }
+    }
+
+    pub fn messages_sent(&self) -> &Vec<MessageToL1> {
+        match self {
+            TransactionOutput::Declare(output) => &output.messages_sent,
+            TransactionOutput::Deploy(output) => &output.messages_sent,
+            TransactionOutput::DeployAccount(output) => &output.messages_sent,
+            TransactionOutput::Invoke(output) => &output.messages_sent,
+            TransactionOutput::L1Handler(output) => &output.messages_sent,
         }
     }
 }
@@ -617,7 +637,7 @@ pub enum TransactionExecutionStatus {
 /// A reverted transaction execution status.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct RevertedTransactionExecutionStatus {
-    pub revert_reason: String,
+    pub revert_reason: String, // Validate it's an ASCII string
 }
 
 /// A fee.
