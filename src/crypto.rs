@@ -90,6 +90,11 @@ impl HashChain {
         felts.fold(self, |current, felt| current.chain(felt))
     }
 
+    // Chains the number of felts followed by the felts themselves to the hash chain.
+    pub fn chain_size_and_elements(self, felts: &[StarkFelt]) -> Self {
+        self.chain(&felts.len().into()).chain_iter(felts.iter())
+    }
+
     // Returns the pedersen hash of the chained felts, hashed with the length of the chain.
     pub fn get_pedersen_hash(&self) -> StarkHash {
         let current_hash = self

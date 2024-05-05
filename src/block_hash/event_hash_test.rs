@@ -1,6 +1,6 @@
 use super::calculate_event_hash;
-use crate::core::{ContractAddress, PatriciaKey};
-use crate::hash::{PoseidonHash, StarkFelt, StarkHash};
+use crate::core::{ContractAddress, EventCommitment, PatriciaKey};
+use crate::hash::{StarkFelt, StarkHash};
 use crate::transaction::{Event, EventContent, EventData, EventKey, TransactionHash};
 use crate::{contract_address, patricia_key, stark_felt};
 
@@ -15,7 +15,7 @@ fn test_event_hash_regression() {
     };
     let tx_hash = TransactionHash(stark_felt!("0x1234"));
 
-    let expected_hash = PoseidonHash(
+    let expected_hash = EventCommitment(
         StarkFelt::try_from("0x367807f532742a4dcbe2d8a47b974b22dd7496faa75edc64a3a5fdb6709057")
             .unwrap(),
     );
