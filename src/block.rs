@@ -11,7 +11,7 @@ use crate::core::{
     EventCommitment, GlobalRoot, ReceiptCommitment, SequencerContractAddress, SequencerPublicKey,
     StateDiffCommitment, TransactionCommitment,
 };
-use crate::crypto::{verify_message_hash_signature, CryptoError, Signature};
+use crate::crypto::utils::{verify_message_hash_signature, CryptoError, Signature};
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::hash::{poseidon_hash_array, StarkHash};
 use crate::serde_utils::{BytesAsHex, PrefixedBytesAsHex};
