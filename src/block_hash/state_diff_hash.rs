@@ -15,6 +15,16 @@ static STARKNET_STATE_DIFF0: Lazy<StarkFelt> = Lazy::new(|| {
     ascii_as_felt("STARKNET_STATE_DIFF0").expect("ascii_as_felt failed for 'STARKNET_STATE_DIFF0'")
 });
 
+/// n_storage_diffs + n_nonce_updates + n_deployed + n_declared + n_deprecated_declared.
+pub fn state_diff_length(state_diff: &ThinStateDiff) -> usize {
+    let n_storage_diffs: usize = state_diff.storage_diffs.values().map(|x| x.len()).sum();
+    n_storage_diffs
+        + state_diff.nonces.len()
+        + state_diff.deployed_contracts.len()
+        + state_diff.declared_classes.len()
+        + state_diff.deprecated_declared_classes.len()
+}
+
 /// Poseidon(
 ///     "STARKNET_STATE_DIFF0", deployed_contracts, declared_classes, deprecated_declared_classes,
 ///     DA_modes

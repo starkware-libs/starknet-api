@@ -1,13 +1,30 @@
 use indexmap::indexmap;
 
-use crate::block_hash::state_diff_hash::calculate_state_diff_hash;
+use crate::block_hash::state_diff_hash::{calculate_state_diff_hash, state_diff_length};
 use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
 use crate::hash::{PoseidonHash, StarkFelt};
 use crate::state::ThinStateDiff;
 
 #[test]
+fn test_state_diff_length() {
+    let state_diff = get_state_diff();
+    assert_eq!(state_diff_length(&state_diff), 9);
+}
+
+#[test]
 fn test_state_diff_hash_regression() {
-    let state_diff = ThinStateDiff {
+    let state_diff = get_state_diff();
+
+    let expected_hash = StateDiffCommitment(PoseidonHash(
+        StarkFelt::try_from("0x01676de20d6689960498ea15b305212f9ef343b79e533b7b12ad618f22c17fd9")
+            .unwrap(),
+    ));
+
+    assert_eq!(expected_hash, calculate_state_diff_hash(&state_diff));
+}
+
+fn get_state_diff() -> ThinStateDiff {
+    ThinStateDiff {
         deployed_contracts: indexmap! {
             0u64.into() => ClassHash(1u64.into()),
             2u64.into() => ClassHash(3u64.into()),
@@ -32,12 +49,5 @@ fn test_state_diff_hash_regression() {
         replaced_classes: indexmap! {
             19u64.into() => ClassHash(20u64.into()),
         },
-    };
-
-    let expected_hash = StateDiffCommitment(PoseidonHash(
-        StarkFelt::try_from("0x01676de20d6689960498ea15b305212f9ef343b79e533b7b12ad618f22c17fd9")
-            .unwrap(),
-    ));
-
-    assert_eq!(expected_hash, calculate_state_diff_hash(&state_diff));
+    }
 }
