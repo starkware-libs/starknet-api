@@ -777,6 +777,7 @@ pub struct L2ToL1Payload(pub Vec<StarkFelt>);
 /// An event.
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct Event {
+    // TODO: Add a TransactionHash element to this struct, and then remove EventLeafElements.
     pub from_address: ContractAddress,
     #[serde(flatten)]
     pub content: EventContent,
