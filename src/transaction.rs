@@ -637,7 +637,7 @@ pub enum TransactionExecutionStatus {
 /// A reverted transaction execution status.
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct RevertedTransactionExecutionStatus {
-    pub revert_reason: String, // Validate it's an ASCII string
+    pub revert_reason: String,
 }
 
 /// A fee.
