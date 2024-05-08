@@ -90,7 +90,7 @@ fn get_edge_hash<H: StarkHash>(sub_tree: SubTree<'_>, n_zeros: u8) -> Felt {
     let child_hash =
         get_hash::<H>(SubTree { leaves: sub_tree.leaves, height: sub_tree.height + n_zeros });
     let child_and_path_hash = H::hash(&child_hash, &Felt::ZERO);
-    Felt::from(child_and_path_hash + Felt::from(n_zeros))
+    child_and_path_hash + Felt::from(n_zeros)
 }
 
 // Hash on both sides: starts with '0' bit and starts with '1' bit.
