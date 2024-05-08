@@ -3,7 +3,7 @@ use starknet_types_core::felt::Felt;
 use super::verify_block_signature;
 use crate::block::{BlockHash, BlockNumber, BlockSignature};
 use crate::core::{GlobalRoot, SequencerPublicKey};
-use crate::crypto::{PublicKey, Signature};
+use crate::crypto::utils::{PublicKey, Signature};
 
 #[test]
 fn test_block_number_iteration() {

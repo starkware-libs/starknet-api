@@ -1,6 +1,7 @@
+use starknet_types_core::felt::Felt;
+
 use crate::core::EventCommitment;
 use crate::crypto::utils::HashChain;
-use crate::hash::StarkFelt;
 use crate::transaction::{Event, TransactionHash};
 
 #[cfg(test)]
@@ -13,7 +14,7 @@ mod event_hash_test;
 ///    num_contents, content0, content1, ...
 /// ).
 pub fn calculate_event_hash(event: &Event, transaction_hash: &TransactionHash) -> EventCommitment {
-    let keys = &event.content.keys.iter().map(|k| k.0).collect::<Vec<StarkFelt>>();
+    let keys = &event.content.keys.iter().map(|k| k.0).collect::<Vec<Felt>>();
     let data = &event.content.data.0;
     EventCommitment(
         HashChain::new()
