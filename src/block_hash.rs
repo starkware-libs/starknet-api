@@ -1,3 +1,4 @@
+pub mod block_hash_calculator;
 pub mod event_commitment;
 pub mod receipt_commitment;
 pub mod state_diff_hash;
