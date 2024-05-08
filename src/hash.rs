@@ -6,6 +6,7 @@ use std::fmt::{Debug, Display};
 use std::io::Error;
 
 use serde::{Deserialize, Serialize};
+use sha3::{Digest, Keccak256};
 use starknet_crypto::FieldElement;
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash as StarknetTypesStarkHash};
@@ -72,6 +73,15 @@ pub trait HashFunction {
     fn hash_pair(felt0: &StarkFelt, felt1: &StarkFelt) -> StarkHash;
     /// Computes hash of array of Felts.
     fn hash_array(stark_felts: &[StarkFelt]) -> StarkHash;
+}
+
+/// Computes the first 250 bits of the Keccak256 hash, in order to fit into a field element.
+pub fn starknet_keccak_hash(input: &[u8]) -> StarkFelt {
+    let mut keccak = Keccak256::default();
+    keccak.update(input);
+    let mut hashed_bytes: [u8; 32] = keccak.finalize().into();
+    hashed_bytes[0] &= 0b00000011_u8; // Discard the six MSBs.
+    StarkFelt::new_unchecked(hashed_bytes)
 }
 
 pub struct PoseidonHashCalculator;
