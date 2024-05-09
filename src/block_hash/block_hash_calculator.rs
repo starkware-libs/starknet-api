@@ -1,9 +1,93 @@
+use super::event_commitment::{calculate_events_commitment, EventLeafElement};
+use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
+use super::state_diff_hash::calculate_state_diff_hash;
+use super::transaction_commitment::{calculate_transactions_commitment, TransactionLeafElement};
+use crate::block::GasPricePerToken;
+use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
 use crate::data_availability::L1DataAvailabilityMode;
-use crate::hash::StarkFelt;
+use crate::hash::{PoseidonHashCalculator, StarkFelt};
+use crate::state::ThinStateDiff;
+use crate::transaction::{
+    TransactionHash, TransactionOutput, TransactionSignature, TransactionVersion,
+};
 
 #[cfg(test)]
 #[path = "block_hash_calculator_test.rs"]
 mod block_hash_calculator_test;
+
+pub struct TransactionHashingData {
+    pub transaction_signature: Option<TransactionSignature>,
+    pub transaction_output: TransactionOutput,
+    pub transaction_hash: TransactionHash,
+    pub transaction_version: TransactionVersion,
+}
+
+/// Commitments of a block.
+pub struct BlockHeaderCommitments {
+    pub transactions_commitment: TransactionCommitment,
+    pub events_commitment: EventCommitment,
+    pub receipts_commitment: ReceiptCommitment,
+    pub state_diff_commitment: StateDiffCommitment,
+    pub concated_counts: StarkFelt,
+}
+
+/// Calculates the commitments of the transactions data for the block hash.
+pub fn calculate_block_commitments(
+    transactions_data: &[TransactionHashingData],
+    state_diff: &ThinStateDiff,
+    l1_data_gas_price_per_token: GasPricePerToken,
+    l1_gas_price_per_token: GasPricePerToken,
+    l1_da_mode: L1DataAvailabilityMode,
+) -> BlockHeaderCommitments {
+    let transaction_leaf_elements: Vec<TransactionLeafElement> = transactions_data
+        .iter()
+        .map(|transaction_data| TransactionLeafElement {
+            transaction_hash: transaction_data.transaction_hash,
+            transaction_signature: transaction_data.transaction_signature.clone(),
+        })
+        .collect();
+    let transactions_commitment =
+        calculate_transactions_commitment::<PoseidonHashCalculator>(&transaction_leaf_elements);
+
+    let mut event_leaf_elements: Vec<EventLeafElement> = Vec::new();
+    for transaction in transactions_data {
+        let transaction_hash = transaction.transaction_hash;
+        for event in transaction.transaction_output.events() {
+            let event_leaf_element = EventLeafElement { event: event.clone(), transaction_hash };
+            event_leaf_elements.push(event_leaf_element);
+        }
+    }
+    let events_commitment =
+        calculate_events_commitment::<PoseidonHashCalculator>(&event_leaf_elements);
+
+    let receipt_elements: Vec<ReceiptElement> = transactions_data
+        .iter()
+        .map(|transaction_data| ReceiptElement {
+            transaction_hash: transaction_data.transaction_hash,
+            transaction_output: transaction_data.transaction_output.clone(),
+            transaction_version: transaction_data.transaction_version,
+        })
+        .collect();
+    let receipts_commitment = calculate_receipt_commitment::<PoseidonHashCalculator>(
+        &receipt_elements,
+        l1_data_gas_price_per_token,
+        l1_gas_price_per_token,
+    );
+    let state_diff_commitment = calculate_state_diff_hash(state_diff);
+    let concated_counts = concat_counts(
+        transactions_data.len(),
+        event_leaf_elements.len(),
+        state_diff.len(),
+        l1_da_mode,
+    );
+    BlockHeaderCommitments {
+        transactions_commitment,
+        events_commitment,
+        receipts_commitment,
+        state_diff_commitment,
+        concated_counts,
+    }
+}
 
 // A single felt: [
 //     transaction_count (64 bits) | event_count (64 bits) | state_diff_length (64 bits)
