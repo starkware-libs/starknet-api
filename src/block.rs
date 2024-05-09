@@ -75,6 +75,20 @@ pub struct BlockHeader {
     pub starknet_version: StarknetVersion,
 }
 
+/// The header of a [Block](`crate::block::Block`) without hashing.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct BlockHeaderWithoutHash {
+    pub parent_hash: BlockHash,
+    pub block_number: BlockNumber,
+    pub l1_gas_price: GasPricePerToken,
+    pub l1_data_gas_price: GasPricePerToken,
+    pub state_root: GlobalRoot,
+    pub sequencer: SequencerContractAddress,
+    pub timestamp: BlockTimestamp,
+    pub l1_da_mode: L1DataAvailabilityMode,
+    pub starknet_version: StarknetVersion,
+}
+
 /// The [transactions](`crate::transaction::Transaction`) and their
 /// [outputs](`crate::transaction::TransactionOutput`) in a [block](`crate::block::Block`).
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
