@@ -1,11 +1,10 @@
 use crate::core::ReceiptCommitment;
 use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
-use crate::hash::{HashFunction, StarkFelt};
+use crate::hash::{starknet_keccak_hash, HashFunction, StarkFelt};
 use crate::transaction::{
     ExecutionResources, MessageToL1, TransactionExecutionStatus, TransactionReceipt,
 };
-use crate::transaction_hash::ascii_as_felt;
 
 #[cfg(test)]
 #[path = "receipt_commitment_test.rs"]
@@ -33,7 +32,7 @@ fn calculate_receipt_hash(transaction_receipt: &TransactionReceipt) -> StarkFelt
         .chain(&transaction_receipt.transaction_hash)
         .chain(&transaction_receipt.output.actual_fee().0.into())
         .chain(&calculate_messages_sent_hash(transaction_receipt.output.messages_sent()))
-        .chain(&get_revert_reason(transaction_receipt.output.execution_status()));
+        .chain(&get_revert_reason_hash(transaction_receipt.output.execution_status()));
     chain_execution_resources(hash_chain, transaction_receipt.output.execution_resources())
         .get_poseidon_hash()
 }
@@ -55,12 +54,11 @@ fn calculate_messages_sent_hash(messages_sent: &Vec<MessageToL1>) -> StarkFelt {
 }
 
 // Returns starknet-keccak of the revert reason ASCII string, or 0 if the transaction succeeded.
-fn get_revert_reason(execution_status: &TransactionExecutionStatus) -> StarkFelt {
+fn get_revert_reason_hash(execution_status: &TransactionExecutionStatus) -> StarkFelt {
     match execution_status {
         TransactionExecutionStatus::Succeeded => StarkFelt::ZERO,
-        // TODO(yoav): Wrap the ASCII with a keccak.
         TransactionExecutionStatus::Reverted(reason) => {
-            ascii_as_felt(&reason.revert_reason).expect("ascii_as_felt failed for revert reason")
+            starknet_keccak_hash(reason.revert_reason.as_bytes())
         }
     }
 }
