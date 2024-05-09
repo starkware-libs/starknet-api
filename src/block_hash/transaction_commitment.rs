@@ -1,3 +1,4 @@
+use super::block_hash_calculator::TransactionHashingData;
 use crate::core::TransactionCommitment;
 use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
@@ -11,13 +12,22 @@ mod transaction_commitment_test;
 /// The elements used to calculate a leaf in the transactions Patricia tree.
 #[derive(Clone)]
 pub struct TransactionLeafElement {
-    pub transaction_hash: TransactionHash,
-    pub transaction_signature: Option<TransactionSignature>,
+    pub(crate) transaction_hash: TransactionHash,
+    pub(crate) transaction_signature: Option<TransactionSignature>,
+}
+
+impl From<&TransactionHashingData> for TransactionLeafElement {
+    fn from(transaction_data: &TransactionHashingData) -> Self {
+        Self {
+            transaction_hash: transaction_data.transaction_hash,
+            transaction_signature: transaction_data.transaction_signature.clone(),
+        }
+    }
 }
 
 /// Returns the root of a Patricia tree where each leaf is
-/// Poseidon(transaction_hash, transaction_signature).
-/// The leaf of a transaction types without a signature field is: Poseidon(transaction_hash, 0).
+/// H(transaction_hash, transaction_signature).
+/// The leaf of a transaction types without a signature field is: H(transaction_hash, 0).
 pub fn calculate_transactions_commitment<H: HashFunction>(
     transaction_leaf_elements: &[TransactionLeafElement],
 ) -> TransactionCommitment {

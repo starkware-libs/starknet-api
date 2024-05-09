@@ -1,5 +1,5 @@
-use super::calculate_event_hash;
-use crate::block_hash::event_commitment::{calculate_events_commitment, EventLeafElement};
+use super::{calculate_event_hash, EventLeafElement};
+use crate::block_hash::event_commitment::calculate_events_commitment;
 use crate::core::{ContractAddress, EventCommitment, PatriciaKey};
 use crate::hash::{PoseidonHashCalculator, StarkFelt, StarkHash};
 use crate::transaction::{Event, EventContent, EventData, EventKey, TransactionHash};
