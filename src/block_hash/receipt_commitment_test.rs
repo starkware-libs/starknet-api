@@ -1,45 +1,19 @@
-use std::collections::HashMap;
-
-use primitive_types::H160;
-
 use super::calculate_messages_sent_hash;
-use crate::block::{BlockHash, BlockNumber};
 use crate::block_hash::receipt_commitment::{
-    calculate_receipt_commitment, calculate_receipt_hash, get_revert_reason_hash,
+    calculate_receipt_commitment, calculate_receipt_hash, get_revert_reason_hash, ReceiptElement,
 };
-use crate::core::{ContractAddress, EthAddress, ReceiptCommitment};
+use crate::block_hash::test_utils::{generate_message_to_l1, get_transaction_output};
+use crate::core::ReceiptCommitment;
 use crate::hash::{PoseidonHashCalculator, StarkFelt};
 use crate::transaction::{
-    Builtin, ExecutionResources, Fee, InvokeTransactionOutput, L2ToL1Payload, MessageToL1,
     RevertedTransactionExecutionStatus, TransactionExecutionStatus, TransactionHash,
-    TransactionOutput, TransactionReceipt,
 };
 
 #[test]
 fn test_receipt_hash_regression() {
-    let execution_status =
-        TransactionExecutionStatus::Reverted(RevertedTransactionExecutionStatus {
-            revert_reason: "aborted".to_string(),
-        });
-    let execution_resources = ExecutionResources {
-        steps: 98,
-        builtin_instance_counter: HashMap::from([(Builtin::Bitwise, 11), (Builtin::EcOp, 22)]),
-        memory_holes: 76,
-        da_l1_gas_consumed: 54,
-        da_l1_data_gas_consumed: 32,
-    };
-    let invoke_output = TransactionOutput::Invoke(InvokeTransactionOutput {
-        actual_fee: Fee(12),
-        messages_sent: vec![generate_message_to_l1(34), generate_message_to_l1(56)],
-        events: vec![],
-        execution_status,
-        execution_resources,
-    });
-    let transaction_receipt = TransactionReceipt {
+    let transaction_receipt = ReceiptElement {
         transaction_hash: TransactionHash(StarkFelt::from(1234_u16)),
-        block_hash: BlockHash(StarkFelt::from(5678_u16)),
-        block_number: BlockNumber(99),
-        output: invoke_output,
+        transaction_output: get_transaction_output(),
     };
 
     let expected_hash =
@@ -65,14 +39,6 @@ fn test_messages_sent_regression() {
         StarkFelt::try_from("0x00c89474a9007dc060aed76caf8b30b927cfea1ebce2d134b943b8d7121004e4")
             .unwrap();
     assert_eq!(messages_hash, expected_hash);
-}
-
-fn generate_message_to_l1(seed: u64) -> MessageToL1 {
-    MessageToL1 {
-        from_address: ContractAddress::from(seed),
-        to_address: EthAddress(H160::from_low_u64_be(seed + 1)),
-        payload: L2ToL1Payload(vec![StarkFelt::from(seed + 2), StarkFelt::from(seed + 3)]),
-    }
 }
 
 #[test]

@@ -3,7 +3,7 @@ use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
 use crate::hash::{starknet_keccak_hash, HashFunction, StarkFelt};
 use crate::transaction::{
-    ExecutionResources, MessageToL1, TransactionExecutionStatus, TransactionReceipt,
+    ExecutionResources, MessageToL1, TransactionExecutionStatus, TransactionHash, TransactionOutput,
 };
 
 #[cfg(test)]
@@ -14,12 +14,19 @@ mod receipt_commitment_test;
 const L1_GAS_PER_STEP: u64 = 1;
 const L1_GAS_PER_BUILTIN_INSTANCE: u64 = 1;
 
+// The elements used to calculate a leaf in the transactions Patricia tree.
+#[derive(Clone)]
+pub struct ReceiptElement {
+    pub transaction_hash: TransactionHash,
+    pub transaction_output: TransactionOutput,
+}
+
 /// Returns the root of a Patricia tree where each leaf is a receipt hash.
 pub fn calculate_receipt_commitment<H: HashFunction>(
-    transactions_receipt: &[TransactionReceipt],
+    receipt_elements: &[ReceiptElement],
 ) -> ReceiptCommitment {
     ReceiptCommitment(calculate_root::<H>(
-        transactions_receipt.iter().map(calculate_receipt_hash).collect(),
+        receipt_elements.iter().map(calculate_receipt_hash).collect(),
     ))
 }
 
@@ -27,13 +34,13 @@ pub fn calculate_receipt_commitment<H: HashFunction>(
 //    transaction hash, amount of fee paid, hash of messages sent, revert reason,
 //    execution resources
 // ).
-fn calculate_receipt_hash(transaction_receipt: &TransactionReceipt) -> StarkFelt {
+fn calculate_receipt_hash(receipt_element: &ReceiptElement) -> StarkFelt {
     let hash_chain = HashChain::new()
-        .chain(&transaction_receipt.transaction_hash)
-        .chain(&transaction_receipt.output.actual_fee().0.into())
-        .chain(&calculate_messages_sent_hash(transaction_receipt.output.messages_sent()))
-        .chain(&get_revert_reason_hash(transaction_receipt.output.execution_status()));
-    chain_execution_resources(hash_chain, transaction_receipt.output.execution_resources())
+        .chain(&receipt_element.transaction_hash)
+        .chain(&receipt_element.transaction_output.actual_fee().0.into())
+        .chain(&calculate_messages_sent_hash(receipt_element.transaction_output.messages_sent()))
+        .chain(&get_revert_reason_hash(receipt_element.transaction_output.execution_status()));
+    chain_execution_resources(hash_chain, receipt_element.transaction_output.execution_resources())
         .get_poseidon_hash()
 }
 
