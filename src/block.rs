@@ -20,6 +20,8 @@ use crate::transaction::{Transaction, TransactionHash, TransactionOutput};
 /// A block.
 #[derive(Debug, Default, Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Block {
+    // TODO: Consider renaming to BlockWithCommitments, for the header use BlockHeaderWithoutHash
+    // instead of BlockHeader, and add BlockHeaderCommitments and BlockHash fields.
     pub header: BlockHeader,
     pub body: BlockBody,
 }
@@ -72,6 +74,20 @@ pub struct BlockHeader {
     pub n_events: Option<usize>,
     #[serde(skip_serializing)]
     pub receipt_commitment: Option<ReceiptCommitment>,
+    pub starknet_version: StarknetVersion,
+}
+
+/// The header of a [Block](`crate::block::Block`) without hashing.
+#[derive(Debug, Default, Clone, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
+pub struct BlockHeaderWithoutHash {
+    pub parent_hash: BlockHash,
+    pub block_number: BlockNumber,
+    pub l1_gas_price: GasPricePerToken,
+    pub l1_data_gas_price: GasPricePerToken,
+    pub state_root: GlobalRoot,
+    pub sequencer: SequencerContractAddress,
+    pub timestamp: BlockTimestamp,
+    pub l1_da_mode: L1DataAvailabilityMode,
     pub starknet_version: StarknetVersion,
 }
 

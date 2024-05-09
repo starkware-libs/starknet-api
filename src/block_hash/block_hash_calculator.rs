@@ -1,19 +1,27 @@
+use once_cell::sync::Lazy;
+
 use super::event_commitment::{calculate_events_commitment, EventLeafElement};
 use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
 use super::state_diff_hash::calculate_state_diff_hash;
 use super::transaction_commitment::{calculate_transactions_commitment, TransactionLeafElement};
-use crate::block::GasPricePerToken;
+use crate::block::{BlockHash, BlockHeaderWithoutHash, GasPricePerToken};
 use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
+use crate::crypto::utils::HashChain;
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::hash::{PoseidonHashCalculator, StarkFelt};
 use crate::state::ThinStateDiff;
 use crate::transaction::{
     TransactionHash, TransactionOutputCommon, TransactionSignature, TransactionVersion,
 };
+use crate::transaction_hash::ascii_as_felt;
 
 #[cfg(test)]
 #[path = "block_hash_calculator_test.rs"]
 mod block_hash_calculator_test;
+
+static STARKNET_BLOCK_HASH0: Lazy<StarkFelt> = Lazy::new(|| {
+    ascii_as_felt("STARKNET_BLOCK_HASH0").expect("ascii_as_felt failed for 'STARKNET_BLOCK_HASH0'")
+});
 
 pub struct TransactionHashingData {
     pub transaction_signature: Option<TransactionSignature>,
@@ -29,6 +37,39 @@ pub struct BlockHeaderCommitments {
     pub receipts_commitment: ReceiptCommitment,
     pub state_diff_commitment: StateDiffCommitment,
     pub concatenated_counts: StarkFelt,
+}
+
+/// Poseidon (
+///     “STARKNET_BLOCK_HASH0”, block_number, global_state_root, sequencer_address,
+///     block_timestamp, concat_counts, state_diff_hash, transaction_commitment,
+///     event_commitment, receipt_commitment, gas_price_wei, gas_price_fri,
+///     data_gas_price_wei, data_gas_price_fri, starknet_version, 0, parent_block_hash
+/// ).
+pub fn calculate_block_hash(
+    header: BlockHeaderWithoutHash,
+    block_commitments: BlockHeaderCommitments,
+) -> BlockHash {
+    BlockHash(
+        HashChain::new()
+            .chain(&STARKNET_BLOCK_HASH0)
+            .chain(&header.block_number.0.into())
+            .chain(&header.state_root.0)
+            .chain(&header.sequencer.0)
+            .chain(&header.timestamp.0.into())
+            .chain(&block_commitments.concatenated_counts)
+            .chain(&block_commitments.state_diff_commitment.0.0)
+            .chain(&block_commitments.transactions_commitment.0)
+            .chain(&block_commitments.events_commitment.0)
+            .chain(&block_commitments.receipts_commitment.0)
+            .chain(&header.l1_gas_price.price_in_wei.0.into())
+            .chain(&header.l1_gas_price.price_in_fri.0.into())
+            .chain(&header.l1_data_gas_price.price_in_wei.0.into())
+            .chain(&header.l1_data_gas_price.price_in_fri.0.into())
+            .chain(&ascii_as_felt(&header.starknet_version.0).expect("Expect ASCII version"))
+            .chain(&StarkFelt::ZERO)
+            .chain(&header.parent_hash.0)
+            .get_poseidon_hash(),
+    )
 }
 
 /// Calculates the commitments of the transactions data for the block hash.
@@ -83,7 +124,6 @@ pub fn calculate_block_commitments(
 //     transaction_count (64 bits) | event_count (64 bits) | state_diff_length (64 bits)
 //     | L1 data availability mode: 0 for calldata, 1 for blob (1 bit) | 0 ...
 // ].
-#[allow(dead_code)]
 fn concat_counts(
     transaction_count: usize,
     event_count: usize,
