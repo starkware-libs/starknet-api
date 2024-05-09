@@ -1,9 +1,9 @@
-use super::calculate_event_hash;
-use crate::block_hash::event_commitment::{calculate_events_commitment, EventLeafElement};
-use crate::core::{ContractAddress, EventCommitment, PatriciaKey};
-use crate::hash::{PoseidonHashCalculator, StarkFelt, StarkHash};
+use super::{calculate_event_hash, EventLeafElement};
+use crate::block_hash::event_commitment::calculate_events_commitment;
+use crate::core::{ContractAddress, EventCommitment};
+use crate::hash::{PoseidonHashCalculator, StarkFelt};
+use crate::stark_felt;
 use crate::transaction::{Event, EventContent, EventData, EventKey, TransactionHash};
-use crate::{contract_address, patricia_key, stark_felt};
 
 #[test]
 fn test_events_commitment_regression() {
@@ -34,7 +34,7 @@ fn test_event_hash_regression() {
 fn get_event_leaf_element(seed: u8) -> EventLeafElement {
     EventLeafElement {
         event: Event {
-            from_address: contract_address!(seed + 8),
+            from_address: ContractAddress::from(seed + 8),
             content: EventContent {
                 keys: [seed, seed + 1].iter().map(|key| EventKey(stark_felt!(*key))).collect(),
                 data: EventData(
