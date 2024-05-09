@@ -10,22 +10,22 @@ mod transaction_commitment_test;
 
 /// The elements used to calculate a leaf in the transactions Patricia tree.
 #[derive(Clone)]
-pub struct TransactionLeafElements {
-    transaction_hash: TransactionHash,
-    transaction_signature: TransactionSignature,
+pub struct TransactionLeafElement {
+    pub transaction_hash: TransactionHash,
+    pub transaction_signature: TransactionSignature,
 }
 
 /// Returns the root of a Patricia tree where each leaf is
 /// Poseidon(transaction_hash, transaction_signature).
 pub fn calculate_transactions_commitment<H: HashFunction>(
-    transaction_leaf_elements: &[TransactionLeafElements],
+    transaction_leaf_elements: &[TransactionLeafElement],
 ) -> TransactionCommitment {
     let transaction_leaves =
         transaction_leaf_elements.iter().map(calculate_transaction_leaf).collect();
     TransactionCommitment(calculate_root::<H>(transaction_leaves))
 }
 
-fn calculate_transaction_leaf(transaction_leaf_elements: &TransactionLeafElements) -> StarkFelt {
+fn calculate_transaction_leaf(transaction_leaf_elements: &TransactionLeafElement) -> StarkFelt {
     HashChain::new()
         .chain(&transaction_leaf_elements.transaction_hash.0)
         .chain_iter(transaction_leaf_elements.transaction_signature.0.iter())
