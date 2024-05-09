@@ -11,8 +11,8 @@ mod event_commitment_test;
 /// The elements used to calculate a leaf in the transactions Patricia tree.
 #[derive(Clone)]
 pub struct EventLeafElement {
-    event: Event,
-    transaction_hash: TransactionHash,
+    pub(crate) event: Event,
+    pub(crate) transaction_hash: TransactionHash,
 }
 
 /// Returns the root of a Patricia tree where each leaf is an event hash.
