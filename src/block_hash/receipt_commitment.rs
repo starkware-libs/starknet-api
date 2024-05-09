@@ -4,31 +4,33 @@ use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
 use crate::hash::{starknet_keccak_hash, HashFunction, StarkFelt};
 use crate::transaction::{
-    ExecutionResources, Fee, MessageToL1, TransactionExecutionStatus, TransactionReceipt,
-    TransactionVersion,
+    ExecutionResources, Fee, MessageToL1, TransactionExecutionStatus, TransactionHash,
+    TransactionOutput, TransactionVersion,
 };
 
 #[cfg(test)]
 #[path = "receipt_commitment_test.rs"]
 mod receipt_commitment_test;
 
+// The elements used to calculate a leaf in the transactions Patricia tree.
+#[derive(Clone)]
+pub struct ReceiptElement {
+    pub transaction_hash: TransactionHash,
+    pub transaction_output: TransactionOutput,
+    pub transaction_version: TransactionVersion,
+}
+
 /// Returns the root of a Patricia tree where each leaf is a receipt hash.
 pub fn calculate_receipt_commitment<H: HashFunction>(
-    transactions_receipt: &[TransactionReceipt],
-    transaction_version: &TransactionVersion,
+    receipt_elements: &[ReceiptElement],
     l1_data_gas_price_per_token: GasPricePerToken,
     l1_gas_price_per_token: GasPricePerToken,
 ) -> ReceiptCommitment {
     ReceiptCommitment(calculate_root::<H>(
-        transactions_receipt
+        receipt_elements
             .iter()
             .map(|receipt| {
-                calculate_receipt_hash(
-                    receipt,
-                    transaction_version,
-                    l1_data_gas_price_per_token,
-                    l1_gas_price_per_token,
-                )
+                calculate_receipt_hash(receipt, l1_data_gas_price_per_token, l1_gas_price_per_token)
             })
             .collect(),
     ))
@@ -39,22 +41,23 @@ pub fn calculate_receipt_commitment<H: HashFunction>(
 //    execution resources
 // ).
 fn calculate_receipt_hash(
-    transaction_receipt: &TransactionReceipt,
-    transaction_version: &TransactionVersion,
+    receipt_element: &ReceiptElement,
     l1_data_gas_price_per_token: GasPricePerToken,
     l1_gas_price_per_token: GasPricePerToken,
 ) -> StarkFelt {
-    let l1_gas_price = get_price_by_version(l1_gas_price_per_token, transaction_version);
-    let l1_data_gas_price = get_price_by_version(l1_data_gas_price_per_token, transaction_version);
+    let l1_gas_price =
+        get_price_by_version(l1_gas_price_per_token, &receipt_element.transaction_version);
+    let l1_data_gas_price =
+        get_price_by_version(l1_data_gas_price_per_token, &receipt_element.transaction_version);
     let hash_chain = HashChain::new()
-        .chain(&transaction_receipt.transaction_hash)
-        .chain(&transaction_receipt.output.actual_fee().0.into())
-        .chain(&calculate_messages_sent_hash(transaction_receipt.output.messages_sent()))
-        .chain(&get_revert_reason_hash(transaction_receipt.output.execution_status()));
+        .chain(&receipt_element.transaction_hash)
+        .chain(&receipt_element.transaction_output.actual_fee().0.into())
+        .chain(&calculate_messages_sent_hash(receipt_element.transaction_output.messages_sent()))
+        .chain(&get_revert_reason_hash(receipt_element.transaction_output.execution_status()));
     chain_execution_resources(
         hash_chain,
-        transaction_receipt.output.execution_resources(),
-        transaction_receipt.output.actual_fee(),
+        receipt_element.transaction_output.execution_resources(),
+        receipt_element.transaction_output.actual_fee(),
         l1_data_gas_price,
         l1_gas_price,
     )
