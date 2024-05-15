@@ -104,40 +104,32 @@ fn get_deprecated_transaction_hashes(
     transaction: &Transaction,
     transaction_version: &TransactionVersion,
 ) -> Result<Vec<TransactionHash>, StarknetApiError> {
-    Ok(
-        if chain_id == &ChainId("SN_MAIN".to_string())
-            && block_number > &MAINNET_TRANSACTION_HASH_WITH_VERSION
-        {
-            vec![]
-        } else {
-            match transaction {
-                Transaction::Declare(_) => vec![],
-                Transaction::Deploy(deploy) => {
-                    vec![get_deprecated_deploy_transaction_hash(
-                        deploy,
+    Ok(if chain_id == &ChainId::Mainnet && block_number > &MAINNET_TRANSACTION_HASH_WITH_VERSION {
+        vec![]
+    } else {
+        match transaction {
+            Transaction::Declare(_) => vec![],
+            Transaction::Deploy(deploy) => {
+                vec![get_deprecated_deploy_transaction_hash(deploy, chain_id, transaction_version)?]
+            }
+            Transaction::DeployAccount(_) => vec![],
+            Transaction::Invoke(invoke) => match invoke {
+                InvokeTransaction::V0(invoke_v0) => {
+                    vec![get_deprecated_invoke_transaction_v0_hash(
+                        invoke_v0,
                         chain_id,
                         transaction_version,
                     )?]
                 }
-                Transaction::DeployAccount(_) => vec![],
-                Transaction::Invoke(invoke) => match invoke {
-                    InvokeTransaction::V0(invoke_v0) => {
-                        vec![get_deprecated_invoke_transaction_v0_hash(
-                            invoke_v0,
-                            chain_id,
-                            transaction_version,
-                        )?]
-                    }
-                    InvokeTransaction::V1(_) | InvokeTransaction::V3(_) => vec![],
-                },
-                Transaction::L1Handler(l1_handler) => get_deprecated_l1_handler_transaction_hashes(
-                    l1_handler,
-                    chain_id,
-                    transaction_version,
-                )?,
-            }
-        },
-    )
+                InvokeTransaction::V1(_) | InvokeTransaction::V3(_) => vec![],
+            },
+            Transaction::L1Handler(l1_handler) => get_deprecated_l1_handler_transaction_hashes(
+                l1_handler,
+                chain_id,
+                transaction_version,
+            )?,
+        }
+    })
 }
 
 /// Validates the hash of a starknet transaction.
@@ -274,7 +266,7 @@ fn get_common_deploy_transaction_hash(
                 None
             }
         })
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .get_pedersen_hash(),
     ))
 }
@@ -309,7 +301,7 @@ fn get_common_invoke_transaction_v0_hash(
             .chain(&transaction.entry_point_selector.0)
             .chain(&HashChain::new().chain_iter(transaction.calldata.0.iter()).get_pedersen_hash())
             .chain_if_fn(|| if !is_deprecated { Some(transaction.max_fee.0.into()) } else { None })
-            .chain(&ascii_as_felt(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
             .get_pedersen_hash(),
     ))
 }
@@ -327,7 +319,7 @@ pub(crate) fn get_invoke_transaction_v1_hash(
         .chain(&StarkFelt::ZERO) // No entry point selector in invoke transaction.
         .chain(&HashChain::new().chain_iter(transaction.calldata.0.iter()).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -359,7 +351,7 @@ pub(crate) fn get_invoke_transaction_v3_hash(
             .chain(transaction.sender_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&ascii_as_felt(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
             .chain(&transaction.nonce.0)
             .chain(&data_availability_mode)
             .chain(&account_deployment_data_hash)
@@ -442,7 +434,7 @@ fn get_common_l1_handler_transaction_hash(
                 None
             }
         })
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain_if_fn(|| {
             if version > L1HandlerVersions::AsInvoke {
                 Some(transaction.nonce.0)
@@ -467,7 +459,7 @@ pub(crate) fn get_declare_transaction_v0_hash(
         .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain(&transaction.class_hash.0)
         .get_pedersen_hash(),
     ))
@@ -486,7 +478,7 @@ pub(crate) fn get_declare_transaction_v1_hash(
         .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -505,7 +497,7 @@ pub(crate) fn get_declare_transaction_v2_hash(
         .chain(&StarkFelt::ZERO) // No entry point selector in declare transaction.
         .chain(&HashChain::new().chain(&transaction.class_hash.0).get_pedersen_hash())
         .chain(&transaction.max_fee.0.into())
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain(&transaction.nonce.0)
         .chain(&transaction.compiled_class_hash.0)
         .get_pedersen_hash(),
@@ -536,7 +528,7 @@ pub(crate) fn get_declare_transaction_v3_hash(
             .chain(transaction.sender_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&ascii_as_felt(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
             .chain(&transaction.nonce.0)
             .chain(&data_availability_mode)
             .chain(&account_deployment_data_hash)
@@ -572,7 +564,7 @@ pub(crate) fn get_deploy_account_transaction_v1_hash(
         .chain(&StarkFelt::ZERO) // No entry point selector in deploy account transaction.
         .chain(&calldata_hash)
         .chain(&transaction.max_fee.0.into())
-        .chain(&ascii_as_felt(chain_id.0.as_str())?)
+        .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
         .chain(&transaction.nonce.0)
         .get_pedersen_hash(),
     ))
@@ -607,7 +599,7 @@ pub(crate) fn get_deploy_account_transaction_v3_hash(
             .chain(contract_address.0.key())
             .chain(&tip_resource_bounds_hash)
             .chain(&paymaster_data_hash)
-            .chain(&ascii_as_felt(chain_id.0.as_str())?)
+            .chain(&ascii_as_felt(chain_id.to_string().as_str())?)
             .chain(&data_availability_mode)
             .chain(&transaction.nonce.0)
             .chain(&constructor_calldata_hash)
