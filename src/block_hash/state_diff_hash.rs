@@ -76,17 +76,24 @@ fn chain_deprecated_declared_classes(
 // ]
 fn chain_storage_diffs(
     storage_diffs: &IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
-    mut hash_chain: HashChain,
+    hash_chain: HashChain,
 ) -> HashChain {
-    hash_chain = hash_chain.chain(&storage_diffs.len().into());
+    let mut n_updated_contracts = 0_u64;
+    let mut storage_diffs_chain = HashChain::new();
     for (contract_address, key_value_map) in sorted_index_map(storage_diffs) {
-        hash_chain = hash_chain.chain(&contract_address);
-        hash_chain = hash_chain.chain(&key_value_map.len().into());
+        let n_updates = key_value_map.len();
+        if n_updates == 0 {
+            // Filter out a contract with empty storage maps.
+            continue;
+        }
+        n_updated_contracts += 1;
+        storage_diffs_chain = storage_diffs_chain.chain(&contract_address);
+        storage_diffs_chain = storage_diffs_chain.chain(&n_updates.into());
         for (key, value) in sorted_index_map(&key_value_map) {
-            hash_chain = hash_chain.chain(&key).chain(&value);
+            storage_diffs_chain = storage_diffs_chain.chain(&key).chain(&value);
         }
     }
-    hash_chain
+    hash_chain.chain(&n_updated_contracts.into()).extend(storage_diffs_chain)
 }
 
 // Chains: [number_of_updated_contracts nonces,
