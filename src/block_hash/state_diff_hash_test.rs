@@ -117,6 +117,26 @@ fn test_sorting_storage_diffs() {
 }
 
 #[test]
+fn test_empty_storage_diffs() {
+    let storage_diffs_0 = indexmap! {
+        0u64.into() => indexmap! {
+            1u64.into() => 2u64.into(),
+        },
+        3u64.into() => indexmap! {
+        },
+    };
+    let storage_diffs_1 = indexmap! {
+        0u64.into() => indexmap! {
+            1u64.into() => 2u64.into(),
+        },
+    };
+    assert_eq!(
+        chain_storage_diffs(&storage_diffs_0, HashChain::new()).get_poseidon_hash(),
+        chain_storage_diffs(&storage_diffs_1, HashChain::new()).get_poseidon_hash(),
+    );
+}
+
+#[test]
 fn test_sorting_nonces() {
     let nonces_0 = indexmap! {
         0u64.into() => Nonce(3u64.into()),
