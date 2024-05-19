@@ -39,8 +39,8 @@ fn chain_deployed_contracts(
     mut hash_chain: HashChain,
 ) -> HashChain {
     hash_chain = hash_chain.chain(&deployed_contracts.len().into());
-    for (address, class_hash) in deployed_contracts {
-        hash_chain = hash_chain.chain(address).chain(class_hash);
+    for (address, class_hash) in sorted_index_map(deployed_contracts) {
+        hash_chain = hash_chain.chain(&address.0).chain(&class_hash);
     }
     hash_chain
 }
@@ -52,8 +52,8 @@ fn chain_declared_classes(
     mut hash_chain: HashChain,
 ) -> HashChain {
     hash_chain = hash_chain.chain(&declared_classes.len().into());
-    for (class_hash, compiled_class_hash) in declared_classes {
-        hash_chain = hash_chain.chain(class_hash).chain(&compiled_class_hash.0)
+    for (class_hash, compiled_class_hash) in sorted_index_map(declared_classes) {
+        hash_chain = hash_chain.chain(&class_hash).chain(&compiled_class_hash.0)
     }
     hash_chain
 }
@@ -63,9 +63,11 @@ fn chain_deprecated_declared_classes(
     deprecated_declared_classes: &[ClassHash],
     hash_chain: HashChain,
 ) -> HashChain {
+    let mut sorted_deprecated_declared_classes = deprecated_declared_classes.to_vec();
+    sorted_deprecated_declared_classes.sort_unstable();
     hash_chain
-        .chain(&deprecated_declared_classes.len().into())
-        .chain_iter(deprecated_declared_classes.iter().map(|class_hash| &class_hash.0))
+        .chain(&sorted_deprecated_declared_classes.len().into())
+        .chain_iter(sorted_deprecated_declared_classes.iter().map(|class_hash| &class_hash.0))
 }
 
 // Chains: [number_of_updated_contracts,
@@ -74,17 +76,23 @@ fn chain_deprecated_declared_classes(
 // ]
 fn chain_storage_diffs(
     storage_diffs: &IndexMap<ContractAddress, IndexMap<StorageKey, StarkFelt>>,
-    mut hash_chain: HashChain,
+    hash_chain: HashChain,
 ) -> HashChain {
-    hash_chain = hash_chain.chain(&storage_diffs.len().into());
-    for (contract_address, key_value_map) in storage_diffs {
-        hash_chain = hash_chain.chain(contract_address);
-        hash_chain = hash_chain.chain(&key_value_map.len().into());
-        for (key, value) in key_value_map {
-            hash_chain = hash_chain.chain(key).chain(value);
+    let mut n_updated_contracts = 0_u64;
+    let mut storage_diffs_chain = HashChain::new();
+    for (contract_address, key_value_map) in sorted_index_map(storage_diffs) {
+        if key_value_map.is_empty() {
+            // Filter out a contract with empty storage maps.
+            continue;
+        }
+        n_updated_contracts += 1;
+        storage_diffs_chain = storage_diffs_chain.chain(&contract_address);
+        storage_diffs_chain = storage_diffs_chain.chain(&key_value_map.len().into());
+        for (key, value) in sorted_index_map(&key_value_map) {
+            storage_diffs_chain = storage_diffs_chain.chain(&key).chain(&value);
         }
     }
-    hash_chain
+    hash_chain.chain(&n_updated_contracts.into()).extend(storage_diffs_chain)
 }
 
 // Chains: [number_of_updated_contracts nonces,
@@ -92,9 +100,16 @@ fn chain_storage_diffs(
 // ]
 fn chain_nonces(nonces: &IndexMap<ContractAddress, Nonce>, mut hash_chain: HashChain) -> HashChain {
     hash_chain = hash_chain.chain(&nonces.len().into());
-    for (contract_address, nonce) in nonces {
-        hash_chain = hash_chain.chain(contract_address);
-        hash_chain = hash_chain.chain(nonce);
+    for (contract_address, nonce) in sorted_index_map(nonces) {
+        hash_chain = hash_chain.chain(&contract_address);
+        hash_chain = hash_chain.chain(&nonce);
     }
     hash_chain
+}
+
+// Returns a clone of the map, sorted by keys.
+fn sorted_index_map<K: Clone + std::cmp::Ord, V: Clone>(map: &IndexMap<K, V>) -> IndexMap<K, V> {
+    let mut sorted_map = map.clone();
+    sorted_map.sort_unstable_keys();
+    sorted_map
 }

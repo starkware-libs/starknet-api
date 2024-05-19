@@ -95,6 +95,12 @@ impl HashChain {
         self.chain(&felts.len().into()).chain_iter(felts.iter())
     }
 
+    // Chains a chain of felts to the hash chain.
+    pub fn extend(mut self, chain: HashChain) -> Self {
+        self.elements.extend(chain.elements);
+        self
+    }
+
     // Returns the pedersen hash of the chained felts, hashed with the length of the chain.
     pub fn get_pedersen_hash(&self) -> StarkHash {
         let current_hash = self

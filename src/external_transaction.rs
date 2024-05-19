@@ -49,8 +49,10 @@ macro_rules! implement_ref_getters {
 
 impl ExternalTransaction {
     implement_ref_getters!(
+        (nonce, Nonce),
         (resource_bounds, ResourceBoundsMapping),
-        (signature, TransactionSignature)
+        (signature, TransactionSignature),
+        (tip, Tip)
     );
 }
 
