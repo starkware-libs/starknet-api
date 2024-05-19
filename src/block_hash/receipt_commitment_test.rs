@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use primitive_types::H160;
 
 use super::calculate_messages_sent_hash;
-use crate::block::{BlockHash, BlockNumber};
+use crate::block::{BlockHash, BlockNumber, GasPrice, GasPricePerToken};
 use crate::block_hash::receipt_commitment::{
     calculate_receipt_commitment, calculate_receipt_hash, get_revert_reason_hash,
 };
@@ -12,7 +12,7 @@ use crate::hash::{PoseidonHashCalculator, StarkFelt};
 use crate::transaction::{
     Builtin, ExecutionResources, Fee, InvokeTransactionOutput, L2ToL1Payload, MessageToL1,
     RevertedTransactionExecutionStatus, TransactionExecutionStatus, TransactionHash,
-    TransactionOutput, TransactionReceipt,
+    TransactionOutput, TransactionReceipt, TransactionVersion,
 };
 
 #[test]
@@ -29,7 +29,7 @@ fn test_receipt_hash_regression() {
         da_l1_data_gas_consumed: 32,
     };
     let invoke_output = TransactionOutput::Invoke(InvokeTransactionOutput {
-        actual_fee: Fee(12),
+        actual_fee: Fee(99804),
         messages_sent: vec![generate_message_to_l1(34), generate_message_to_l1(56)],
         events: vec![],
         execution_status,
@@ -41,18 +41,35 @@ fn test_receipt_hash_regression() {
         block_number: BlockNumber(99),
         output: invoke_output,
     };
+    let l1_data_gas_price =
+        GasPricePerToken { price_in_fri: GasPrice(123), price_in_wei: GasPrice(456) };
+    let l1_gas_price =
+        GasPricePerToken { price_in_fri: GasPrice(456), price_in_wei: GasPrice(789) };
 
     let expected_hash =
-        StarkFelt::try_from("0x06720e8f1cd4543ae25714f0c79e592d98b16747a92962406ab08b6d46e10fd2")
+        StarkFelt::try_from("0x06cb27bfc55dee54e6d0fc7a6790e39f0f3c003576d50f7b8e8a1be24c351bcf")
             .unwrap();
-    assert_eq!(calculate_receipt_hash(&transaction_receipt), expected_hash);
+    assert_eq!(
+        calculate_receipt_hash(
+            &transaction_receipt,
+            &TransactionVersion::TWO,
+            l1_data_gas_price,
+            l1_gas_price
+        ),
+        expected_hash
+    );
 
     let expected_root = ReceiptCommitment(
-        StarkFelt::try_from("0x035481a28b3ea40ddfbc80f3eabc924c9c5edf64f1dd7467d80c5c5290cf48ad")
+        StarkFelt::try_from("0x03a0af1272fc3b0b83894fd7b6b70d89acb07772bc28efc9091e3cc1c2c72493")
             .unwrap(),
     );
     assert_eq!(
-        calculate_receipt_commitment::<PoseidonHashCalculator>(&[transaction_receipt]),
+        calculate_receipt_commitment::<PoseidonHashCalculator>(
+            &[transaction_receipt],
+            &TransactionVersion::THREE,
+            l1_data_gas_price,
+            l1_gas_price
+        ),
         expected_root
     );
 }
