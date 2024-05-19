@@ -324,6 +324,20 @@ impl TryFrom<StarkFelt> for u64 {
     }
 }
 
+impl TryFrom<StarkFelt> for u128 {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_U128: usize = 16; // 32 - 16
+        let (rest, u128_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U128);
+        if rest != [0u8; COMPLIMENT_OF_U128] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        let bytes: [u8; 16] = u128_bytes.try_into().unwrap();
+        Ok(u128::from_be_bytes(bytes))
+    }
+}
+
 impl Debug for StarkFelt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.str_format(f)
