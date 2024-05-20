@@ -1,5 +1,6 @@
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::StarkHash;
+
 use crate::core::EventCommitment;
 use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
@@ -30,8 +31,7 @@ pub fn calculate_events_commitment<H: StarkHash>(
 //    num_contents, content0, content1, ...
 // ).
 fn calculate_event_hash(event_leaf_element: &EventLeafElement) -> Felt {
-    let keys =
-        &event_leaf_element.event.content.keys.iter().map(|k| k.0).collect::<Vec<Felt>>();
+    let keys = &event_leaf_element.event.content.keys.iter().map(|k| k.0).collect::<Vec<Felt>>();
     let data = &event_leaf_element.event.content.data.0;
     HashChain::new()
         .chain(event_leaf_element.event.from_address.0.key())

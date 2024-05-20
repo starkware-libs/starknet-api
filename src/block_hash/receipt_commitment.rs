@@ -5,7 +5,7 @@ use crate::block::{GasPrice, GasPricePerToken};
 use crate::core::ReceiptCommitment;
 use crate::crypto::patricia_hash::calculate_root;
 use crate::crypto::utils::HashChain;
-use crate::hash::{starknet_keccak_hash};
+use crate::hash::starknet_keccak_hash;
 use crate::transaction::{
     ExecutionResources, Fee, MessageToL1, TransactionExecutionStatus, TransactionReceipt,
     TransactionVersion,

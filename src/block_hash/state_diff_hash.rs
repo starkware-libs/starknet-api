@@ -4,7 +4,7 @@ use starknet_types_core::felt::Felt;
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
-use crate::hash::{PoseidonHash};
+use crate::hash::PoseidonHash;
 use crate::state::{StorageKey, ThinStateDiff};
 use crate::transaction_hash::ascii_as_felt;
 

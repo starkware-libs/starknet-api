@@ -60,9 +60,9 @@ fn test_receipt_hash_regression() {
         expected_hash
     );
 
-    let expected_root = ReceiptCommitment(
-        stark_felt!("0x03a0af1272fc3b0b83894fd7b6b70d89acb07772bc28efc9091e3cc1c2c72493")
-    );
+    let expected_root = ReceiptCommitment(stark_felt!(
+        "0x03a0af1272fc3b0b83894fd7b6b70d89acb07772bc28efc9091e3cc1c2c72493"
+    ));
     assert_eq!(
         calculate_receipt_commitment::<Poseidon>(
             &[transaction_receipt],

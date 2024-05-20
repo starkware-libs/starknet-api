@@ -1,4 +1,5 @@
 use starknet_types_core::felt::Felt;
+
 use crate::data_availability::L1DataAvailabilityMode;
 
 #[cfg(test)]

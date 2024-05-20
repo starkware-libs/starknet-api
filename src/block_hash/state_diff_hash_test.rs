@@ -7,7 +7,7 @@ use crate::block_hash::state_diff_hash::{
 };
 use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
-use crate::hash::{PoseidonHash};
+use crate::hash::PoseidonHash;
 use crate::state::ThinStateDiff;
 
 #[test]
@@ -39,9 +39,9 @@ fn test_state_diff_hash_regression() {
         },
     };
 
-    let expected_hash = StateDiffCommitment(PoseidonHash(
-        Felt::from_hex_unchecked("0x05b8241020c186585f4273cf991d35ad703e808bd9b40242cec584e7f2d86495")
-    ));
+    let expected_hash = StateDiffCommitment(PoseidonHash(Felt::from_hex_unchecked(
+        "0x05b8241020c186585f4273cf991d35ad703e808bd9b40242cec584e7f2d86495",
+    )));
 
     assert_eq!(expected_hash, calculate_state_diff_hash(&state_diff));
 }

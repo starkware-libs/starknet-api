@@ -8,9 +8,9 @@ use std::fmt::Debug;
 use derive_more::Display;
 use once_cell::sync::Lazy;
 use primitive_types::H160;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use starknet_types_core::felt::{Felt, NonZeroFelt};
 use starknet_types_core::hash::{Pedersen, StarkHash as CoreStarkHash};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::crypto::utils::PublicKey;
 use crate::hash::{PoseidonHash, StarkHash};
