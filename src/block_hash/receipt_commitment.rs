@@ -6,7 +6,7 @@ use crate::crypto::utils::HashChain;
 use crate::hash::{starknet_keccak_hash, HashFunction, StarkFelt};
 use crate::transaction::{
     ExecutionResources, Fee, MessageToL1, TransactionExecutionStatus, TransactionHash,
-    TransactionOutput, TransactionVersion,
+    TransactionOutputCommon, TransactionVersion,
 };
 
 #[cfg(test)]
@@ -17,7 +17,7 @@ mod receipt_commitment_test;
 #[derive(Clone)]
 pub struct ReceiptElement {
     pub transaction_hash: TransactionHash,
-    pub transaction_output: TransactionOutput,
+    pub transaction_output: TransactionOutputCommon,
     pub transaction_version: TransactionVersion,
 }
 
@@ -62,13 +62,13 @@ fn calculate_receipt_hash(
         get_price_by_version(l1_data_gas_price_per_token, &receipt_element.transaction_version);
     let hash_chain = HashChain::new()
         .chain(&receipt_element.transaction_hash)
-        .chain(&receipt_element.transaction_output.actual_fee().0.into())
-        .chain(&calculate_messages_sent_hash(receipt_element.transaction_output.messages_sent()))
-        .chain(&get_revert_reason_hash(receipt_element.transaction_output.execution_status()));
+        .chain(&receipt_element.transaction_output.actual_fee.0.into())
+        .chain(&calculate_messages_sent_hash(&receipt_element.transaction_output.messages_sent))
+        .chain(&get_revert_reason_hash(&receipt_element.transaction_output.execution_status));
     chain_execution_resources(
         hash_chain,
-        receipt_element.transaction_output.execution_resources(),
-        receipt_element.transaction_output.actual_fee(),
+        &receipt_element.transaction_output.execution_resources,
+        receipt_element.transaction_output.actual_fee,
         l1_data_gas_price,
         l1_gas_price,
     )

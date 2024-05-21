@@ -8,7 +8,7 @@ use crate::data_availability::L1DataAvailabilityMode;
 use crate::hash::{PoseidonHashCalculator, StarkFelt};
 use crate::state::ThinStateDiff;
 use crate::transaction::{
-    TransactionHash, TransactionOutput, TransactionSignature, TransactionVersion,
+    TransactionHash, TransactionOutputCommon, TransactionSignature, TransactionVersion,
 };
 
 #[cfg(test)]
@@ -17,7 +17,7 @@ mod block_hash_calculator_test;
 
 pub struct TransactionHashingData {
     pub transaction_signature: Option<TransactionSignature>,
-    pub transaction_output: TransactionOutput,
+    pub transaction_output: TransactionOutputCommon,
     pub transaction_hash: TransactionHash,
     pub transaction_version: TransactionVersion,
 }
@@ -47,7 +47,7 @@ pub fn calculate_block_commitments(
     let event_leaf_elements: Vec<EventLeafElement> = transactions_data
         .iter()
         .flat_map(|transaction_data| {
-            transaction_data.transaction_output.events().iter().map(|event| EventLeafElement {
+            transaction_data.transaction_output.events.iter().map(|event| EventLeafElement {
                 event: event.clone(),
                 transaction_hash: transaction_data.transaction_hash,
             })
