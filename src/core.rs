@@ -117,9 +117,9 @@ pub const CONTRACT_ADDRESS_PREFIX: &str = "STARKNET_CONTRACT_ADDRESS";
 pub const CONTRACT_ADDRESS_DOMAIN_SIZE: Felt = Felt::from_hex_unchecked(PATRICIA_KEY_UPPER_BOUND);
 /// The address upper bound; it is defined to be congruent with the storage var address upper bound.
 pub static L2_ADDRESS_UPPER_BOUND: Lazy<NonZeroFelt> = Lazy::new(|| {
-    NonZeroFelt::from_felt_unchecked(
+    NonZeroFelt::try_from(
         CONTRACT_ADDRESS_DOMAIN_SIZE - Felt::from(MAX_STORAGE_ITEM_SIZE),
-    )
+    ).unwrap()
 });
 
 impl TryFrom<StarkHash> for ContractAddress {

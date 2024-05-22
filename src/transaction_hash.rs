@@ -153,7 +153,7 @@ pub fn validate_transaction_hash(
 }
 
 // TODO: should be part of core::Felt
-pub fn ascii_as_felt(ascii_str: &str) -> Result<Felt, StarknetApiError> {
+pub(crate) fn ascii_as_felt(ascii_str: &str) -> Result<Felt, StarknetApiError> {
     Felt::from_hex(hex::encode(ascii_str).as_str())
         .map_err(|_| StarknetApiError::OutOfRange { string: ascii_str.to_string() })
 }
