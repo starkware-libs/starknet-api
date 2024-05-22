@@ -1,5 +1,5 @@
 use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::StarkHash;
+use starknet_types_core::hash::StarkHash as CoreStarkHash;
 
 use crate::core::TransactionCommitment;
 use crate::crypto::patricia_hash::calculate_root;
@@ -19,7 +19,7 @@ pub struct TransactionLeafElements {
 
 /// Returns the root of a Patricia tree where each leaf is
 /// Poseidon(transaction_hash, transaction_signature).
-pub fn calculate_transactions_commitment<H: StarkHash>(
+pub fn calculate_transactions_commitment<H: CoreStarkHash>(
     transaction_leaf_elements: &[TransactionLeafElements],
 ) -> TransactionCommitment {
     let transaction_leaves =

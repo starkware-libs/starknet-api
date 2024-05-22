@@ -8,11 +8,13 @@ use crate::core::{
 };
 use crate::hash::StarkHash;
 use crate::transaction::{Calldata, ContractAddressSalt};
-use crate::{class_hash, patricia_key, stark_felt};
+use crate::{class_hash, patricia_key, felt};
+
+use crate::hash::{FeltConverter, TryIntoFelt};
 
 #[test]
 fn patricia_key_valid() {
-    let hash = stark_felt!("0x123");
+    let hash = felt!("0x123");
     let patricia_key = PatriciaKey::try_from(hash).unwrap();
     assert_eq!(patricia_key.0, hash);
 }
@@ -20,7 +22,7 @@ fn patricia_key_valid() {
 #[test]
 fn patricia_key_out_of_range() {
     // 2**251
-    let hash = stark_felt!("0x800000000000000000000000000000000000000000000000000000000000000");
+    let hash = felt!("0x800000000000000000000000000000000000000000000000000000000000000");
     let err = PatriciaKey::try_from(hash);
     assert_matches!(err, Err(StarknetApiError::OutOfRange { string: _err_str }));
 }
@@ -51,7 +53,7 @@ fn test_calculate_contract_address() {
 
     let constructor_calldata_hash = Pedersen::hash_array(&constructor_calldata.0);
     let address = Pedersen::hash_array(&[
-        Felt::from_hex(format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX)).as_str()).unwrap(),
+        Felt::from_hex_unchecked(format!("0x{}", hex::encode(CONTRACT_ADDRESS_PREFIX)).as_str()),
         *deployer_address.0.key(),
         salt.0,
         class_hash.0,
@@ -65,7 +67,7 @@ fn test_calculate_contract_address() {
 
 #[test]
 fn eth_address_serde() {
-    let eth_address = EthAddress::try_from(stark_felt!("0x001")).unwrap();
+    let eth_address = EthAddress::try_from(felt!("0x001")).unwrap();
     let serialized = serde_json::to_string(&eth_address).unwrap();
     assert_eq!(serialized, r#""0x1""#);
 

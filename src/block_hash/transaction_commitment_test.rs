@@ -5,8 +5,9 @@ use crate::block_hash::transaction_commitment::{
     calculate_transaction_leaf, calculate_transactions_commitment, TransactionLeafElements,
 };
 use crate::core::TransactionCommitment;
-use crate::stark_felt;
+use crate::felt;
 use crate::transaction::{TransactionHash, TransactionSignature};
+use crate::hash::{FeltConverter, TryIntoFelt};
 
 #[test]
 fn test_transaction_leaf_regression() {
@@ -16,7 +17,7 @@ fn test_transaction_leaf_regression() {
         TransactionLeafElements { transaction_hash, transaction_signature };
 
     let expected_leaf =
-        stark_felt!("0x2f0d8840bcf3bc629598d8a6cc80cb7c0d9e52d93dab244bbf9cd0dca0ad082");
+        felt!("0x2f0d8840bcf3bc629598d8a6cc80cb7c0d9e52d93dab244bbf9cd0dca0ad082");
 
     assert_eq!(expected_leaf, calculate_transaction_leaf(&transaction_leaf_elements));
 }
@@ -29,7 +30,7 @@ fn test_transactions_commitment_regression() {
         TransactionLeafElements { transaction_hash, transaction_signature };
 
     let expected_root =
-        stark_felt!("0x0282b635972328bd1cfa86496fe920d20bd9440cd78ee8dc90ae2b383d664dcf");
+        felt!("0x0282b635972328bd1cfa86496fe920d20bd9440cd78ee8dc90ae2b383d664dcf");
 
     assert_eq!(
         TransactionCommitment(expected_root),

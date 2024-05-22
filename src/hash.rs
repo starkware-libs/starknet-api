@@ -18,12 +18,34 @@ pub fn starknet_keccak_hash(input: &[u8]) -> Felt {
     Felt::from_bytes_be(&hashed_bytes)
 }
 
-/// A utility macro to create a [`starknet_types_core::felt::Felt`] from a hex string
-/// representation.
+#[cfg(any(feature = "testing", test))]
+pub struct FeltConverter;
+
+#[cfg(any(feature = "testing", test))]
+pub(crate) trait TryIntoFelt<V> {
+    fn to_felt_unchecked(v: V) -> Felt;
+}
+
+#[cfg(any(feature = "testing", test))]
+impl TryIntoFelt<u128> for FeltConverter {
+    fn to_felt_unchecked(v: u128) -> Felt {
+        Felt::from(v)
+    }
+}
+
+#[cfg(any(feature = "testing", test))]
+impl TryIntoFelt<&str> for FeltConverter {
+    fn to_felt_unchecked(v: &str) -> Felt {
+        Felt::from_hex_unchecked(v)
+    }
+}
+
+/// A utility macro to create a [`starknet_types_core::felt::Felt`] from an intergert or a hex
+/// string representation.
 #[cfg(any(feature = "testing", test))]
 #[macro_export]
-macro_rules! stark_felt {
+macro_rules! felt {
     ($s:expr) => {
-        Felt::from_hex_unchecked($s)
+        FeltConverter::to_felt_unchecked($s)
     };
 }

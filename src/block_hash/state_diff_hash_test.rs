@@ -1,5 +1,4 @@
 use indexmap::indexmap;
-use starknet_types_core::felt::Felt;
 
 use crate::block_hash::state_diff_hash::{
     calculate_state_diff_hash, chain_declared_classes, chain_deployed_contracts,
@@ -9,6 +8,10 @@ use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
 use crate::hash::PoseidonHash;
 use crate::state::ThinStateDiff;
+
+use crate::felt;
+use crate::hash::{FeltConverter, TryIntoFelt};
+
 
 #[test]
 fn test_state_diff_hash_regression() {
@@ -39,8 +42,8 @@ fn test_state_diff_hash_regression() {
         },
     };
 
-    let expected_hash = StateDiffCommitment(PoseidonHash(Felt::from_hex_unchecked(
-        "0x05b8241020c186585f4273cf991d35ad703e808bd9b40242cec584e7f2d86495",
+    let expected_hash = StateDiffCommitment(PoseidonHash(felt!(
+        "0x05b8241020c186585f4273cf991d35ad703e808bd9b40242cec584e7f2d86495"
     )));
 
     assert_eq!(expected_hash, calculate_state_diff_hash(&state_diff));

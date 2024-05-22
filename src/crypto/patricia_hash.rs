@@ -26,7 +26,7 @@ mod patricia_hash_test;
 
 use bitvec::prelude::{BitArray, Msb0};
 use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::StarkHash;
+use starknet_types_core::hash::StarkHash as CoreStarkHash;
 
 const TREE_HEIGHT: u8 = 64;
 type BitPath = BitArray<[u8; 8], Msb0>;
@@ -56,7 +56,7 @@ enum SubTreeSplitting {
 
 /// Calculates Patricia hash root on the given values.
 /// The values are keyed by consecutive numbers, starting from 0.
-pub fn calculate_root<H: StarkHash>(values: Vec<Felt>) -> Felt {
+pub fn calculate_root<H: CoreStarkHash>(values: Vec<Felt>) -> Felt {
     if values.is_empty() {
         return Felt::ZERO;
     }
@@ -73,7 +73,7 @@ pub fn calculate_root<H: StarkHash>(values: Vec<Felt>) -> Felt {
 // - Edge: All the keys start with a longest common ('0's) prefix. NOTE: We assume that the keys are
 // a continuous range, and hence the case of '1's in the longest common prefix is impossible.
 // - Binary: Some keys start with '0' bit and some start with '1' bit.
-fn get_hash<H: StarkHash>(sub_tree: SubTree<'_>) -> Felt {
+fn get_hash<H: CoreStarkHash>(sub_tree: SubTree<'_>) -> Felt {
     if sub_tree.height == TREE_HEIGHT {
         return sub_tree.leaves.first().expect("a leaf should not be empty").value;
     }
@@ -86,7 +86,7 @@ fn get_hash<H: StarkHash>(sub_tree: SubTree<'_>) -> Felt {
 }
 
 // Hash on a '0's sequence with the bottom sub tree.
-fn get_edge_hash<H: StarkHash>(sub_tree: SubTree<'_>, n_zeros: u8) -> Felt {
+fn get_edge_hash<H: CoreStarkHash>(sub_tree: SubTree<'_>, n_zeros: u8) -> Felt {
     let child_hash =
         get_hash::<H>(SubTree { leaves: sub_tree.leaves, height: sub_tree.height + n_zeros });
     let child_and_path_hash = H::hash(&child_hash, &Felt::ZERO);
@@ -95,7 +95,7 @@ fn get_edge_hash<H: StarkHash>(sub_tree: SubTree<'_>, n_zeros: u8) -> Felt {
 
 // Hash on both sides: starts with '0' bit and starts with '1' bit.
 // Assumes: 0 < partition point < sub_tree.len().
-fn get_binary_hash<H: StarkHash>(sub_tree: SubTree<'_>, partition_point: usize) -> Felt {
+fn get_binary_hash<H: CoreStarkHash>(sub_tree: SubTree<'_>, partition_point: usize) -> Felt {
     let zero_hash = get_hash::<H>(SubTree {
         leaves: &sub_tree.leaves[..partition_point],
         height: sub_tree.height + 1,

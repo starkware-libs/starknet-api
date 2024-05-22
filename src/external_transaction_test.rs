@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use rstest::rstest;
 use starknet_types_core::felt::Felt;
+use crate::hash::{FeltConverter, TryIntoFelt};
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce, PatriciaKey};
 use crate::external_transaction::{
@@ -10,12 +11,11 @@ use crate::external_transaction::{
     ExternalDeployAccountTransaction, ExternalDeployAccountTransactionV3,
     ExternalInvokeTransaction, ExternalInvokeTransactionV3, ExternalTransaction,
 };
-use crate::hash::StarkHash;
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
     ResourceBoundsMapping, Tip, TransactionSignature,
 };
-use crate::{contract_address, patricia_key, stark_felt};
+use crate::{contract_address, patricia_key, felt};
 
 fn create_resource_bounds() -> ResourceBoundsMapping {
     let mut map = BTreeMap::new();
@@ -44,10 +44,10 @@ fn create_deploy_account_v3() -> ExternalDeployAccountTransaction {
     ExternalDeployAccountTransaction::V3(ExternalDeployAccountTransactionV3 {
         resource_bounds: create_resource_bounds(),
         tip: Tip::default(),
-        contract_address_salt: ContractAddressSalt(stark_felt!("0x23")),
+        contract_address_salt: ContractAddressSalt(felt!("0x23")),
         class_hash: ClassHash(Felt::TWO),
         constructor_calldata: Calldata(Arc::new(vec![Felt::ZERO])),
-        nonce: Nonce(stark_felt!("0x60")),
+        nonce: Nonce(felt!("0x60")),
         signature: TransactionSignature(vec![Felt::TWO]),
         nonce_data_availability_mode: DataAvailabilityMode::L2,
         fee_data_availability_mode: DataAvailabilityMode::L1,
@@ -59,14 +59,14 @@ fn create_invoke_v3() -> ExternalInvokeTransaction {
     ExternalInvokeTransaction::V3(ExternalInvokeTransactionV3 {
         resource_bounds: create_resource_bounds(),
         tip: Tip(50),
-        calldata: Calldata(Arc::new(vec![stark_felt!("0x2000"), stark_felt!("0x1000")])),
+        calldata: Calldata(Arc::new(vec![felt!("0x2000"), felt!("0x1000")])),
         sender_address: contract_address!("0x53"),
-        nonce: Nonce(stark_felt!("0x32")),
+        nonce: Nonce(felt!("0x32")),
         signature: TransactionSignature::default(),
         nonce_data_availability_mode: DataAvailabilityMode::L1,
         fee_data_availability_mode: DataAvailabilityMode::L1,
         paymaster_data: PaymasterData(vec![Felt::TWO, Felt::ZERO]),
-        account_deployment_data: AccountDeploymentData(vec![stark_felt!("0x87")]),
+        account_deployment_data: AccountDeploymentData(vec![felt!("0x87")]),
     })
 }
 
