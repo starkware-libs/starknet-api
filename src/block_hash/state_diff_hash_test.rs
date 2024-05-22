@@ -6,12 +6,9 @@ use crate::block_hash::state_diff_hash::{
 };
 use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
-use crate::hash::PoseidonHash;
-use crate::state::ThinStateDiff;
-
 use crate::felt;
-use crate::hash::{FeltConverter, TryIntoFelt};
-
+use crate::hash::{FeltConverter, PoseidonHash, TryIntoFelt};
+use crate::state::ThinStateDiff;
 
 #[test]
 fn test_state_diff_hash_regression() {

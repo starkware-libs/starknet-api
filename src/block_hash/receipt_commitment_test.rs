@@ -11,12 +11,12 @@ use crate::block_hash::receipt_commitment::{
 };
 use crate::core::{ContractAddress, EthAddress, ReceiptCommitment};
 use crate::felt;
+use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{
     Builtin, ExecutionResources, Fee, InvokeTransactionOutput, L2ToL1Payload, MessageToL1,
     RevertedTransactionExecutionStatus, TransactionExecutionStatus, TransactionHash,
     TransactionOutput, TransactionReceipt, TransactionVersion,
 };
-use crate::hash::{FeltConverter, TryIntoFelt};
 
 #[test]
 fn test_receipt_hash_regression() {
@@ -49,8 +49,7 @@ fn test_receipt_hash_regression() {
     let l1_gas_price =
         GasPricePerToken { price_in_fri: GasPrice(456), price_in_wei: GasPrice(789) };
 
-    let expected_hash =
-        felt!("0x06cb27bfc55dee54e6d0fc7a6790e39f0f3c003576d50f7b8e8a1be24c351bcf");
+    let expected_hash = felt!("0x06cb27bfc55dee54e6d0fc7a6790e39f0f3c003576d50f7b8e8a1be24c351bcf");
     assert_eq!(
         calculate_receipt_hash(
             &transaction_receipt,
@@ -79,8 +78,7 @@ fn test_receipt_hash_regression() {
 fn test_messages_sent_regression() {
     let messages_sent = vec![generate_message_to_l1(0), generate_message_to_l1(1)];
     let messages_hash = calculate_messages_sent_hash(&messages_sent);
-    let expected_hash =
-        felt!("0x00c89474a9007dc060aed76caf8b30b927cfea1ebce2d134b943b8d7121004e4");
+    let expected_hash = felt!("0x00c89474a9007dc060aed76caf8b30b927cfea1ebce2d134b943b8d7121004e4");
     assert_eq!(messages_hash, expected_hash);
 }
 
@@ -100,7 +98,6 @@ fn test_revert_reason_hash_regression() {
         TransactionExecutionStatus::Reverted(RevertedTransactionExecutionStatus {
             revert_reason: "ABC".to_string(),
         });
-    let expected_hash =
-        felt!("0x01629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8");
+    let expected_hash = felt!("0x01629b9dda060bb30c7908346f6af189c16773fa148d3366701fbaa35d54f3c8");
     assert_eq!(get_revert_reason_hash(&execution_reverted), expected_hash);
 }

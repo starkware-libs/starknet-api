@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use rstest::rstest;
 use starknet_types_core::felt::Felt;
-use crate::hash::{FeltConverter, TryIntoFelt};
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce, PatriciaKey};
 use crate::external_transaction::{
@@ -11,11 +10,12 @@ use crate::external_transaction::{
     ExternalDeployAccountTransaction, ExternalDeployAccountTransactionV3,
     ExternalInvokeTransaction, ExternalInvokeTransactionV3, ExternalTransaction,
 };
+use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
     ResourceBoundsMapping, Tip, TransactionSignature,
 };
-use crate::{contract_address, patricia_key, felt};
+use crate::{contract_address, felt, patricia_key};
 
 fn create_resource_bounds() -> ResourceBoundsMapping {
     let mut map = BTreeMap::new();

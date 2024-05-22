@@ -2,8 +2,8 @@ use super::verify_block_signature;
 use crate::block::{BlockHash, BlockNumber, BlockSignature};
 use crate::core::{GlobalRoot, SequencerPublicKey};
 use crate::crypto::utils::{PublicKey, Signature};
-use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::felt;
+use crate::hash::{FeltConverter, TryIntoFelt};
 
 #[test]
 fn test_block_number_iteration() {
@@ -31,9 +31,8 @@ fn block_signature_verification() {
     // Values taken from Mainnet.
     let block_hash =
         BlockHash(felt!("0x7d5db04c5ca2aea828180dc441afb1580e3cee7547a3567ced3aa5bb8b273c0"));
-    let state_commitment = GlobalRoot(felt!(
-        "0x64689c12248e1110af4b3af0e2b43cd51ad13e8855f10e37669e2a4baf919c6"
-    ));
+    let state_commitment =
+        GlobalRoot(felt!("0x64689c12248e1110af4b3af0e2b43cd51ad13e8855f10e37669e2a4baf919c6"));
     let signature = BlockSignature(Signature {
         r: felt!("0x1b382bbfd693011c9b7692bc932b23ed9c288deb27c8e75772e172abbe5950c"),
         s: felt!("0xbe4438085057e1a7c704a0da3b30f7b8340fe3d24c86772abfd24aa597e42"),
