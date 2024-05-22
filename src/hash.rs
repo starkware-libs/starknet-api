@@ -22,7 +22,7 @@ pub fn starknet_keccak_hash(input: &[u8]) -> Felt {
 pub struct FeltConverter;
 
 #[cfg(any(feature = "testing", test))]
-pub(crate) trait TryIntoFelt<V> {
+pub trait TryIntoFelt<V> {
     fn to_felt_unchecked(v: V) -> Felt;
 }
 
