@@ -309,6 +309,20 @@ impl TryFrom<StarkFelt> for usize {
     }
 }
 
+impl TryFrom<StarkFelt> for u32 {
+    type Error = StarknetApiError;
+    fn try_from(felt: StarkFelt) -> Result<Self, Self::Error> {
+        const COMPLIMENT_OF_U32: usize = 28; // 32 - 4
+        let (rest, u32_bytes) = felt.bytes().split_at(COMPLIMENT_OF_U32);
+        if rest != [0u8; COMPLIMENT_OF_U32] {
+            return Err(StarknetApiError::OutOfRange { string: felt.to_string() });
+        }
+
+        let bytes: [u8; 4] = u32_bytes.try_into().unwrap();
+        Ok(u32::from_be_bytes(bytes))
+    }
+}
+
 // TODO(Arni, 1/1/2024): This is a Hack. Remove this and implement arethmetics for StarkFelt.
 impl TryFrom<StarkFelt> for u64 {
     type Error = StarknetApiError;
