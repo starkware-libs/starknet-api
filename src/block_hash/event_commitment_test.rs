@@ -1,8 +1,6 @@
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::Poseidon;
-
-use super::calculate_event_hash;
-use crate::block_hash::event_commitment::{calculate_events_commitment, EventLeafElement};
+use super::{calculate_events_commitment, calculate_event_hash, EventLeafElement};
 use crate::core::{ContractAddress, EventCommitment, PatriciaKey};
 use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{Event, EventContent, EventData, EventKey, TransactionHash};
