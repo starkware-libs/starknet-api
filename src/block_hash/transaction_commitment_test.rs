@@ -1,7 +1,7 @@
-use super::TransactionLeafElement;
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::Poseidon;
 
+use super::TransactionLeafElement;
 use crate::block_hash::transaction_commitment::{
     calculate_transaction_leaf, calculate_transactions_commitment,
 };
@@ -24,8 +24,7 @@ fn test_transaction_leaf_without_signature_regression() {
         transaction_hash: TransactionHash(Felt::ONE),
         transaction_signature: None,
     };
-    let expected_leaf =
-        felt!("0x00a93bf5e58b9378d093aa86ddc2f61a3295a1d1e665bd0ef3384dd07b30e033");
+    let expected_leaf = felt!("0x00a93bf5e58b9378d093aa86ddc2f61a3295a1d1e665bd0ef3384dd07b30e033");
 
     assert_eq!(expected_leaf, calculate_transaction_leaf(&transaction_leaf_elements));
 }

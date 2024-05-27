@@ -6,10 +6,10 @@ use crate::block::{GasPrice, GasPricePerToken};
 use crate::block_hash::receipt_commitment::{
     calculate_receipt_commitment, calculate_receipt_hash, get_revert_reason_hash, ReceiptElement,
 };
+use crate::block_hash::test_utils::{generate_message_to_l1, get_transaction_output};
 use crate::core::ReceiptCommitment;
 use crate::felt;
 use crate::hash::{FeltConverter, TryIntoFelt};
-use crate::block_hash::test_utils::{generate_message_to_l1, get_transaction_output};
 use crate::transaction::{
     RevertedTransactionExecutionStatus, TransactionExecutionStatus, TransactionHash,
     TransactionVersion,
@@ -33,9 +33,9 @@ fn test_receipt_hash_regression() {
         expected_hash
     );
 
-    let expected_root = ReceiptCommitment(
-        felt!("0x03a0af1272fc3b0b83894fd7b6b70d89acb07772bc28efc9091e3cc1c2c72493")
-    );
+    let expected_root = ReceiptCommitment(felt!(
+        "0x03a0af1272fc3b0b83894fd7b6b70d89acb07772bc28efc9091e3cc1c2c72493"
+    ));
 
     // Test for a V3 transactions.
     transaction_receipt.transaction_version = TransactionVersion::THREE;

@@ -1,12 +1,12 @@
+use starknet_types_core::felt::Felt;
+use starknet_types_core::hash::Poseidon;
+
 use super::event_commitment::{calculate_events_commitment, EventLeafElement};
 use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
 use super::state_diff_hash::calculate_state_diff_hash;
 use super::transaction_commitment::{calculate_transactions_commitment, TransactionLeafElement};
 use crate::block::GasPricePerToken;
 use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
-use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::Poseidon;
-
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::state::ThinStateDiff;
 use crate::transaction::{
@@ -55,8 +55,7 @@ pub fn calculate_block_commitments(
             })
         })
         .collect();
-    let events_commitment =
-        calculate_events_commitment::<Poseidon>(&event_leaf_elements);
+    let events_commitment = calculate_events_commitment::<Poseidon>(&event_leaf_elements);
 
     let receipt_elements: Vec<ReceiptElement> =
         transactions_data.iter().map(ReceiptElement::from).collect();
