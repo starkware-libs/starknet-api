@@ -2,30 +2,28 @@
 #[path = "external_transaction_test.rs"]
 mod external_transaction_test;
 
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
 use crate::data_availability::DataAvailabilityMode;
-use crate::state::{EntryPoint, EntryPointType};
+use crate::hash::StarkFelt;
+use crate::state::EntryPoint;
 use crate::transaction::{
-    AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBoundsMapping,
-    Tip, TransactionSignature,
+    AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBounds, Tip,
+    TransactionSignature,
 };
 
-/// An external transaction.
+/// Transactions that are ready to be broadcasted to the network through RPC and are not included in
+/// a block.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "type")]
+#[serde(deny_unknown_fields)]
 pub enum ExternalTransaction {
-    /// A declare transaction.
     #[serde(rename = "DECLARE")]
     Declare(ExternalDeclareTransaction),
-    /// A deploy account transaction.
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(ExternalDeployAccountTransaction),
-    /// An invoke transaction.
-    #[serde(rename = "INVOKE_FUNCTION")]
+    #[serde(rename = "INVOKE")]
     Invoke(ExternalInvokeTransaction),
 }
 
@@ -54,9 +52,13 @@ impl ExternalTransaction {
     );
 }
 
-/// A declare transaction that can be added to Starknet through the Starknet gateway.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
+/// A RPC declare transaction.
+///
+/// This transaction is equivalent to the component DECLARE_TXN in the
+/// [`Starknet specs`] with a contract class (DECLARE_TXN allows having
+/// either a contract class or a class hash).
+///
+/// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "version")]
 pub enum ExternalDeclareTransaction {
@@ -64,20 +66,26 @@ pub enum ExternalDeclareTransaction {
     V3(ExternalDeclareTransactionV3),
 }
 
-/// A deploy account transaction that can be added to Starknet through the Starknet gateway.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+/// A RPC deploy account transaction.
+///
+/// This transaction is equivalent to the component DEPLOY_ACCOUNT_TXN in the
+/// [`Starknet specs`].
+///
+/// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(tag = "version")]
 pub enum ExternalDeployAccountTransaction {
     #[serde(rename = "0x3")]
     V3(ExternalDeployAccountTransactionV3),
 }
 
-/// An invoke transaction that can be added to Starknet through the Starknet gateway.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+/// A RPC invoke transaction.
+///
+/// This transaction is equivalent to the component INVOKE_TXN in the
+/// [`Starknet specs`].
+///
+/// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(tag = "version")]
 pub enum ExternalInvokeTransaction {
     #[serde(rename = "0x3")]
@@ -85,67 +93,76 @@ pub enum ExternalInvokeTransaction {
 }
 
 /// A declare transaction of a Cairo-v1 contract class that can be added to Starknet through the
-/// Starknet gateway.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
+/// RPC.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct ExternalDeclareTransactionV3 {
+    // TODO: Check with Shahak why we need to keep the DeclareType.
+    // pub r#type: DeclareType,
+    pub sender_address: ContractAddress,
+    pub compiled_class_hash: CompiledClassHash,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
     pub contract_class: ContractClass,
     pub resource_bounds: ResourceBoundsMapping,
     pub tip: Tip,
-    pub signature: TransactionSignature,
-    pub nonce: Nonce,
-    pub compiled_class_hash: CompiledClassHash,
-    pub sender_address: ContractAddress,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
 }
 
-/// A deploy account transaction that can be added to Starknet through the Starknet gateway.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
+/// A deploy account transaction that can be added to Starknet through the RPC.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ExternalDeployAccountTransactionV3 {
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
+    pub class_hash: ClassHash,
+    pub contract_address_salt: ContractAddressSalt,
+    pub constructor_calldata: Calldata,
     pub resource_bounds: ResourceBoundsMapping,
     pub tip: Tip,
-    pub contract_address_salt: ContractAddressSalt,
-    pub class_hash: ClassHash,
-    pub constructor_calldata: Calldata,
-    pub nonce: Nonce,
-    pub signature: TransactionSignature,
+    pub paymaster_data: PaymasterData,
     pub nonce_data_availability_mode: DataAvailabilityMode,
     pub fee_data_availability_mode: DataAvailabilityMode,
-    pub paymaster_data: PaymasterData,
 }
 
-/// An invoke account transaction that can be added to Starknet through the Starknet gateway.
-/// The invoke is a V3 transaction.
-/// It has a serialization format that the Starknet gateway accepts in the `add_transaction`
-/// HTTP method.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-#[serde(deny_unknown_fields)]
+/// An invoke account transaction that can be added to Starknet through the RPC.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct ExternalInvokeTransactionV3 {
+    pub sender_address: ContractAddress,
+    pub calldata: Calldata,
+    pub signature: TransactionSignature,
+    pub nonce: Nonce,
     pub resource_bounds: ResourceBoundsMapping,
     pub tip: Tip,
-    pub calldata: Calldata,
-    pub sender_address: ContractAddress,
-    pub nonce: Nonce,
-    pub signature: TransactionSignature,
-    pub nonce_data_availability_mode: DataAvailabilityMode,
-    pub fee_data_availability_mode: DataAvailabilityMode,
     pub paymaster_data: PaymasterData,
     pub account_deployment_data: AccountDeploymentData,
+    pub nonce_data_availability_mode: DataAvailabilityMode,
+    pub fee_data_availability_mode: DataAvailabilityMode,
 }
 
+// The contract class in SN_API state doesn't have `contract_class_version`, not following the spec.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ContractClass {
-    #[serde(rename = "sierra_program")]
-    pub compressed_sierra_program: String,
+    pub sierra_program: Vec<StarkFelt>,
     pub contract_class_version: String,
-    pub entry_points_by_type: HashMap<EntryPointType, Vec<EntryPoint>>,
+    pub entry_points_by_type: EntryPointByType,
     pub abi: String,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq, Deserialize, Serialize)]
+pub struct EntryPointByType {
+    #[serde(rename = "CONSTRUCTOR")]
+    pub constructor: Vec<EntryPoint>,
+    #[serde(rename = "EXTERNAL")]
+    pub external: Vec<EntryPoint>,
+    #[serde(rename = "L1_HANDLER")]
+    pub l1handler: Vec<EntryPoint>,
+}
+
+// The serialization of the struct in transaction is in capital letters, not following the spec.
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct ResourceBoundsMapping {
+    pub l1_gas: ResourceBounds,
+    pub l2_gas: ResourceBounds,
 }
