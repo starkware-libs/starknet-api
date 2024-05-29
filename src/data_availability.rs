@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::hash::StarkFelt;
-use crate::StarknetApiError;
+use crate::OutOfRangeError;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(try_from = "Deserializer")]
@@ -40,15 +40,15 @@ impl TryFrom<Deserializer> for DataAvailabilityMode {
 }
 
 impl TryFrom<StarkFelt> for DataAvailabilityMode {
-    type Error = StarknetApiError;
+    type Error = OutOfRangeError;
 
-    fn try_from(felt: StarkFelt) -> Result<Self, StarknetApiError> {
+    fn try_from(felt: StarkFelt) -> Result<Self, OutOfRangeError> {
         match felt {
             StarkFelt::ZERO => Ok(DataAvailabilityMode::L1),
             StarkFelt::ONE => Ok(DataAvailabilityMode::L2),
-            _ => Err(StarknetApiError::OutOfRange {
-                string: format!("Invalid data availability mode: {felt}."),
-            }),
+            _ => {
+                Err(OutOfRangeError { string: format!("Invalid data availability mode: {felt}.") })
+            }
         }
     }
 }

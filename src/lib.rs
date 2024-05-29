@@ -27,13 +27,25 @@ pub enum StarknetApiError {
     /// Error in the inner deserialization of the node.
     #[error(transparent)]
     InnerDeserialization(#[from] InnerDeserializationError),
-    #[error("Out of range {string}.")]
     /// An error for when a value is out of range.
-    OutOfRange { string: String },
+    #[error(transparent)]
+    OutOfRange(OutOfRangeError),
     /// Error when serializing into number.
     #[error(transparent)]
     ParseIntError(#[from] ParseIntError),
     /// Missing resource type / duplicated resource type.
     #[error("Missing resource type / duplicated resource type; got {0}.")]
     InvalidResourceMappingInitializer(String),
+}
+
+#[derive(thiserror::Error, Clone, Debug)]
+#[error("Out of range {string}.")]
+pub struct OutOfRangeError {
+    string: String,
+}
+
+impl From<OutOfRangeError> for StarknetApiError {
+    fn from(error: OutOfRangeError) -> Self {
+        Self::OutOfRange(error)
+    }
 }
