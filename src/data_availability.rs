@@ -62,6 +62,7 @@ impl From<DataAvailabilityMode> for StarkFelt {
     }
 }
 
+
 #[derive(
     Clone, Default, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]
