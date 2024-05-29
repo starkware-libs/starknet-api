@@ -45,7 +45,7 @@ fn test_block_hash_regression() {
     );
 
     let expected_hash =
-        StarkFelt::try_from("0x069c273a5f40b62efb03e0a8f46f6eb68533f578adbfcc57a604e9a63b066f28")
+        StarkFelt::try_from("0x061e4998d51a248f1d0288d7e17f6287757b0e5e6c5e1e58ddf740616e312134")
             .unwrap();
 
     assert_eq!(BlockHash(expected_hash), calculate_block_hash(block_header, block_commitments),);

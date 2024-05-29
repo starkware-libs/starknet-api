@@ -1,8 +1,8 @@
 use indexmap::indexmap;
 
 use crate::block_hash::state_diff_hash::{
-    calculate_state_diff_hash, chain_declared_classes, chain_deployed_contracts,
-    chain_deprecated_declared_classes, chain_nonces, chain_storage_diffs,
+    calculate_state_diff_hash, chain_declared_classes, chain_deprecated_declared_classes,
+    chain_nonces, chain_storage_diffs, chain_updated_contracts,
 };
 use crate::block_hash::test_utils::get_state_diff;
 use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
@@ -14,7 +14,7 @@ fn test_state_diff_hash_regression() {
     let state_diff = get_state_diff();
 
     let expected_hash = StateDiffCommitment(PoseidonHash(
-        StarkFelt::try_from("0x05b8241020c186585f4273cf991d35ad703e808bd9b40242cec584e7f2d86495")
+        StarkFelt::try_from("0x0281f5966e49ad7dad9323826d53d1d27c0c4e6ebe5525e2e2fbca549bfa0a67")
             .unwrap(),
     ));
 
@@ -27,13 +27,21 @@ fn test_sorting_deployed_contracts() {
         0u64.into() => ClassHash(3u64.into()),
         1u64.into() => ClassHash(2u64.into()),
     };
+    let replaced_classes_0 = indexmap! {
+        2u64.into() => ClassHash(1u64.into()),
+    };
     let deployed_contracts_1 = indexmap! {
-        1u64.into() => ClassHash(2u64.into()),
+        2u64.into() => ClassHash(1u64.into()),
         0u64.into() => ClassHash(3u64.into()),
     };
+    let replaced_classes_1 = indexmap! {
+        1u64.into() => ClassHash(2u64.into()),
+    };
     assert_eq!(
-        chain_deployed_contracts(&deployed_contracts_0, HashChain::new()).get_poseidon_hash(),
-        chain_deployed_contracts(&deployed_contracts_1, HashChain::new()).get_poseidon_hash(),
+        chain_updated_contracts(&deployed_contracts_0, &replaced_classes_0, HashChain::new())
+            .get_poseidon_hash(),
+        chain_updated_contracts(&deployed_contracts_1, &replaced_classes_1, HashChain::new())
+            .get_poseidon_hash(),
     );
 }
 
