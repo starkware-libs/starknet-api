@@ -33,7 +33,7 @@ fn test_event_hash_regression() {
 fn get_event_leaf_element(seed: u8) -> EventLeafElement {
     EventLeafElement {
         event: Event {
-            from_address: contract_address!(seed as u128 + 8),
+            from_address: contract_address!(u128::from(seed) + 8),
             content: EventContent {
                 keys: [seed, seed + 1].iter().map(|key| EventKey(Felt::from(*key))).collect(),
                 data: EventData(
