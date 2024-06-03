@@ -155,7 +155,7 @@ fn deserialize_valid_optional_contract_class_abi_entry_vector() {
                 outputs: vec![],
                 state_mutability: None,
                 r#type: ConstructorType::Constructor,
-            },)])
+            })])
         }
     );
 }

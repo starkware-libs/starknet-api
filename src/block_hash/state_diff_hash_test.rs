@@ -7,16 +7,16 @@ use crate::block_hash::state_diff_hash::{
 use crate::block_hash::test_utils::get_state_diff;
 use crate::core::{ClassHash, CompiledClassHash, Nonce, StateDiffCommitment};
 use crate::crypto::utils::HashChain;
-use crate::hash::{PoseidonHash, StarkFelt};
+use crate::felt;
+use crate::hash::{FeltConverter, PoseidonHash, TryIntoFelt};
 
 #[test]
 fn test_state_diff_hash_regression() {
     let state_diff = get_state_diff();
 
-    let expected_hash = StateDiffCommitment(PoseidonHash(
-        StarkFelt::try_from("0x0281f5966e49ad7dad9323826d53d1d27c0c4e6ebe5525e2e2fbca549bfa0a67")
-            .unwrap(),
-    ));
+    let expected_hash = StateDiffCommitment(PoseidonHash(felt!(
+        "0x0281f5966e49ad7dad9323826d53d1d27c0c4e6ebe5525e2e2fbca549bfa0a67"
+    )));
 
     assert_eq!(expected_hash, calculate_state_diff_hash(&state_diff));
 }
