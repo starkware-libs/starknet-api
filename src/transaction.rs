@@ -958,15 +958,20 @@ pub struct PaymasterData(pub Vec<Felt>);
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct AccountDeploymentData(pub Vec<Felt>);
 
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Eq, PartialEq)]
+pub struct GasVector {
+    pub l1_gas: u64,
+    pub l1_data_gas: u64,
+}
+
 /// The execution resources used by a transaction.
 #[derive(Debug, Default, Deserialize, Serialize, Clone, Eq, PartialEq)]
 pub struct ExecutionResources {
     pub steps: u64,
     pub builtin_instance_counter: HashMap<Builtin, u64>,
     pub memory_holes: u64,
-    pub da_l1_gas_consumed: u64,
-    pub da_l1_data_gas_consumed: u64,
-    pub l1_gas_consumed: u64,
+    pub da_gas_consumed: GasVector,
+    pub gas_consumed: GasVector,
 }
 
 #[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]

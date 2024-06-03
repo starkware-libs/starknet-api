@@ -91,6 +91,6 @@ fn chain_execution_resources(
 ) -> HashChain {
     hash_chain
         .chain(&Felt::ZERO) // L2 gas consumed
-        .chain(&execution_resources.l1_gas_consumed.into())
-        .chain(&execution_resources.da_l1_data_gas_consumed.into())
+        .chain(&execution_resources.gas_consumed.l1_gas.into())
+        .chain(&execution_resources.gas_consumed.l1_data_gas.into())
 }
