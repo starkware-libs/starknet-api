@@ -22,6 +22,7 @@ pub(crate) fn get_transaction_output() -> TransactionOutputCommon {
         memory_holes: 76,
         da_l1_gas_consumed: 54,
         da_l1_data_gas_consumed: 32,
+        l1_gas_consumed: 16580,
     };
     TransactionOutputCommon {
         actual_fee: Fee(99804),

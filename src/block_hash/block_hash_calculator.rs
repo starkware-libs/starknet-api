@@ -6,14 +6,12 @@ use super::event_commitment::{calculate_events_commitment, EventLeafElement};
 use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
 use super::state_diff_hash::calculate_state_diff_hash;
 use super::transaction_commitment::{calculate_transactions_commitment, TransactionLeafElement};
-use crate::block::{BlockHash, BlockHeaderWithoutHash, GasPricePerToken};
+use crate::block::{BlockHash, BlockHeaderWithoutHash};
 use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
 use crate::crypto::utils::HashChain;
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::state::ThinStateDiff;
-use crate::transaction::{
-    TransactionHash, TransactionOutputCommon, TransactionSignature, TransactionVersion,
-};
+use crate::transaction::{TransactionHash, TransactionOutputCommon, TransactionSignature};
 use crate::transaction_hash::ascii_as_felt;
 
 #[cfg(test)]
@@ -28,7 +26,6 @@ pub struct TransactionHashingData {
     pub transaction_signature: Option<TransactionSignature>,
     pub transaction_output: TransactionOutputCommon,
     pub transaction_hash: TransactionHash,
-    pub transaction_version: TransactionVersion,
 }
 
 /// Commitments of a block.
@@ -77,8 +74,6 @@ pub fn calculate_block_hash(
 pub fn calculate_block_commitments(
     transactions_data: &[TransactionHashingData],
     state_diff: &ThinStateDiff,
-    l1_data_gas_price_per_token: GasPricePerToken,
-    l1_gas_price_per_token: GasPricePerToken,
     l1_da_mode: L1DataAvailabilityMode,
 ) -> BlockHeaderCommitments {
     let transaction_leaf_elements: Vec<TransactionLeafElement> =
@@ -99,11 +94,7 @@ pub fn calculate_block_commitments(
 
     let receipt_elements: Vec<ReceiptElement> =
         transactions_data.iter().map(ReceiptElement::from).collect();
-    let receipts_commitment = calculate_receipt_commitment::<Poseidon>(
-        &receipt_elements,
-        l1_data_gas_price_per_token,
-        l1_gas_price_per_token,
-    );
+    let receipts_commitment = calculate_receipt_commitment::<Poseidon>(&receipt_elements);
     let state_diff_commitment = calculate_state_diff_hash(state_diff);
     let concatenated_counts = concat_counts(
         transactions_data.len(),

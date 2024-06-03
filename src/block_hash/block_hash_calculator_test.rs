@@ -13,7 +13,7 @@ use crate::core::{ContractAddress, GlobalRoot, PatriciaKey, SequencerContractAdd
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::felt;
 use crate::hash::{FeltConverter, TryIntoFelt};
-use crate::transaction::{TransactionHash, TransactionSignature, TransactionVersion};
+use crate::transaction::{TransactionHash, TransactionSignature};
 
 #[test]
 fn test_block_hash_regression() {
@@ -35,17 +35,11 @@ fn test_block_hash_regression() {
         transaction_signature: Some(TransactionSignature(vec![Felt::TWO, Felt::THREE])),
         transaction_output: get_transaction_output(),
         transaction_hash: TransactionHash(Felt::ONE),
-        transaction_version: TransactionVersion::THREE,
     }];
 
     let state_diff = get_state_diff();
-    let block_commitments = calculate_block_commitments(
-        &transactions_data,
-        &state_diff,
-        block_header.l1_data_gas_price,
-        block_header.l1_gas_price,
-        block_header.l1_da_mode,
-    );
+    let block_commitments =
+        calculate_block_commitments(&transactions_data, &state_diff, block_header.l1_da_mode);
 
     let expected_hash = felt!("0x061e4998d51a248f1d0288d7e17f6287757b0e5e6c5e1e58ddf740616e312134");
 
