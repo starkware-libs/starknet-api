@@ -2,6 +2,8 @@
 #[path = "external_transaction_test.rs"]
 mod external_transaction_test;
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
@@ -9,8 +11,8 @@ use crate::data_availability::DataAvailabilityMode;
 use crate::hash::StarkFelt;
 use crate::state::EntryPoint;
 use crate::transaction::{
-    AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBounds, Tip,
-    TransactionSignature,
+    AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
+    Tip, TransactionSignature,
 };
 
 /// Transactions that are ready to be broadcasted to the network through RPC and are not included in
@@ -165,4 +167,12 @@ pub struct EntryPointByType {
 pub struct ResourceBoundsMapping {
     pub l1_gas: ResourceBounds,
     pub l2_gas: ResourceBounds,
+}
+
+impl From<ResourceBoundsMapping> for crate::transaction::ResourceBoundsMapping {
+    fn from(mapping: ResourceBoundsMapping) -> crate::transaction::ResourceBoundsMapping {
+        let map =
+            BTreeMap::from([(Resource::L1Gas, mapping.l1_gas), (Resource::L2Gas, mapping.l2_gas)]);
+        crate::transaction::ResourceBoundsMapping(map)
+    }
 }
