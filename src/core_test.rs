@@ -6,7 +6,7 @@ use crate::core::{
     calculate_contract_address, ClassHash, ContractAddress, EthAddress, Nonce, PatriciaKey,
     StarknetApiError, CONTRACT_ADDRESS_PREFIX, L2_ADDRESS_UPPER_BOUND,
 };
-use crate::hash::{FeltConverter, StarkHash, TryIntoFelt};
+use crate::hash::StarkHash;
 use crate::transaction::{Calldata, ContractAddressSalt};
 use crate::{class_hash, felt, patricia_key};
 

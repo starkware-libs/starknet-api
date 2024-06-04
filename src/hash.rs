@@ -56,6 +56,6 @@ impl TryIntoFelt<&str> for FeltConverter {
 #[macro_export]
 macro_rules! felt {
     ($s:expr) => {
-        FeltConverter::to_felt_unchecked($s)
+        <$crate::hash::FeltConverter as $crate::hash::TryIntoFelt<_>>::to_felt_unchecked($s)
     };
 }

@@ -7,7 +7,6 @@ use crate::block_hash::transaction_commitment::{
 };
 use crate::core::TransactionCommitment;
 use crate::felt;
-use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{TransactionHash, TransactionSignature};
 
 #[test]

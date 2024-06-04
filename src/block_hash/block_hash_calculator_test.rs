@@ -12,7 +12,6 @@ use crate::block_hash::test_utils::{get_state_diff, get_transaction_output};
 use crate::core::{ContractAddress, GlobalRoot, PatriciaKey, SequencerContractAddress};
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::felt;
-use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{TransactionHash, TransactionSignature};
 
 #[test]
