@@ -7,7 +7,7 @@ use starknet_types_core::felt::Felt;
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, EthAddress, Nonce};
 use crate::state::ThinStateDiff;
 use crate::transaction::{
-    Builtin, ExecutionResources, Fee, L2ToL1Payload, MessageToL1,
+    Builtin, ExecutionResources, Fee, GasVector, L2ToL1Payload, MessageToL1,
     RevertedTransactionExecutionStatus, TransactionExecutionStatus, TransactionOutputCommon,
 };
 
@@ -20,8 +20,8 @@ pub(crate) fn get_transaction_output() -> TransactionOutputCommon {
         steps: 98,
         builtin_instance_counter: HashMap::from([(Builtin::Bitwise, 11), (Builtin::EcOp, 22)]),
         memory_holes: 76,
-        da_l1_gas_consumed: 54,
-        da_l1_data_gas_consumed: 32,
+        da_gas_consumed: GasVector { l1_gas: 54, l1_data_gas: 10 },
+        gas_consumed: GasVector { l1_gas: 16580, l1_data_gas: 32 },
     };
     TransactionOutputCommon {
         actual_fee: Fee(99804),
