@@ -148,28 +148,6 @@ impl TransactionOutput {
     }
 }
 
-/// The common fields of transaction output types.
-#[derive(Clone)]
-pub struct TransactionOutputCommon {
-    pub actual_fee: Fee,
-    pub events: Vec<Event>,
-    pub execution_status: TransactionExecutionStatus,
-    pub execution_resources: ExecutionResources,
-    pub messages_sent: Vec<MessageToL1>,
-}
-
-impl From<TransactionOutput> for TransactionOutputCommon {
-    fn from(transaction_output: TransactionOutput) -> Self {
-        Self {
-            actual_fee: transaction_output.actual_fee(),
-            events: transaction_output.events().to_vec(),
-            execution_status: transaction_output.execution_status().to_owned(),
-            execution_resources: transaction_output.execution_resources().to_owned(),
-            messages_sent: transaction_output.messages_sent().to_owned(),
-        }
-    }
-}
-
 /// A declare V0 or V1 transaction (same schema but different version).
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Deserialize, Serialize, PartialOrd, Ord)]
 pub struct DeclareTransactionV0V1 {
