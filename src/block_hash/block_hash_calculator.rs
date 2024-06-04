@@ -11,7 +11,10 @@ use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, Trans
 use crate::crypto::utils::HashChain;
 use crate::data_availability::L1DataAvailabilityMode;
 use crate::state::ThinStateDiff;
-use crate::transaction::{TransactionHash, TransactionOutputCommon, TransactionSignature};
+use crate::transaction::{
+    Event, Fee, GasVector, MessageToL1, TransactionExecutionStatus, TransactionHash,
+    TransactionSignature,
+};
 use crate::transaction_hash::ascii_as_felt;
 
 #[cfg(test)]
@@ -22,9 +25,19 @@ static STARKNET_BLOCK_HASH0: Lazy<Felt> = Lazy::new(|| {
     ascii_as_felt("STARKNET_BLOCK_HASH0").expect("ascii_as_felt failed for 'STARKNET_BLOCK_HASH0'")
 });
 
+/// The common fields of transaction output types.
+#[derive(Clone)]
+pub struct TransactionOutputForHash {
+    pub actual_fee: Fee,
+    pub events: Vec<Event>,
+    pub execution_status: TransactionExecutionStatus,
+    pub gas_consumed: GasVector,
+    pub messages_sent: Vec<MessageToL1>,
+}
+
 pub struct TransactionHashingData {
     pub transaction_signature: Option<TransactionSignature>,
-    pub transaction_output: TransactionOutputCommon,
+    pub transaction_output: TransactionOutputForHash,
     pub transaction_hash: TransactionHash,
 }
 
