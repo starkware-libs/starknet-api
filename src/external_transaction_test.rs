@@ -10,7 +10,6 @@ use crate::external_transaction::{
     ExternalDeployAccountTransaction, ExternalDeployAccountTransactionV3,
     ExternalInvokeTransaction, ExternalInvokeTransactionV3, ExternalTransaction,
 };
-use crate::hash::{FeltConverter, TryIntoFelt};
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
     ResourceBoundsMapping, Tip, TransactionSignature,
