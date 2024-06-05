@@ -1,4 +1,5 @@
 use once_cell::sync::Lazy;
+use serde::Deserialize;
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::Poseidon;
 
@@ -26,7 +27,7 @@ static STARKNET_BLOCK_HASH0: Lazy<Felt> = Lazy::new(|| {
 });
 
 /// The common fields of transaction output types.
-#[derive(Clone)]
+#[derive(Clone, Deserialize, PartialEq, Eq)]
 pub struct TransactionOutputForHash {
     pub actual_fee: Fee,
     pub events: Vec<Event>,
