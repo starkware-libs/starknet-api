@@ -44,7 +44,7 @@ pub struct TransactionHashingData {
 }
 
 /// Commitments of a block.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct BlockHeaderCommitments {
     pub transaction_commitment: TransactionCommitment,
     pub event_commitment: EventCommitment,
