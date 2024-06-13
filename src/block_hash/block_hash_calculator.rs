@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use starknet_types_core::felt::Felt;
 use starknet_types_core::hash::Poseidon;
 
-use super::event_commitment::{calculate_events_commitment, EventLeafElement};
+use super::event_commitment::{calculate_event_commitment, EventLeafElement};
 use super::receipt_commitment::{calculate_receipt_commitment, ReceiptElement};
 use super::state_diff_hash::calculate_state_diff_hash;
-use super::transaction_commitment::{calculate_transactions_commitment, TransactionLeafElement};
+use super::transaction_commitment::{calculate_transaction_commitment, TransactionLeafElement};
 use crate::block::{BlockHash, BlockHeaderWithoutHash};
 use crate::core::{EventCommitment, ReceiptCommitment, StateDiffCommitment, TransactionCommitment};
 use crate::crypto::utils::HashChain;
@@ -46,9 +46,9 @@ pub struct TransactionHashingData {
 /// Commitments of a block.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct BlockHeaderCommitments {
-    pub transactions_commitment: TransactionCommitment,
-    pub events_commitment: EventCommitment,
-    pub receipts_commitment: ReceiptCommitment,
+    pub transaction_commitment: TransactionCommitment,
+    pub event_commitment: EventCommitment,
+    pub receipt_commitment: ReceiptCommitment,
     pub state_diff_commitment: StateDiffCommitment,
     pub concatenated_counts: Felt,
 }
@@ -72,9 +72,9 @@ pub fn calculate_block_hash(
             .chain(&header.timestamp.0.into())
             .chain(&block_commitments.concatenated_counts)
             .chain(&block_commitments.state_diff_commitment.0.0)
-            .chain(&block_commitments.transactions_commitment.0)
-            .chain(&block_commitments.events_commitment.0)
-            .chain(&block_commitments.receipts_commitment.0)
+            .chain(&block_commitments.transaction_commitment.0)
+            .chain(&block_commitments.event_commitment.0)
+            .chain(&block_commitments.receipt_commitment.0)
             .chain(&header.l1_gas_price.price_in_wei.0.into())
             .chain(&header.l1_gas_price.price_in_fri.0.into())
             .chain(&header.l1_data_gas_price.price_in_wei.0.into())
@@ -94,8 +94,8 @@ pub fn calculate_block_commitments(
 ) -> BlockHeaderCommitments {
     let transaction_leaf_elements: Vec<TransactionLeafElement> =
         transactions_data.iter().map(TransactionLeafElement::from).collect();
-    let transactions_commitment =
-        calculate_transactions_commitment::<Poseidon>(&transaction_leaf_elements);
+    let transaction_commitment =
+        calculate_transaction_commitment::<Poseidon>(&transaction_leaf_elements);
 
     let event_leaf_elements: Vec<EventLeafElement> = transactions_data
         .iter()
@@ -106,11 +106,11 @@ pub fn calculate_block_commitments(
             })
         })
         .collect();
-    let events_commitment = calculate_events_commitment::<Poseidon>(&event_leaf_elements);
+    let event_commitment = calculate_event_commitment::<Poseidon>(&event_leaf_elements);
 
     let receipt_elements: Vec<ReceiptElement> =
         transactions_data.iter().map(ReceiptElement::from).collect();
-    let receipts_commitment = calculate_receipt_commitment::<Poseidon>(&receipt_elements);
+    let receipt_commitment = calculate_receipt_commitment::<Poseidon>(&receipt_elements);
     let state_diff_commitment = calculate_state_diff_hash(state_diff);
     let concatenated_counts = concat_counts(
         transactions_data.len(),
@@ -119,9 +119,9 @@ pub fn calculate_block_commitments(
         l1_da_mode,
     );
     BlockHeaderCommitments {
-        transactions_commitment,
-        events_commitment,
-        receipts_commitment,
+        transaction_commitment,
+        event_commitment,
+        receipt_commitment,
         state_diff_commitment,
         concatenated_counts,
     }
