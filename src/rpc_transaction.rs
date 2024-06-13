@@ -1,6 +1,6 @@
 #[cfg(test)]
-#[path = "external_transaction_test.rs"]
-mod external_transaction_test;
+#[path = "rpc_transaction_test.rs"]
+mod rpc_transaction_test;
 
 use std::collections::BTreeMap;
 
@@ -20,34 +20,34 @@ use crate::transaction::{
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "type")]
 #[serde(deny_unknown_fields)]
-pub enum ExternalTransaction {
+pub enum RPCTransaction {
     #[serde(rename = "DECLARE")]
-    Declare(ExternalDeclareTransaction),
+    Declare(RPCDeclareTransaction),
     #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(ExternalDeployAccountTransaction),
+    DeployAccount(RPCDeployAccountTransaction),
     #[serde(rename = "INVOKE")]
-    Invoke(ExternalInvokeTransaction),
+    Invoke(RPCInvokeTransaction),
 }
 
 macro_rules! implement_ref_getters {
     ($(($member_name:ident, $member_type:ty)), *) => {
         $(pub fn $member_name(&self) -> &$member_type {
             match self {
-                ExternalTransaction::Declare(
-                    ExternalDeclareTransaction::V3(tx)
+                RPCTransaction::Declare(
+                    RPCDeclareTransaction::V3(tx)
                 ) => &tx.$member_name,
-                ExternalTransaction::DeployAccount(
-                    ExternalDeployAccountTransaction::V3(tx)
+                RPCTransaction::DeployAccount(
+                    RPCDeployAccountTransaction::V3(tx)
                 ) => &tx.$member_name,
-                ExternalTransaction::Invoke(
-                    ExternalInvokeTransaction::V3(tx)
+                RPCTransaction::Invoke(
+                    RPCInvokeTransaction::V3(tx)
                 ) => &tx.$member_name
             }
         })*
     };
 }
 
-impl ExternalTransaction {
+impl RPCTransaction {
     implement_ref_getters!(
         (resource_bounds, ResourceBoundsMapping),
         (signature, TransactionSignature)
@@ -63,9 +63,9 @@ impl ExternalTransaction {
 /// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(tag = "version")]
-pub enum ExternalDeclareTransaction {
+pub enum RPCDeclareTransaction {
     #[serde(rename = "0x3")]
-    V3(ExternalDeclareTransactionV3),
+    V3(RPCDeclareTransactionV3),
 }
 
 /// A RPC deploy account transaction.
@@ -76,9 +76,9 @@ pub enum ExternalDeclareTransaction {
 /// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(tag = "version")]
-pub enum ExternalDeployAccountTransaction {
+pub enum RPCDeployAccountTransaction {
     #[serde(rename = "0x3")]
-    V3(ExternalDeployAccountTransactionV3),
+    V3(RPCDeployAccountTransactionV3),
 }
 
 /// A RPC invoke transaction.
@@ -89,15 +89,15 @@ pub enum ExternalDeployAccountTransaction {
 /// [`Starknet specs`]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(tag = "version")]
-pub enum ExternalInvokeTransaction {
+pub enum RPCInvokeTransaction {
     #[serde(rename = "0x3")]
-    V3(ExternalInvokeTransactionV3),
+    V3(RPCInvokeTransactionV3),
 }
 
 /// A declare transaction of a Cairo-v1 contract class that can be added to Starknet through the
 /// RPC.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct ExternalDeclareTransactionV3 {
+pub struct RPCDeclareTransactionV3 {
     // TODO: Check with Shahak why we need to keep the DeclareType.
     // pub r#type: DeclareType,
     pub sender_address: ContractAddress,
@@ -115,7 +115,7 @@ pub struct ExternalDeclareTransactionV3 {
 
 /// A deploy account transaction that can be added to Starknet through the RPC.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ExternalDeployAccountTransactionV3 {
+pub struct RPCDeployAccountTransactionV3 {
     pub signature: TransactionSignature,
     pub nonce: Nonce,
     pub class_hash: ClassHash,
@@ -130,7 +130,7 @@ pub struct ExternalDeployAccountTransactionV3 {
 
 /// An invoke account transaction that can be added to Starknet through the RPC.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
-pub struct ExternalInvokeTransactionV3 {
+pub struct RPCInvokeTransactionV3 {
     pub sender_address: ContractAddress,
     pub calldata: Calldata,
     pub signature: TransactionSignature,
