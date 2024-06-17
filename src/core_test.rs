@@ -81,3 +81,16 @@ fn nonce_overflow() {
     let overflowed_nonce = max_nonce.try_increment();
     assert_matches!(overflowed_nonce, Err(StarknetApiError::OutOfRange { string: _err_str }));
 }
+
+#[test]
+fn test_patricia_key_display() {
+    assert_eq!(format!("{}", patricia_key!(7_u8)), String::from("0x") + &"0".repeat(63) + "7");
+}
+
+#[test]
+fn test_contract_address_display() {
+    assert_eq!(
+        format!("{}", ContractAddress(patricia_key!(16_u8))),
+        String::from("0x") + &"0".repeat(62) + "10"
+    );
+}
