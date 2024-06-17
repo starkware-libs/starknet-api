@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 use std::sync::Arc;
 
-use derive_more::From;
+use derive_more::{Display, From};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use starknet_types_core::felt::Felt;
 use strum::IntoEnumIterator;
@@ -646,6 +646,7 @@ pub struct RevertedTransactionExecutionStatus {
     Copy,
     Clone,
     Default,
+    Display,
     Eq,
     PartialEq,
     Hash,
