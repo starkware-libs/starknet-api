@@ -970,4 +970,10 @@ pub enum Builtin {
     Keccak,
     #[serde(rename = "segment_arena_builtin")]
     SegmentArena,
+    #[serde(rename = "add_mod_builtin")]
+    AddMod,
+    #[serde(rename = "mul_mod_builtin")]
+    MulMod,
+    #[serde(rename = "range_check96_builtin")]
+    RangeCheck96,
 }
