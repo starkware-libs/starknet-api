@@ -951,6 +951,7 @@ pub struct ExecutionResources {
     pub memory_holes: u64,
     pub da_gas_consumed: GasVector,
     pub gas_consumed: GasVector,
+    pub total_gas_consumed: GasVector,
 }
 
 #[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
