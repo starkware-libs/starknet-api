@@ -1,6 +1,6 @@
 [package]
 name = "starknet_api"
-version = "0.13.0-dev.7"
+version = "0.13.0-dev.8"
 edition = "2021"
 repository = "https://github.com/starkware-libs/starknet-api"
 license = "Apache-2.0"
