@@ -5,10 +5,10 @@ mod rpc_transaction_test;
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce};
 use crate::data_availability::DataAvailabilityMode;
-use crate::hash::StarkFelt;
 use crate::state::EntryPoint;
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, Resource, ResourceBounds,
@@ -49,8 +49,10 @@ macro_rules! implement_ref_getters {
 
 impl RPCTransaction {
     implement_ref_getters!(
+        (nonce, Nonce),
         (resource_bounds, ResourceBoundsMapping),
-        (signature, TransactionSignature)
+        (signature, TransactionSignature),
+        (tip, Tip)
     );
 }
 
@@ -146,7 +148,7 @@ pub struct RPCInvokeTransactionV3 {
 // The contract class in SN_API state doesn't have `contract_class_version`, not following the spec.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ContractClass {
-    pub sierra_program: Vec<StarkFelt>,
+    pub sierra_program: Vec<Felt>,
     pub contract_class_version: String,
     pub entry_points_by_type: EntryPointByType,
     pub abi: String,

@@ -4,27 +4,11 @@ use rstest::rstest;
 use starknet_types_core::felt::Felt;
 
 use crate::core::{ClassHash, CompiledClassHash, ContractAddress, Nonce, PatriciaKey};
-<<<<<<< HEAD:src/external_transaction_test.rs
-use crate::external_transaction::{
-    ContractClass, DataAvailabilityMode, ExternalDeclareTransaction, ExternalDeclareTransactionV3,
-    ExternalDeployAccountTransaction, ExternalDeployAccountTransactionV3,
-    ExternalInvokeTransaction, ExternalInvokeTransactionV3, ExternalTransaction,
-};
-||||||| 0f49f20:src/external_transaction_test.rs
-use crate::external_transaction::{
-    ContractClass, DataAvailabilityMode, ExternalDeclareTransaction, ExternalDeclareTransactionV3,
-    ExternalDeployAccountTransaction, ExternalDeployAccountTransactionV3,
-    ExternalInvokeTransaction, ExternalInvokeTransactionV3, ExternalTransaction,
-};
-use crate::hash::{StarkFelt, StarkHash};
-=======
-use crate::hash::{StarkFelt, StarkHash};
 use crate::rpc_transaction::{
     ContractClass, DataAvailabilityMode, RPCDeclareTransaction, RPCDeclareTransactionV3,
     RPCDeployAccountTransaction, RPCDeployAccountTransactionV3, RPCInvokeTransaction,
     RPCInvokeTransactionV3, RPCTransaction, ResourceBoundsMapping,
 };
->>>>>>> origin/main-mempool:src/rpc_transaction_test.rs
 use crate::transaction::{
     AccountDeploymentData, Calldata, ContractAddressSalt, PaymasterData, ResourceBounds, Tip,
     TransactionSignature,
