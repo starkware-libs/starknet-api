@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "transaction_test.rs"]
+mod transaction_test;
+
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -925,24 +929,26 @@ pub struct ExecutionResources {
     pub da_l1_data_gas_consumed: u64,
 }
 
+/// The order of the builtins in this enum is important for EnumIter.
+/// This is the order of builtins the Starknet OS expects.
 #[derive(Clone, Debug, Deserialize, EnumIter, Eq, Hash, PartialEq, Serialize)]
 pub enum Builtin {
-    #[serde(rename = "range_check_builtin_applications")]
-    RangeCheck,
     #[serde(rename = "pedersen_builtin_applications")]
     Pedersen,
-    #[serde(rename = "poseidon_builtin_applications")]
-    Poseidon,
-    #[serde(rename = "ec_op_builtin_applications")]
-    EcOp,
+    #[serde(rename = "range_check_builtin_applications")]
+    RangeCheck,
     #[serde(rename = "ecdsa_builtin_applications")]
     Ecdsa,
     #[serde(rename = "bitwise_builtin_applications")]
     Bitwise,
-    #[serde(rename = "keccak_builtin_applications")]
-    Keccak,
+    #[serde(rename = "ec_op_builtin_applications")]
+    EcOp,
+    #[serde(rename = "poseidon_builtin_applications")]
+    Poseidon,
     #[serde(rename = "segment_arena_builtin")]
     SegmentArena,
+    #[serde(rename = "keccak_builtin_applications")]
+    Keccak,
 }
 
 const RANGE_CHACK_BUILTIN_NAME: &str = "range_check";
