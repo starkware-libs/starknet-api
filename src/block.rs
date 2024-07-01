@@ -66,9 +66,9 @@ pub struct BlockHeader {
     #[serde(skip_serializing)]
     pub state_diff_length: Option<usize>,
     #[serde(skip_serializing)]
-    pub transaction_commitment: Option<TransactionCommitment>,
+    pub transaction_commitment: TransactionCommitment,
     #[serde(skip_serializing)]
-    pub event_commitment: Option<EventCommitment>,
+    pub event_commitment: EventCommitment,
     #[serde(skip_serializing)]
     pub n_transactions: usize,
     #[serde(skip_serializing)]
