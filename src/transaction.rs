@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "transaction_test.rs"]
+mod transaction_test;
+
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Display;
 use std::sync::Arc;
@@ -925,7 +929,7 @@ pub struct ExecutionResources {
     pub da_l1_data_gas_consumed: u64,
 }
 
-#[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, EnumIter, Eq, Hash, PartialEq, Serialize)]
 pub enum Builtin {
     #[serde(rename = "range_check_builtin_applications")]
     RangeCheck,
@@ -966,5 +970,26 @@ impl Builtin {
             Builtin::Keccak => KECCAK_BUILTIN_NAME,
             Builtin::SegmentArena => SEGMENT_ARENA_BUILTIN_NAME,
         }
+    }
+
+    /// This is the order of builtins the Starknet OS expects.
+    fn order(&self) -> usize {
+        match self {
+            Self::Pedersen => 0,
+            Self::RangeCheck => 1,
+            Self::Ecdsa => 2,
+            Self::Bitwise => 3,
+            Self::EcOp => 4,
+            Self::Poseidon => 5,
+            Self::SegmentArena => 6,
+            Self::Keccak => 7,
+        }
+    }
+
+    /// Returns an iterator over all the builtins in the order the Starknet OS expects.
+    pub fn iter_in_order() -> impl Iterator<Item = Builtin> {
+        let mut builtins_vector = Self::iter().collect::<Vec<Builtin>>();
+        builtins_vector.sort_by_key(|builtin| builtin.order());
+        builtins_vector.into_iter()
     }
 }
