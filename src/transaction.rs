@@ -925,7 +925,7 @@ pub struct ExecutionResources {
     pub da_l1_data_gas_consumed: u64,
 }
 
-#[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, EnumIter, Eq, Hash, PartialEq, Serialize)]
 pub enum Builtin {
     #[serde(rename = "range_check_builtin_applications")]
     RangeCheck,
