@@ -62,13 +62,13 @@ pub struct BlockHeader {
     // TODO: Once all environments support these fields, remove the Option (make sure to
     // update/resync any storage is missing the data).
     #[serde(skip_serializing)]
-    pub state_diff_commitment: StateDiffCommitment,
+    pub state_diff_commitment: Option<StateDiffCommitment>,
     #[serde(skip_serializing)]
     pub state_diff_length: Option<usize>,
     #[serde(skip_serializing)]
-    pub transaction_commitment: TransactionCommitment,
+    pub transaction_commitment: Option<TransactionCommitment>,
     #[serde(skip_serializing)]
-    pub event_commitment: EventCommitment,
+    pub event_commitment: Option<EventCommitment>,
     #[serde(skip_serializing)]
     pub n_transactions: usize,
     #[serde(skip_serializing)]
