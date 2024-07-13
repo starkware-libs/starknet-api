@@ -953,7 +953,7 @@ pub struct ExecutionResources {
     pub gas_consumed: GasVector,
 }
 
-#[derive(Hash, Debug, Deserialize, Serialize, Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, EnumIter, Eq, Hash, PartialEq, Serialize)]
 pub enum Builtin {
     #[serde(rename = "range_check_builtin_applications")]
     RangeCheck,
@@ -977,4 +977,28 @@ pub enum Builtin {
     MulMod,
     #[serde(rename = "range_check96_builtin")]
     RangeCheck96,
+}
+
+const RANGE_CHACK_BUILTIN_NAME: &str = "range_check";
+const PEDERSEN_BUILTIN_NAME: &str = "pedersen";
+const POSEIDON_BUILTIN_NAME: &str = "poseidon";
+const EC_OP_BUILTIN_NAME: &str = "ec_op";
+const ECDSA_BUILTIN_NAME: &str = "ecdsa";
+const BITWISE_BUILTIN_NAME: &str = "bitwise";
+const KECCAK_BUILTIN_NAME: &str = "keccak";
+const SEGMENT_ARENA_BUILTIN_NAME: &str = "segment_arena";
+
+impl Builtin {
+    pub fn name(&self) -> &'static str {
+        match self {
+            Builtin::RangeCheck => RANGE_CHACK_BUILTIN_NAME,
+            Builtin::Pedersen => PEDERSEN_BUILTIN_NAME,
+            Builtin::Poseidon => POSEIDON_BUILTIN_NAME,
+            Builtin::EcOp => EC_OP_BUILTIN_NAME,
+            Builtin::Ecdsa => ECDSA_BUILTIN_NAME,
+            Builtin::Bitwise => BITWISE_BUILTIN_NAME,
+            Builtin::Keccak => KECCAK_BUILTIN_NAME,
+            Builtin::SegmentArena => SEGMENT_ARENA_BUILTIN_NAME,
+        }
+    }
 }
