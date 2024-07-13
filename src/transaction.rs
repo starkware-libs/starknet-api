@@ -987,6 +987,9 @@ const ECDSA_BUILTIN_NAME: &str = "ecdsa";
 const BITWISE_BUILTIN_NAME: &str = "bitwise";
 const KECCAK_BUILTIN_NAME: &str = "keccak";
 const SEGMENT_ARENA_BUILTIN_NAME: &str = "segment_arena";
+const ADD_MOD_BUILTIN_NAME: &str = "add_mod";
+const MUL_MOD_BUILTIN_NAME: &str = "mul_mod";
+const RANGE_CHECK96_BUILTIN_NAME: &str = "range_check96";
 
 impl Builtin {
     pub fn name(&self) -> &'static str {
@@ -999,6 +1002,9 @@ impl Builtin {
             Builtin::Bitwise => BITWISE_BUILTIN_NAME,
             Builtin::Keccak => KECCAK_BUILTIN_NAME,
             Builtin::SegmentArena => SEGMENT_ARENA_BUILTIN_NAME,
+            Builtin::AddMod => ADD_MOD_BUILTIN_NAME,
+            Builtin::MulMod => MUL_MOD_BUILTIN_NAME,
+            Builtin::RangeCheck96 => RANGE_CHECK96_BUILTIN_NAME,
         }
     }
 }
