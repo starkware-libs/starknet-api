@@ -76,7 +76,7 @@ impl<const N: usize, const PREFIXED: bool> Serialize for BytesAsHex<N, PREFIXED>
 }
 
 /// The error type returned by the inner deserialization.
-// If you need `eq`, add `impl Eq fro InnerDeserializationError {}` and read warning below.
+// If you need `eq`, add `impl Eq for InnerDeserializationError {}` and read warning below.
 //
 // For some reason `hex` (now unmaintained for > 3 years) didn't implement `Eq`, even though
 // there's no reason not too, so we can't use `derive(Eq)` unfortunately.
