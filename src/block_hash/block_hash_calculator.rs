@@ -54,7 +54,7 @@ pub struct BlockHeaderCommitments {
 }
 
 /// Poseidon (
-///     “STARKNET_BLOCK_HASH0”, block_number, global_state_root, sequencer_address,
+///     "STARKNET_BLOCK_HASH0", block_number, global_state_root, sequencer_address,
 ///     block_timestamp, concat_counts, state_diff_hash, transaction_commitment,
 ///     event_commitment, receipt_commitment, gas_price_wei, gas_price_fri,
 ///     data_gas_price_wei, data_gas_price_fri, starknet_version, 0, parent_block_hash
